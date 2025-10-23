@@ -8,89 +8,56 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* ASTRI Control Room Dark Theme */
+    --background: 220 18% 8%;
+    --foreground: 210 20% 92%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 92%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 18% 12%;
+    --popover-foreground: 210 20% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 195 100% 50%;
+    --primary-foreground: 220 18% 8%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 18% 14%;
+    --secondary-foreground: 210 20% 92%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 18% 16%;
+    --muted-foreground: 210 12% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 280 85% 60%;
+    --accent-foreground: 210 20% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 85% 55%;
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 142 76% 36%;
+    --success-foreground: 210 20% 98%;
 
-    --radius: 0.5rem;
+    --warning: 38 92% 50%;
+    --warning-foreground: 220 18% 8%;
 
-    --sidebar-background: 0 0% 98%;
+    --border: 220 18% 20%;
+    --input: 220 18% 18%;
+    --ring: 195 100% 50%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --radius: 0.375rem;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Status colors */
+    --status-online: 142 76% 36%;
+    --status-offline: 0 0% 40%;
+    --status-error: 0 85% 55%;
+    --status-warning: 38 92% 50%;
+    --status-active: 195 100% 50%;
+    --status-standby: 280 85% 60%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Telescope status */
+    --telescope-ready: 142 76% 36%;
+    --telescope-busy: 38 92% 50%;
+    --telescope-error: 0 85% 55%;
+    --telescope-idle: 210 12% 65%;
   }
 }
 
@@ -100,6 +67,44 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono antialiased;
+  }
+
+  html, body, #root {
+    @apply h-full w-full overflow-hidden;
+  }
+}
+
+@layer components {
+  .status-indicator {
+    @apply rounded-full transition-all duration-300;
+  }
+
+  .status-online {
+    @apply bg-[hsl(var(--status-online))] shadow-[0_0_8px_hsl(var(--status-online)/.6)];
+  }
+
+  .status-offline {
+    @apply bg-[hsl(var(--status-offline))];
+  }
+
+  .status-error {
+    @apply bg-[hsl(var(--status-error))] shadow-[0_0_8px_hsl(var(--status-error)/.6)] animate-pulse;
+  }
+
+  .status-warning {
+    @apply bg-[hsl(var(--status-warning))] shadow-[0_0_8px_hsl(var(--status-warning)/.6)];
+  }
+
+  .status-active {
+    @apply bg-[hsl(var(--status-active))] shadow-[0_0_8px_hsl(var(--status-active)/.6)];
+  }
+
+  .control-panel {
+    @apply bg-card border border-border rounded-lg shadow-lg;
+  }
+
+  .data-grid {
+    @apply grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-2;
   }
 }

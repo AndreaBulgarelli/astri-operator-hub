@@ -1,11 +1,81 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
+import { Header } from "@/components/layout/Header";
+import { SystemMonitoring } from "@/components/tabs/SystemMonitoring";
+import { StartupTab } from "@/components/tabs/StartupTab";
+import { PreparationTab } from "@/components/tabs/PreparationTab";
+import { ObservationTab } from "@/components/tabs/ObservationTab";
+import { EndTab } from "@/components/tabs/EndTab";
+import { UtilityTab } from "@/components/tabs/UtilityTab";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState("monitoring");
+
+  const handleSafeMode = () => {
+    toast({
+      title: "SAFE MODE ACTIVATED",
+      description: "All systems transitioning to safe mode...",
+      variant: "destructive",
+    });
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="h-screen w-full flex flex-col bg-background">
+      <Header />
+
+      <div className="flex-1 flex flex-col overflow-hidden p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-primary">ASTRI Mini-Array Operator HMI</h1>
+          <Button
+            variant="destructive"
+            size="lg"
+            onClick={handleSafeMode}
+            className="gap-2"
+          >
+            <AlertTriangle className="h-5 w-5" />
+            SAFE MODE
+          </Button>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <TabsList className="bg-secondary w-full justify-start">
+            <TabsTrigger value="monitoring">System Monitoring</TabsTrigger>
+            <TabsTrigger value="startup">Startup</TabsTrigger>
+            <TabsTrigger value="preparation">Preparation</TabsTrigger>
+            <TabsTrigger value="observation">Observation</TabsTrigger>
+            <TabsTrigger value="end">End</TabsTrigger>
+            <TabsTrigger value="utility">Utility</TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1 overflow-auto mt-2">
+            <TabsContent value="monitoring" className="h-full m-0">
+              <SystemMonitoring />
+            </TabsContent>
+
+            <TabsContent value="startup" className="h-full m-0">
+              <StartupTab />
+            </TabsContent>
+
+            <TabsContent value="preparation" className="h-full m-0">
+              <PreparationTab />
+            </TabsContent>
+
+            <TabsContent value="observation" className="h-full m-0">
+              <ObservationTab />
+            </TabsContent>
+
+            <TabsContent value="end" className="h-full m-0">
+              <EndTab />
+            </TabsContent>
+
+            <TabsContent value="utility" className="h-full m-0">
+              <UtilityTab />
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
