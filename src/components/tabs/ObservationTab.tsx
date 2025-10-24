@@ -11,7 +11,7 @@ import { Play, Square } from "lucide-react";
 
 export const ObservationTab = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const [selectedSB, setSelectedSB] = useState<string>("");
+  const [selectedSB, setSelectedSB] = useState<string>("all");
   const [isObserving, setIsObserving] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -42,7 +42,7 @@ export const ObservationTab = () => {
     setIsObserving(true);
     toast({
       title: "Observation Started",
-      description: `Starting ${selectedSB ? schedulingBlocks.find(sb => sb.id === selectedSB)?.name : "full observing plan"}...`,
+      description: `Starting ${selectedSB !== "all" ? schedulingBlocks.find(sb => sb.id === selectedSB)?.name : "full observing plan"}...`,
     });
 
     // Simulate progress
@@ -83,7 +83,7 @@ export const ObservationTab = () => {
               <label className="text-sm font-medium">Observing Plan</label>
               <Select value={selectedPlan} onValueChange={(val) => {
                 setSelectedPlan(val);
-                setSelectedSB("");
+                setSelectedSB("all");
               }} disabled={isObserving}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select observing plan..." />
@@ -105,7 +105,7 @@ export const ObservationTab = () => {
                   <SelectValue placeholder="Execute entire plan or select SB..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Scheduling Blocks</SelectItem>
+                  <SelectItem value="all">All Scheduling Blocks</SelectItem>
                   {schedulingBlocks.map(sb => (
                     <SelectItem key={sb.id} value={sb.id}>
                       {sb.id} - {sb.name} ({sb.duration})

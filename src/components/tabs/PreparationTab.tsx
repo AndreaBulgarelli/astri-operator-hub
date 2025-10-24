@@ -60,7 +60,7 @@ export const PreparationTab = () => {
   };
 
   return (
-    <ScrollArea className="h-full">
+    <div className="h-full overflow-auto">
       <div className="p-6 space-y-6">
         <Card className="control-panel p-6">
           <h2 className="text-xl font-semibold mb-2 text-primary">Observation Preparation</h2>
@@ -305,6 +305,6 @@ export const PreparationTab = () => {
           </div>
         </Card>
       </div>
-    </ScrollArea>
+    </div>
   );
 };
