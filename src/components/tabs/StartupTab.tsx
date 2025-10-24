@@ -86,12 +86,16 @@ export const StartupTab = () => {
     }
   };
 
+  const operationalCount = components.filter(c => c.state === "OPERATIONAL").length;
+  const totalComponents = components.length;
+  const progress = (operationalCount / totalComponents) * 100;
+
   return (
     <div className="h-full p-6 space-y-6 overflow-auto">
       <Card className="control-panel p-6">
         <h2 className="text-xl font-semibold mb-6 text-primary">Central Control System Startup</h2>
 
-        <div className="mb-6">
+        <div className="mb-6 space-y-4">
           <Button
             onClick={handleStartCCS}
             disabled={isStarting || components.some(c => c.state === "OPERATIONAL")}
@@ -110,6 +114,34 @@ export const StartupTab = () => {
               </>
             )}
           </Button>
+
+          {/* Array Information */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-secondary/50 rounded-lg p-3">
+              <div className="text-xs text-muted-foreground mb-1">Array Status</div>
+              <div className="text-lg font-semibold text-primary">
+                {progress === 100 ? "OPERATIONAL" : isStarting ? "STARTING" : "STANDBY"}
+              </div>
+            </div>
+            <div className="bg-secondary/50 rounded-lg p-3">
+              <div className="text-xs text-muted-foreground mb-1">Components Online</div>
+              <div className="text-lg font-semibold text-foreground">
+                {operationalCount} / {totalComponents}
+              </div>
+            </div>
+            <div className="bg-secondary/50 rounded-lg p-3">
+              <div className="text-xs text-muted-foreground mb-1">Telescopes</div>
+              <div className="text-lg font-semibold text-foreground">
+                {components.filter(c => c.id.startsWith("tcs-") && c.state === "OPERATIONAL").length} / 9
+              </div>
+            </div>
+            <div className="bg-secondary/50 rounded-lg p-3">
+              <div className="text-xs text-muted-foreground mb-1">Initialization</div>
+              <div className="text-lg font-semibold text-foreground">
+                {Math.round(progress)}%
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="bg-secondary/30 rounded-lg p-4 overflow-auto">
