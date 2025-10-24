@@ -114,9 +114,27 @@ export const StartupTab = () => {
 
         <div className="bg-secondary/30 rounded-lg p-4 overflow-auto">
           <svg width="800" height="500" className="mx-auto">
-            {/* Draw connections from CCS to other components */}
+            {/* Draw connections from CCS to Resource Manager */}
+            {(() => {
+              const ccs = components.find(c => c.id === "ccs")!;
+              const rm = components.find(c => c.id === "rm")!;
+              return (
+                <line
+                  key="line-rm"
+                  x1={ccs.x}
+                  y1={ccs.y}
+                  x2={rm.x}
+                  y2={rm.y}
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2"
+                  opacity="0.6"
+                />
+              );
+            })()}
+
+            {/* Draw connections from CCS to TCS */}
             {components
-              .filter(c => c.id !== "ccs")
+              .filter(c => c.id.startsWith("tcs-"))
               .map(comp => {
                 const ccs = components.find(c => c.id === "ccs")!;
                 return (
@@ -133,6 +151,60 @@ export const StartupTab = () => {
                   />
                 );
               })}
+
+            {/* Draw connections from CCS to Collectors */}
+            {components
+              .filter(c => c.id.startsWith("col"))
+              .map(comp => {
+                const ccs = components.find(c => c.id === "ccs")!;
+                return (
+                  <line
+                    key={`line-${comp.id}`}
+                    x1={ccs.x}
+                    y1={ccs.y}
+                    x2={comp.x}
+                    y2={comp.y}
+                    stroke="hsl(var(--border))"
+                    strokeWidth="1"
+                    strokeDasharray="4"
+                    opacity="0.3"
+                  />
+                );
+              })}
+
+            {/* Draw TCS -> ADAS -> OOQS chains for A1, A5, A9 */}
+            {["a1", "a5", "a9"].map(tel => {
+              const tcs = components.find(c => c.id === `tcs-${tel}`);
+              const adas = components.find(c => c.id === `adas-${tel}`);
+              const ooqs = components.find(c => c.id === `ooqs-${tel}`);
+              
+              if (!tcs || !adas || !ooqs) return null;
+              
+              return (
+                <g key={`chain-${tel}`}>
+                  {/* TCS -> ADAS */}
+                  <line
+                    x1={tcs.x}
+                    y1={tcs.y}
+                    x2={adas.x}
+                    y2={adas.y}
+                    stroke="hsl(var(--telescope-ready))"
+                    strokeWidth="2"
+                    opacity="0.6"
+                  />
+                  {/* ADAS -> OOQS */}
+                  <line
+                    x1={adas.x}
+                    y1={adas.y}
+                    x2={ooqs.x}
+                    y2={ooqs.y}
+                    stroke="hsl(var(--telescope-ready))"
+                    strokeWidth="2"
+                    opacity="0.6"
+                  />
+                </g>
+              );
+            })}
 
             {/* Draw component nodes */}
             {components.map(comp => (
