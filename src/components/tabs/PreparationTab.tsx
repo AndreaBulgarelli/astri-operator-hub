@@ -5,57 +5,99 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Power, AlertTriangle } from "lucide-react";
+import { Power } from "lucide-react";
 
 export const PreparationTab = () => {
+  const [isPreparing, setIsPreparing] = useState(false);
+  const [lidarStatus, setLidarStatus] = useState<"OFF" | "INITIALIZING" | "STANDBY">("OFF");
+  
   const [checklist, setChecklist] = useState({
-    weatherCheck: false,
-    telescopeStatus: false,
-    cameraStatus: false,
-    networkStatus: false,
-    timingSync: false,
+    maSystemCheck: false,
+    lidarInit: false,
+    telescopesStandby: false,
+    cameraInit: false,
+    pmcInit: false,
   });
 
-  // Mock telescope states
-  const [telescopes] = useState([
-    { id: "A1", status: "ready", temp: 18.2, humidity: 45, power: "ON" },
-    { id: "A2", status: "ready", temp: 18.5, humidity: 46, power: "ON" },
-    { id: "A3", status: "idle", temp: 19.1, humidity: 48, power: "ON" },
-    { id: "A4", status: "ready", temp: 18.3, humidity: 44, power: "ON" },
-    { id: "A5", status: "error", temp: 22.5, humidity: 52, power: "ON" },
-    { id: "A6", status: "ready", temp: 18.7, humidity: 45, power: "ON" },
-    { id: "A7", status: "ready", temp: 18.4, humidity: 47, power: "ON" },
-    { id: "A8", status: "idle", temp: 19.8, humidity: 49, power: "ON" },
-    { id: "A9", status: "ready", temp: 18.6, humidity: 46, power: "ON" },
+  type TelescopeStatus = "SAFE" | "STANDBY" | "OPERATIONAL" | "FAULT";
+  
+  const [telescopes, setTelescopes] = useState([
+    { id: "1", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "OFF" },
+    { id: "2", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "OFF" },
+    { id: "3", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "OFF" },
+    { id: "4", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "OFF" },
+    { id: "5", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "OFF" },
+    { id: "6", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "OFF" },
+    { id: "7", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "OFF" },
+    { id: "8", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "OFF" },
+    { id: "9", status: "SAFE" as TelescopeStatus, mount: "SAFE", camera: "OFF", pmc: "OFF", m2: "SAFE", sqm: "ON" },
   ]);
 
   const allChecked = Object.values(checklist).every(Boolean);
-  const allTelescopesReady = telescopes.every(t => t.status === "ready");
+  const allTelescopesReady = telescopes.every(t => t.status === "OPERATIONAL");
 
-  const handlePrepare = () => {
-    toast({
-      title: "Array Preparation Started",
-      description: "Preparing telescopes for observation...",
-    });
+  const handleInitLidar = () => {
+    setLidarStatus("INITIALIZING");
+    setTimeout(() => {
+      setLidarStatus("STANDBY");
+      setChecklist(prev => ({ ...prev, lidarInit: true }));
+      toast({
+        title: "LIDAR Initialized",
+        description: "LIDAR is now in STANDBY state",
+      });
+    }, 2000);
   };
 
-  const handleTelescopeReady = (id: string) => {
+  const handleInitTelescopes = () => {
+    setIsPreparing(true);
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < telescopes.length) {
+        setTelescopes(prev => prev.map((t, i) => 
+          i === index ? { 
+            ...t, 
+            status: "STANDBY" as TelescopeStatus, 
+            mount: "STANDBY", 
+            camera: "STANDBY", 
+            pmc: "OPERATIONAL",
+            m2: "SAFE",
+            sqm: t.id === "9" ? "OPERATIONAL" : "OFF"
+          } : t
+        ));
+        index++;
+      } else {
+        clearInterval(interval);
+        setIsPreparing(false);
+        setChecklist(prev => ({ ...prev, telescopesStandby: true }));
+        toast({
+          title: "Telescopes Initialized",
+          description: "All telescopes are now in STANDBY state",
+        });
+      }
+    }, 600);
+  };
+
+  const handleSetOperational = () => {
+    setTelescopes(prev => prev.map(t => ({ ...t, status: "OPERATIONAL" as TelescopeStatus })));
+    setChecklist(prev => ({ ...prev, cameraInit: true, pmcInit: true }));
     toast({
-      title: `Telescope ${id} Initialization`,
-      description: `Sending ${id} to READY state...`,
+      title: "Telescopes Operational",
+      description: "MA System ready for pre-night operations",
     });
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "ready":
-        return <Badge className="bg-telescope-ready">READY</Badge>;
-      case "idle":
-        return <Badge className="bg-telescope-idle">IDLE</Badge>;
-      case "error":
-        return <Badge className="bg-telescope-error">ERROR</Badge>;
+      case "OPERATIONAL":
+        return <Badge className="bg-telescope-ready">OPERATIONAL</Badge>;
+      case "STANDBY":
+        return <Badge className="bg-status-standby">STANDBY</Badge>;
+      case "SAFE":
+        return <Badge className="bg-status-active">SAFE</Badge>;
+      case "FAULT":
+        return <Badge className="bg-telescope-error">FAULT</Badge>;
       default:
-        return <Badge variant="outline">{status.toUpperCase()}</Badge>;
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -63,245 +105,130 @@ export const PreparationTab = () => {
     <div className="h-full overflow-auto">
       <div className="p-6 space-y-6">
         <Card className="control-panel p-6">
-          <h2 className="text-xl font-semibold mb-2 text-primary">Observation Preparation</h2>
+          <h2 className="text-xl font-semibold mb-2 text-primary">Pre-Night Operations (Warm Startup)</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Use Cases: ASTRI-UC-9.1.0.0-050 & ASTRI-UC-9.1.0.0-060
+            UC 9.1.0.0-050: Configure MA System | UC 9.1.0.0-060: Day-Night Handover
           </p>
 
           <div className="space-y-6">
-            {/* Weather Status */}
+            {/* Pre-Conditions */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Weather Conditions</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Power className="h-5 w-5" />
+                Pre-Conditions
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="p-4 bg-secondary/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Weather Station 1</span>
-                    <Badge className="bg-status-online">ONLINE</Badge>
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Wind Speed:</span>
-                      <span className="font-mono">8.2 km/h</span>
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      checked={checklist.maSystemCheck}
+                      onCheckedChange={(checked) => 
+                        setChecklist(prev => ({ ...prev, maSystemCheck: checked as boolean }))
+                      }
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">MA System</div>
+                      <div className="text-xs text-muted-foreground">Operational.Nominal.DayOperations</div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Temperature:</span>
-                      <span className="font-mono">15.3°C</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Humidity:</span>
-                      <span className="font-mono">62%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Cloud Cover:</span>
-                      <span className="font-mono">Clear</span>
-                    </div>
+                    <Badge className="bg-status-online">OK</Badge>
                   </div>
                 </Card>
-                <Card className="p-4 bg-secondary/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Weather Station 2</span>
-                    <Badge className="bg-status-online">ONLINE</Badge>
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Wind Speed:</span>
-                      <span className="font-mono">7.8 km/h</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Temperature:</span>
-                      <span className="font-mono">15.1°C</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Humidity:</span>
-                      <span className="font-mono">64%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Cloud Cover:</span>
-                      <span className="font-mono">Clear</span>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-secondary/50 border border-border">
-                <Checkbox
-                  id="weather"
-                  checked={checklist.weatherCheck}
-                  onCheckedChange={(checked) =>
-                    setChecklist({ ...checklist, weatherCheck: checked as boolean })
-                  }
-                />
-                <label htmlFor="weather" className="text-sm flex-1 cursor-pointer">
-                  Weather conditions acceptable for observation
-                </label>
               </div>
             </div>
 
-            {/* Telescope Array Status */}
+            {/* LIDAR */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Telescope Array Status</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {telescopes.map((tel) => (
-                  <Card key={tel.id} className="p-3 bg-secondary/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold">{tel.id}</span>
-                      {getStatusBadge(tel.status)}
-                    </div>
-                    <div className="space-y-1 text-xs mb-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Temp:</span>
-                        <span className="font-mono">{tel.temp}°C</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Humidity:</span>
-                        <span className="font-mono">{tel.humidity}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Power:</span>
-                        <span className="font-mono">{tel.power}</span>
-                      </div>
-                    </div>
-                    {tel.status !== "ready" && (
-                      <Button 
-                        size="sm" 
-                        className="w-full gap-1" 
-                        variant={tel.status === "error" ? "destructive" : "default"}
-                        onClick={() => handleTelescopeReady(tel.id)}
-                      >
-                        {tel.status === "error" ? (
-                          <>
-                            <AlertTriangle className="h-3 w-3" />
-                            Reset
-                          </>
-                        ) : (
-                          <>
-                            <Power className="h-3 w-3" />
-                            Set Ready
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </Card>
-                ))}
-              </div>
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-secondary/50 border border-border">
-                <Checkbox
-                  id="telescope"
-                  checked={checklist.telescopeStatus}
-                  onCheckedChange={(checked) =>
-                    setChecklist({ ...checklist, telescopeStatus: checked as boolean })
-                  }
-                />
-                <label htmlFor="telescope" className="text-sm flex-1 cursor-pointer">
-                  All telescopes in ready state ({telescopes.filter(t => t.status === "ready").length}/9)
-                </label>
-                {!allTelescopesReady && (
-                  <Badge variant="outline" className="bg-status-warning text-xs">
-                    Action Required
+              <h3 className="text-lg font-semibold">1. Initialize LIDAR</h3>
+              <Card className="p-4 bg-secondary/30">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="font-medium">LIDAR Status</div>
+                    <div className="text-xs text-muted-foreground">Atmosphere Characterisation</div>
+                  </div>
+                  <Badge className={
+                    lidarStatus === "STANDBY" ? "bg-status-standby" :
+                    lidarStatus === "INITIALIZING" ? "bg-warning" : "bg-muted"
+                  }>
+                    {lidarStatus}
                   </Badge>
-                )}
-              </div>
+                </div>
+                <Button 
+                  onClick={handleInitLidar}
+                  disabled={lidarStatus !== "OFF" || !checklist.maSystemCheck}
+                  className="w-full"
+                >
+                  {lidarStatus === "INITIALIZING" ? "Initializing..." : "Initialize LIDAR"}
+                </Button>
+              </Card>
             </div>
 
-            {/* Camera Systems */}
+            {/* Telescopes */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Camera Systems</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-lg font-semibold">2. Initialize Telescopes</h3>
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  <Button 
+                    onClick={handleInitTelescopes}
+                    disabled={isPreparing || !checklist.lidarInit}
+                    className="flex-1"
+                  >
+                    {isPreparing ? "Initializing..." : "Put STANDBY"}
+                  </Button>
+                  <Button 
+                    onClick={handleSetOperational}
+                    disabled={!checklist.telescopesStandby}
+                    variant="outline"
+                  >
+                    Set OPERATIONAL
+                  </Button>
+                </div>
+
                 <Card className="p-4 bg-secondary/30">
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Temperature:</span>
-                      <span className="font-mono">-10.2°C</span>
+                  <ScrollArea className="h-80">
+                    <div className="grid grid-cols-3 gap-2">
+                      {telescopes.map((tel) => (
+                        <Card key={tel.id} className="p-3 bg-background/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-semibold text-sm">ASTRI-{tel.id}</span>
+                            {getStatusBadge(tel.status)}
+                          </div>
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Mount:</span>
+                              <span className="font-mono">{tel.mount}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Camera:</span>
+                              <span className="font-mono">{tel.camera}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">PMC:</span>
+                              <span className="font-mono">{tel.pmc}</span>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Cooling Status:</span>
-                      <span className="font-mono">Active</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Initialized:</span>
-                      <span className="font-mono">9/9</span>
-                    </div>
-                  </div>
+                  </ScrollArea>
                 </Card>
-              </div>
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-secondary/50 border border-border">
-                <Checkbox
-                  id="camera"
-                  checked={checklist.cameraStatus}
-                  onCheckedChange={(checked) =>
-                    setChecklist({ ...checklist, cameraStatus: checked as boolean })
-                  }
-                />
-                <label htmlFor="camera" className="text-sm flex-1 cursor-pointer">
-                  Camera systems initialized and cooled
-                </label>
               </div>
             </div>
 
-            {/* Network & Timing */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Network & Timing</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="p-4 bg-secondary/30">
-                  <div className="text-sm font-medium mb-2">Network Status</div>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Latency:</span>
-                      <span className="font-mono">2.3 ms</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Bandwidth:</span>
-                      <span className="font-mono">10 Gbps</span>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="p-4 bg-secondary/30">
-                  <div className="text-sm font-medium mb-2">Timing System</div>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Sync Status:</span>
-                      <span className="font-mono">Locked</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Drift:</span>
-                      <span className="font-mono">±0.1 ns</span>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-secondary/50 border border-border">
-                <Checkbox
-                  id="network"
-                  checked={checklist.networkStatus}
-                  onCheckedChange={(checked) =>
-                    setChecklist({ ...checklist, networkStatus: checked as boolean })
-                  }
-                />
-                <label htmlFor="network" className="text-sm flex-1 cursor-pointer">
-                  Network connectivity verified
-                </label>
-              </div>
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-secondary/50 border border-border">
-                <Checkbox
-                  id="timing"
-                  checked={checklist.timingSync}
-                  onCheckedChange={(checked) =>
-                    setChecklist({ ...checklist, timingSync: checked as boolean })
-                  }
-                />
-                <label htmlFor="timing" className="text-sm flex-1 cursor-pointer">
-                  Timing system synchronized
-                </label>
-              </div>
+            {/* Summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="p-4 bg-secondary/30">
+                <div className="text-xs text-muted-foreground mb-1">Status</div>
+                <div className="text-lg font-semibold text-primary">
+                  {allChecked ? "READY" : "PREPARING"}
+                </div>
+              </Card>
+              <Card className="p-4 bg-secondary/30">
+                <div className="text-xs text-muted-foreground mb-1">Telescopes</div>
+                <div className="text-lg font-semibold">
+                  {telescopes.filter(t => t.status === "OPERATIONAL").length} / 9
+                </div>
+              </Card>
             </div>
-
-            <Button
-              onClick={handlePrepare}
-              disabled={!allChecked}
-              className="w-full"
-              size="lg"
-            >
-              {allChecked ? "Start Preparation" : "Complete Checklist to Continue"}
-            </Button>
           </div>
         </Card>
       </div>
