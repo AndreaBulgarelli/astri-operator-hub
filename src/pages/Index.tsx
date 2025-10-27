@@ -7,17 +7,37 @@ import { PreparationTab } from "@/components/tabs/PreparationTab";
 import { ObservationTab } from "@/components/tabs/ObservationTab";
 import { EndTab } from "@/components/tabs/EndTab";
 import { UtilityTab } from "@/components/tabs/UtilityTab";
+import { Card } from "@/components/ui/card";
+import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } from "lucide-react";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
+
+  const metrics = [
+    { icon: Telescope, value: 6, label: "Active Telescopes", color: "text-status-online" },
+    { icon: Box, value: 0, label: "Running Blocks", color: "text-status-active" },
+    { icon: AlertTriangle, value: 2, label: "Unack. Alarms", color: "text-status-error" },
+    { icon: CircleCheck, value: "92%", label: "Data Quality", color: "text-status-online" },
+    { icon: Activity, value: "1.2 GB/s", label: "Data Rate", color: "text-status-active" },
+    { icon: CloudSun, value: "Good", label: "Environmental Condition", color: "text-status-online" },
+    { icon: Eye, value: "21.5", label: "Sky Quality", color: "text-status-online" },
+  ];
 
   return (
     <div className="h-screen w-full flex flex-col bg-background">
       <Header />
 
       <div className="flex-1 flex flex-col overflow-hidden p-4">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-primary">ASTRI Mini-Array Operator HMI</h1>
+        <div className="grid grid-cols-7 gap-4 mb-4">
+          {metrics.map((metric, index) => (
+            <Card key={index} className="p-4 flex flex-col items-start gap-2 bg-card border-border">
+              <div className="flex items-center gap-2">
+                <metric.icon className={`h-6 w-6 ${metric.color}`} />
+                <span className="text-2xl font-bold text-foreground">{metric.value}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">{metric.label}</span>
+            </Card>
+          ))}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
