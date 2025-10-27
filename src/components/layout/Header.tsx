@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Eye, Sun, Moon, AlertTriangle, Telescope, Box, CircleCheck } from "lucide-react";
+import { Clock, Users, Eye, Sun, Moon, AlertTriangle, Wind } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -22,6 +22,16 @@ export const Header = () => {
     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
     const seconds = String(date.getUTCSeconds()).padStart(2, '0');
     return `${hours}:${minutes}:${seconds} UTC`;
+  };
+
+  const formatLastUpdate = (date: Date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
   };
 
   return (
@@ -71,33 +81,28 @@ export const Header = () => {
       </div>
 
       {/* Main Header */}
-      <div className="px-6 py-3 flex items-center justify-between">
+      <div className="px-6 py-3 flex items-center justify-between bg-muted/30">
+        <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <Sun className="h-5 w-5 text-yellow-500" />
+            <span className="font-medium">Canary Islands, 20.1 °C</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Wind className="h-5 w-5 text-primary" />
+            <span className="font-medium">Wind velocity, 13.6 Km/h</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <span>Last update: {formatLastUpdate(currentTime)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Header */}
+      <div className="px-6 py-2 flex items-center justify-between border-t border-border">
         <div className="flex items-center gap-3">
           <div className="text-xl font-bold text-primary tracking-wider">ASTRI</div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs flex items-center gap-1">
-              <Telescope className="h-3 w-3" />
-              6 Active
-            </Badge>
-            <Badge variant="outline" className="text-xs flex items-center gap-1">
-              <Box className="h-3 w-3" />
-              0 Blocks
-            </Badge>
-            <Badge variant="outline" className="text-xs flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3 text-status-error" />
-              2 Alarms
-            </Badge>
-            <Badge variant="outline" className="text-xs flex items-center gap-1">
-              <CircleCheck className="h-3 w-3 text-status-online" />
-              92% Quality
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              🌡️ 18°C
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              💧 65%
-            </Badge>
-          </div>
         </div>
 
         <div className="flex items-center gap-4">
