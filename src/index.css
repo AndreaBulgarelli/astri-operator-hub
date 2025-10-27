@@ -59,6 +59,57 @@ All colors MUST be HSL.
     --telescope-error: 0 85% 55%;
     --telescope-idle: 210 12% 65%;
   }
+
+  .light {
+    /* ASTRI Control Room Light Theme */
+    --background: 0 0% 100%;
+    --foreground: 220 18% 12%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 220 18% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 18% 12%;
+
+    --primary: 195 100% 40%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 220 18% 92%;
+    --secondary-foreground: 220 18% 12%;
+
+    --muted: 220 18% 95%;
+    --muted-foreground: 220 12% 40%;
+
+    --accent: 280 85% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 85% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 220 18% 12%;
+
+    --border: 220 18% 85%;
+    --input: 220 18% 90%;
+    --ring: 195 100% 40%;
+
+    /* Status colors */
+    --status-online: 142 76% 36%;
+    --status-offline: 0 0% 60%;
+    --status-error: 0 85% 45%;
+    --status-warning: 38 92% 50%;
+    --status-active: 195 100% 40%;
+    --status-standby: 280 85% 50%;
+
+    /* Telescope status */
+    --telescope-ready: 142 76% 36%;
+    --telescope-busy: 38 92% 50%;
+    --telescope-error: 0 85% 45%;
+    --telescope-idle: 220 12% 50%;
+  }
 }
 
 @layer base {
