@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Eye, Sun, Moon, AlertTriangle } from "lucide-react";
+import { Clock, Users, Eye, Sun, Moon, AlertTriangle, Telescope, Box, CircleCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -29,7 +29,7 @@ export const Header = () => {
       {/* Top Bar */}
       <div className="bg-secondary/50 border-b border-border px-6 py-2 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-foreground">ASTRI Operator GUI</h1>
+          <h1 className="text-lg font-bold text-foreground">ASTRI Operator HMI</h1>
           <p className="text-xs text-muted-foreground">Mini-Array Telescope Control & Monitoring System</p>
         </div>
 
@@ -72,9 +72,32 @@ export const Header = () => {
 
       {/* Main Header */}
       <div className="px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <div className="text-xl font-bold text-primary tracking-wider">ASTRI</div>
-          <Badge variant="outline" className="text-xs">v1.3.0</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <Telescope className="h-3 w-3" />
+              6 Active
+            </Badge>
+            <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <Box className="h-3 w-3" />
+              0 Blocks
+            </Badge>
+            <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3 text-status-error" />
+              2 Alarms
+            </Badge>
+            <Badge variant="outline" className="text-xs flex items-center gap-1">
+              <CircleCheck className="h-3 w-3 text-status-online" />
+              92% Quality
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              🌡️ 18°C
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              💧 65%
+            </Badge>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">

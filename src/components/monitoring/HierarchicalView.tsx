@@ -105,24 +105,17 @@ export const HierarchicalView = ({ onSelectSystem, selectedSystem }: Hierarchica
           <Badge variant="outline" className="text-xs">L1 View</Badge>
         </div>
 
-        <div className="grid grid-cols-[1fr_200px] gap-4">
-          <Card className="control-panel p-6">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4 text-primary">Observing Systems</h3>
-              <TelescopeArray onSelectTelescope={onSelectSystem} selectedTelescope={selectedSystem} />
-            </div>
+        <Card className="control-panel p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4 text-primary">Observing Systems</h3>
+            <TelescopeArray onSelectTelescope={onSelectSystem} selectedTelescope={selectedSystem} />
+          </div>
 
-            <div className="border-t border-border pt-6">
-              <h3 className="text-lg font-semibold mb-4 text-primary">Site Services</h3>
-              <SiteServices onSelectService={onSelectSystem} selectedService={selectedSystem} />
-            </div>
-          </Card>
-
-          <Card className="control-panel p-4">
-            <h3 className="text-sm font-semibold mb-4 text-primary text-center">Array Overview</h3>
-            {renderArrayStatus()}
-          </Card>
-        </div>
+          <div className="border-t border-border pt-6">
+            <h3 className="text-lg font-semibold mb-4 text-primary">Site Services</h3>
+            <SiteServices onSelectService={onSelectSystem} selectedService={selectedSystem} />
+          </div>
+        </Card>
       </div>
     </div>
   );
