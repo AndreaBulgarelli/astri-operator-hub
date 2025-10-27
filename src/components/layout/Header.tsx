@@ -1,8 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Eye, Sun, Moon } from "lucide-react";
+import { Clock, Users, Eye, Sun, Moon, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
+import { toast } from "@/hooks/use-toast";
 
 export const Header = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -78,7 +79,22 @@ export const Header = () => {
 
         <div className="flex items-center gap-4">
           <Badge className="bg-status-online">CCS CONNECTED</Badge>
-          <Badge className="bg-status-active">STARTUP CONNECTED</Badge>
+          <Badge className="bg-status-online">STARTUP CONNECTED</Badge>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              toast({
+                title: "SAFE MODE ACTIVATED",
+                description: "All systems transitioning to safe mode...",
+                variant: "destructive",
+              });
+            }}
+            className="gap-2"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            SAFE MODE
+          </Button>
         </div>
       </div>
     </header>

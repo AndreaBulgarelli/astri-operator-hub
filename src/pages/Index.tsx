@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { SystemMonitoring } from "@/components/tabs/SystemMonitoring";
 import { StartupTab } from "@/components/tabs/StartupTab";
@@ -9,35 +7,17 @@ import { PreparationTab } from "@/components/tabs/PreparationTab";
 import { ObservationTab } from "@/components/tabs/ObservationTab";
 import { EndTab } from "@/components/tabs/EndTab";
 import { UtilityTab } from "@/components/tabs/UtilityTab";
-import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
-
-  const handleSafeMode = () => {
-    toast({
-      title: "SAFE MODE ACTIVATED",
-      description: "All systems transitioning to safe mode...",
-      variant: "destructive",
-    });
-  };
 
   return (
     <div className="h-screen w-full flex flex-col bg-background">
       <Header />
 
       <div className="flex-1 flex flex-col overflow-hidden p-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <h1 className="text-2xl font-bold text-primary">ASTRI Mini-Array Operator HMI</h1>
-          <Button
-            variant="destructive"
-            size="lg"
-            onClick={handleSafeMode}
-            className="gap-2"
-          >
-            <AlertTriangle className="h-5 w-5" />
-            SAFE MODE
-          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
