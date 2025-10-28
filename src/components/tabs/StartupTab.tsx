@@ -21,63 +21,90 @@ export const StartupTab = () => {
   const [currentStep, setCurrentStep] = useState(0);
 
   const [components, setComponents] = useState<SCADAComponent[]>([
+    // Kubernetes Services (left side)
+    { id: "kafka", name: "Kafka", state: "OFF", x: 80, y: 80, subsystem: "kubernetes" },
+    { id: "scdb", name: "SCDB", state: "OFF", x: 80, y: 160, subsystem: "kubernetes" },
+    { id: "cassandra", name: "Cassandra", state: "OFF", x: 80, y: 240, subsystem: "kubernetes" },
+    { id: "mysql", name: "MySQL", state: "OFF", x: 80, y: 320, subsystem: "kubernetes" },
+
     // Core SCADA Systems
-    { id: "ccs", name: "CCS", state: "OFF", x: 400, y: 300, subsystem: "core" },
-    { id: "rm", name: "RM", state: "OFF", x: 400, y: 200, subsystem: "core" },
-    { id: "monitoring", name: "Monitoring", state: "OFF", x: 250, y: 100, subsystem: "scada" },
-    { id: "logging", name: "Logging", state: "OFF", x: 350, y: 80, subsystem: "scada" },
-    { id: "alarm", name: "Alarm", state: "OFF", x: 450, y: 80, subsystem: "scada" },
-    { id: "ooqs-sys", name: "OOQS", state: "OFF", x: 550, y: 100, subsystem: "scada" },
-    { id: "hmi", name: "HMI", state: "OFF", x: 300, y: 200, subsystem: "scada" },
+    { id: "ccs", name: "CCS", state: "OFF", x: 500, y: 300, subsystem: "core" },
+    { id: "rm", name: "RM", state: "OFF", x: 500, y: 200, subsystem: "core" },
+    { id: "scc", name: "SCC", state: "OFF", x: 350, y: 300, subsystem: "scada" },
+    { id: "monitoring", name: "MON", state: "OFF", x: 280, y: 100, subsystem: "scada" },
+    { id: "logging", name: "LOG", state: "OFF", x: 380, y: 80, subsystem: "scada" },
+    { id: "alarm", name: "ALARM", state: "OFF", x: 480, y: 80, subsystem: "scada" },
+    { id: "hmi", name: "HMI", state: "OFF", x: 580, y: 100, subsystem: "scada" },
+    { id: "accs", name: "ACCS", state: "OFF", x: 620, y: 200, subsystem: "scada" },
+    { id: "ict", name: "ICTC", state: "OFF", x: 650, y: 300, subsystem: "scada" },
 
     // ACS Manager
-    { id: "acs", name: "ACS Mgr", state: "OFF", x: 500, y: 200, subsystem: "acs" },
-
-    // TCS components (9 telescopes)
-    { id: "tcs-a1", name: "TCS-1", state: "OFF", x: 250, y: 350, subsystem: "tcs" },
-    { id: "tcs-a2", name: "TCS-2", state: "OFF", x: 180, y: 400, subsystem: "tcs" },
-    { id: "tcs-a3", name: "TCS-3", state: "OFF", x: 180, y: 480, subsystem: "tcs" },
-    { id: "tcs-a4", name: "TCS-4", state: "OFF", x: 250, y: 530, subsystem: "tcs" },
-    { id: "tcs-a5", name: "TCS-5", state: "OFF", x: 350, y: 570, subsystem: "tcs" },
-    { id: "tcs-a6", name: "TCS-6", state: "OFF", x: 450, y: 570, subsystem: "tcs" },
-    { id: "tcs-a7", name: "TCS-7", state: "OFF", x: 550, y: 530, subsystem: "tcs" },
-    { id: "tcs-a8", name: "TCS-8", state: "OFF", x: 620, y: 480, subsystem: "tcs" },
-    { id: "tcs-a9", name: "TCS-9", state: "OFF", x: 620, y: 400, subsystem: "tcs" },
-
-    // ADAS components
-    { id: "adas-a1", name: "ADAS-1", state: "OFF", x: 200, y: 320, subsystem: "adas" },
-    { id: "adas-a2", name: "ADAS-2", state: "OFF", x: 200, y: 320, subsystem: "adas" },
-    { id: "adas-a3", name: "ADAS-3", state: "OFF", x: 200, y: 320, subsystem: "adas" },
-    { id: "adas-a4", name: "ADAS-4", state: "OFF", x: 200, y: 320, subsystem: "adas" },
-    { id: "adas-a5", name: "ADAS-5", state: "OFF", x: 300, y: 600, subsystem: "adas" },
-    { id: "adas-a6", name: "ADAS-6", state: "OFF", x: 200, y: 320, subsystem: "adas" },
-    { id: "adas-a7", name: "ADAS-7", state: "OFF", x: 200, y: 320, subsystem: "adas" },
-    { id: "adas-a8", name: "ADAS-8", state: "OFF", x: 200, y: 320, subsystem: "adas" },
-    { id: "adas-a9", name: "ADAS-9", state: "OFF", x: 670, y: 430, subsystem: "adas" },
-
-    // OOQS components
-    { id: "ooqs-a1", name: "OOQS-1", state: "OFF", x: 150, y: 350, subsystem: "ooqs" },
-    { id: "ooqs-a5", name: "OOQS-5", state: "OFF", x: 250, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-a9", name: "OOQS-9", state: "OFF", x: 720, y: 400, subsystem: "ooqs" },
+    { id: "acs", name: "ACS Mgr", state: "OFF", x: 700, y: 340, subsystem: "acs" },
 
     // Collectors
-    { id: "tsc-col", name: "TSC Col", state: "OFF", x: 550, y: 350, subsystem: "collector" },
-    { id: "ems-col", name: "EMS Col", state: "OFF", x: 650, y: 300, subsystem: "collector" },
-    { id: "ict-col", name: "ICT Col", state: "OFF", x: 700, y: 350, subsystem: "collector" },
+    { id: "atmos-col", name: "Atmos Col", state: "OFF", x: 620, y: 380, subsystem: "collector" },
+    { id: "array-col", name: "Array Col", state: "OFF", x: 700, y: 420, subsystem: "collector" },
+    { id: "tsc-col", name: "TSC Col", state: "OFF", x: 700, y: 500, subsystem: "collector" },
+    { id: "ems-col", name: "EMS Col", state: "OFF", x: 620, y: 540, subsystem: "collector" },
+    { id: "ict-col", name: "ICT Col", state: "OFF", x: 540, y: 580, subsystem: "collector" },
+    { id: "power-col", name: "Power Col", state: "OFF", x: 460, y: 580, subsystem: "collector" },
+    { id: "safety-col", name: "Safety Col", state: "OFF", x: 380, y: 540, subsystem: "collector" },
+
+    // TCS components (9 telescopes)
+    { id: "tcs-1", name: "TCS-1", state: "OFF", x: 300, y: 420, subsystem: "tcs" },
+    { id: "tcs-2", name: "TCS-2", state: "OFF", x: 400, y: 450, subsystem: "tcs" },
+    { id: "tcs-3", name: "TCS-3", state: "OFF", x: 500, y: 470, subsystem: "tcs" },
+    { id: "tcs-4", name: "TCS-4", state: "OFF", x: 300, y: 500, subsystem: "tcs" },
+    { id: "tcs-5", name: "TCS-5", state: "OFF", x: 400, y: 530, subsystem: "tcs" },
+    { id: "tcs-6", name: "TCS-6", state: "OFF", x: 500, y: 550, subsystem: "tcs" },
+    { id: "tcs-7", name: "TCS-7", state: "OFF", x: 300, y: 580, subsystem: "tcs" },
+    { id: "tcs-8", name: "TCS-8", state: "OFF", x: 400, y: 610, subsystem: "tcs" },
+    { id: "tcs-9", name: "TCS-9", state: "OFF", x: 500, y: 630, subsystem: "tcs" },
+
+    // ADAS components (9)
+    { id: "adas-1", name: "ADAS-1", state: "OFF", x: 250, y: 440, subsystem: "adas" },
+    { id: "adas-2", name: "ADAS-2", state: "OFF", x: 350, y: 470, subsystem: "adas" },
+    { id: "adas-3", name: "ADAS-3", state: "OFF", x: 450, y: 490, subsystem: "adas" },
+    { id: "adas-4", name: "ADAS-4", state: "OFF", x: 250, y: 520, subsystem: "adas" },
+    { id: "adas-5", name: "ADAS-5", state: "OFF", x: 350, y: 550, subsystem: "adas" },
+    { id: "adas-6", name: "ADAS-6", state: "OFF", x: 450, y: 570, subsystem: "adas" },
+    { id: "adas-7", name: "ADAS-7", state: "OFF", x: 250, y: 600, subsystem: "adas" },
+    { id: "adas-8", name: "ADAS-8", state: "OFF", x: 350, y: 630, subsystem: "adas" },
+    { id: "adas-9", name: "ADAS-9", state: "OFF", x: 450, y: 650, subsystem: "adas" },
+
+    // OOQS components (9)
+    { id: "ooqs-1", name: "OOQS-1", state: "OFF", x: 200, y: 460, subsystem: "ooqs" },
+    { id: "ooqs-2", name: "OOQS-2", state: "OFF", x: 300, y: 490, subsystem: "ooqs" },
+    { id: "ooqs-3", name: "OOQS-3", state: "OFF", x: 400, y: 510, subsystem: "ooqs" },
+    { id: "ooqs-4", name: "OOQS-4", state: "OFF", x: 200, y: 540, subsystem: "ooqs" },
+    { id: "ooqs-5", name: "OOQS-5", state: "OFF", x: 300, y: 570, subsystem: "ooqs" },
+    { id: "ooqs-6", name: "OOQS-6", state: "OFF", x: 400, y: 590, subsystem: "ooqs" },
+    { id: "ooqs-7", name: "OOQS-7", state: "OFF", x: 200, y: 620, subsystem: "ooqs" },
+    { id: "ooqs-8", name: "OOQS-8", state: "OFF", x: 300, y: 650, subsystem: "ooqs" },
+    { id: "ooqs-9", name: "OOQS-9", state: "OFF", x: 400, y: 670, subsystem: "ooqs" },
   ]);
 
   const startupSteps = [
-    { name: "Central Control", subsystems: ["ccs", "rm"] },
+    { name: "Kubernetes Services", subsystems: ["kafka", "scdb", "cassandra", "mysql"] },
+    { name: "Central Control", subsystems: ["ccs", "rm", "scc"] },
+    { name: "SCADA Systems", subsystems: ["monitoring", "logging", "alarm", "hmi", "accs", "ict"] },
     {
-      name: "Telescope Control System",
-      subsystems: ["tcs-a1", "tcs-a2", "tcs-a3", "tcs-a4", "tcs-a5", "tcs-a6", "tcs-a7", "tcs-a8", "tcs-a9"],
+      name: "Telescope Control Systems",
+      subsystems: ["tcs-1", "tcs-2", "tcs-3", "tcs-4", "tcs-5", "tcs-6", "tcs-7", "tcs-8", "tcs-9"],
     },
     {
       name: "ADAS Systems",
-      subsystems: ["adas-a1", "adas-a2", "adas-a3", "adas-a4", "adas-a5", "adas-a6", "adas-a7", "adas-a8", "adas-a9"],
+      subsystems: ["adas-1", "adas-2", "adas-3", "adas-4", "adas-5", "adas-6", "adas-7", "adas-8", "adas-9"],
     },
-    { name: "OOQS Pipelines", subsystems: ["ooqs-a1", "ooqs-a5", "ooqs-a9"] },
-    { name: "Collectors", subsystems: ["tsc-col", "ems-col", "ict-col"] },
+    {
+      name: "OOQS Pipelines",
+      subsystems: ["ooqs-1", "ooqs-2", "ooqs-3", "ooqs-4", "ooqs-5", "ooqs-6", "ooqs-7", "ooqs-8", "ooqs-9"],
+    },
+    {
+      name: "Collectors",
+      subsystems: ["atmos-col", "array-col", "tsc-col", "ems-col", "ict-col", "power-col", "safety-col"],
+    },
+    { name: "ACS Manager", subsystems: ["acs"] },
   ];
 
   const handleStartCCS = () => {
@@ -204,7 +231,25 @@ export const StartupTab = () => {
         </div>
 
         <div className="bg-secondary/30 rounded-lg p-4 overflow-auto">
-          <svg width="800" height="650" className="mx-auto">
+          <svg width="800" height="720" className="mx-auto">
+            {/* SCC to CCS */}
+            {(() => {
+              const ccs = components.find((c) => c.id === "ccs");
+              const scc = components.find((c) => c.id === "scc");
+              if (!ccs || !scc) return null;
+              return (
+                <line
+                  x1={scc.x}
+                  y1={scc.y}
+                  x2={ccs.x}
+                  y2={ccs.y}
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2"
+                  opacity="0.6"
+                />
+              );
+            })()}
+
             {/* CCS to RM */}
             {(() => {
               const ccs = components.find((c) => c.id === "ccs");
@@ -225,7 +270,7 @@ export const StartupTab = () => {
 
             {/* SCADA subsystems to CCS */}
             {components
-              .filter((c) => ["monitoring", "logging", "alarm", "ooqs-sys", "hmi", "acs"].includes(c.id))
+              .filter((c) => ["monitoring", "logging", "alarm", "hmi", "accs", "ict"].includes(c.id))
               .map((comp) => {
                 const ccs = components.find((c) => c.id === "ccs");
                 if (!ccs) return null;
@@ -286,16 +331,16 @@ export const StartupTab = () => {
                 );
               })}
 
-            {/* Draw TCS -> ADAS -> OOQS chains for A1, A5, A9 */}
-            {["a1", "a5", "a9"].map((tel) => {
-              const tcs = components.find((c) => c.id === `tcs-${tel}`);
-              const adas = components.find((c) => c.id === `adas-${tel}`);
-              const ooqs = components.find((c) => c.id === `ooqs-${tel}`);
+            {/* Draw TCS -> ADAS -> OOQS chains for all 9 telescopes */}
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
+              const tcs = components.find((c) => c.id === `tcs-${num}`);
+              const adas = components.find((c) => c.id === `adas-${num}`);
+              const ooqs = components.find((c) => c.id === `ooqs-${num}`);
 
               if (!tcs || !adas || !ooqs) return null;
 
               return (
-                <g key={`chain-${tel}`}>
+                <g key={`chain-${num}`}>
                   {/* TCS -> ADAS */}
                   <line
                     x1={tcs.x}
