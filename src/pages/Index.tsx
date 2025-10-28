@@ -14,8 +14,8 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
 
   const metrics = [
-    { icon: Telescope, value: "6 Operational, 1 Safe, 1 Fault", label: "Telescopes Status", color: "text-status-online" },
-    { icon: Box, value: 0, label: "Running Blocks", color: "text-status-active" },
+    { icon: Telescope, value: 9 , label: "6 Operational, 1 Safe, 1 Fault", color: "text-status-online" },
+    { icon: Box, value: 0, label: "Running Obs. Blocks", color: "text-status-active" },
     { icon: AlertTriangle, value: 2, label: "Unack. Alarms", color: "text-status-error" },
     { icon: CircleCheck, value: "92%", label: "Data Quality", color: "text-status-online" },
     { icon: Activity, value: "1.2 GB/s", label: "Data Rate", color: "text-status-active" },
