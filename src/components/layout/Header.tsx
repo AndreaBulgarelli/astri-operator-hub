@@ -101,6 +101,7 @@ export const Header = () => {
         <div className="flex items-center gap-4">
           <Badge className="bg-status-online">CCS CONNECTED</Badge>
           <Badge className="bg-status-online">STARTUP CONNECTED</Badge>
+          <Badge className="bg-status-online">OFF-SITE CONNECTED</Badge>
           <Button
             variant="destructive"
             size="sm"

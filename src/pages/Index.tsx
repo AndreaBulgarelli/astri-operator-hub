@@ -24,10 +24,10 @@ const Index = () => {
   ];
 
   return (
-    <div className="h-screen w-full flex flex-col bg-background">
+    <div className="min-h-screen w-full flex flex-col bg-background">
       <Header />
 
-      <div className="flex-1 flex flex-col overflow-hidden p-4">
+      <div className="flex-1 flex flex-col p-4">
         <div className="grid grid-cols-7 gap-4 mb-4">
           {metrics.map((metric, index) => (
             <Card key={index} className="p-4 flex flex-col items-start gap-2 bg-card border-border">
@@ -50,7 +50,7 @@ const Index = () => {
             <TabsTrigger value="utility">Utility</TabsTrigger>
           </TabsList>
 
-          <div className="flex-1 overflow-auto mt-2">
+          <div className="flex-1 mt-2">
             <TabsContent value="monitoring" className="h-full m-0">
               <SystemMonitoring />
             </TabsContent>
