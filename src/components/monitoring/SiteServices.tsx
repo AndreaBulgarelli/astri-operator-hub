@@ -19,21 +19,21 @@ interface SiteServicesProps {
 }
 
 const services = [
-  { id: "WS1", name: "Weather Station 1", icon: Cloud, status: "online" },
-  { id: "WS2", name: "Weather Station 2", icon: Cloud, status: "online" },
-  { id: "PMS", name: "Power Management System", icon: Zap, status: "online" },
-  { id: "NET", name: "Network System", icon: Network, status: "online" },
-  { id: "TIM", name: "Timing System", icon: Clock, status: "online" },
-  { id: "SRV", name: "Servers", icon: Server, status: "online" },
-  { id: "VM", name: "Virtual Machines", icon: Database, status: "online" },
-  { id: "CNT", name: "Containers", icon: Container, status: "online" },
-  { id: "SCADA", name: "SCADA", icon: HardDrive, status: "online" },
-  { id: "STARTUP", name: "Startup System", icon: Zap, status: "online" },
-  { id: "TSC", name: "Telescope Service Cabinets", icon: HardDrive, status: "online" },
-  { id: "OFFSITE", name: "Off-site Connection", icon: Wifi, status: "online" },
-  { id: "LIDAR", name: "LIDAR", icon: Eye, status: "online" },
-  { id: "SQM", name: "SQMs", icon: Eye, status: "online" },
-  { id: "UVSIPM", name: "UVSiPM", icon: Eye, status: "online" },
+  { id: "WS1", name: "Weather Station 1", icon: Cloud, status: "Operational" },
+  { id: "WS2", name: "Weather Station 2", icon: Cloud, status: "Operational" },
+  { id: "PMS", name: "Power Management System", icon: Zap, status: "Operational" },
+  { id: "NET", name: "Network System", icon: Network, status: "Operational" },
+  { id: "TIM", name: "Timing System", icon: Clock, status: "Operational" },
+  { id: "SRV", name: "Servers", icon: Server, status: "Operational" },
+  { id: "VM", name: "Virtual Machines", icon: Database, status: "Operational" },
+  { id: "CNT", name: "Containers", icon: Container, status: "Operational" },
+  { id: "SCADA", name: "SCADA", icon: HardDrive, status: "Operational" },
+  { id: "STARTUP", name: "Startup System", icon: Zap, status: "Operational" },
+  { id: "TSC", name: "Telescope Service Cabinets", icon: HardDrive, status: "Operational" },
+  { id: "OFFSITE", name: "Off-site Connection", icon: Wifi, status: "Operational" },
+  { id: "LIDAR", name: "LIDAR", icon: Eye, status: "Operational" },
+  { id: "SQM", name: "SQMs", icon: Eye, status: "Operational" },
+  { id: "UVSIPM", name: "UVSiPM", icon: Eye, status: "Operational" },
 ];
 
 export const SiteServices = ({ onSelectService, selectedService }: SiteServicesProps) => {
@@ -58,7 +58,10 @@ export const SiteServices = ({ onSelectService, selectedService }: SiteServicesP
             <Badge 
               className={cn(
                 "text-[10px] px-2 py-0",
-                service.status === "online" ? "bg-status-online" : "bg-status-offline"
+                service.status === "Operational" ? "bg-status-online" : 
+                service.status === "Degraded" ? "bg-status-warning" :
+                service.status === "Fault" ? "bg-status-error" :
+                service.status === "Off" ? "bg-status-offline" : "bg-secondary"
               )}
             >
               {service.status}

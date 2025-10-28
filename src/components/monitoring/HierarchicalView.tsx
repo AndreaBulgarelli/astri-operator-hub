@@ -12,10 +12,10 @@ export const HierarchicalView = ({ onSelectSystem, selectedSystem }: Hierarchica
   // Array overall status visualization
   const renderArrayStatus = () => {
     const arrayStatus = [
-      { name: "Telescopes", status: "ready", value: 8 },
-      { name: "Site Services", status: "ready", value: 2 },
-      { name: "Network", status: "ready", value: 1 },
-      { name: "Power", status: "warning", value: 1 },
+      { name: "Telescopes", status: "Operational", value: 8 },
+      { name: "Site Services", status: "Operational", value: 2 },
+      { name: "Network", status: "Operational", value: 1 },
+      { name: "Power", status: "Degraded", value: 1 },
     ];
 
     const centerX = 100;
@@ -24,9 +24,11 @@ export const HierarchicalView = ({ onSelectSystem, selectedSystem }: Hierarchica
     const totalSegments = arrayStatus.length;
 
     const getColor = (status: string) => {
-      if (status === "ready") return "hsl(var(--telescope-ready))";
-      if (status === "warning") return "hsl(var(--warning))";
-      return "hsl(var(--telescope-error))";
+      if (status === "Operational") return "hsl(var(--status-online))";
+      if (status === "Degraded") return "hsl(var(--status-warning))";
+      if (status === "Fault") return "hsl(var(--status-error))";
+      if (status === "Safe") return "hsl(var(--status-warning))";
+      return "hsl(var(--status-offline))";
     };
 
     return (
