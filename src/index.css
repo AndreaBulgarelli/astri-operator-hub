@@ -122,7 +122,7 @@ All colors MUST be HSL.
   }
 
   html, body, #root {
-    @apply h-full w-full overflow-hidden;
+    @apply min-h-screen w-full overflow-x-hidden;
   }
 }
 

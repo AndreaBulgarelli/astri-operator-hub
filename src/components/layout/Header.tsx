@@ -81,7 +81,7 @@ export const Header = () => {
       </div>
 
       {/* Main Header */}
-      <div className="px-6 py-3 flex items-center justify-between bg-muted/30">
+      <div className="px-6 py-2 flex items-center justify-between border-t border-border">
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
             <Sun className="h-5 w-5 text-yellow-500" />
@@ -96,13 +96,6 @@ export const Header = () => {
           <div className="flex items-center gap-2 text-muted-foreground">
             <span>Last update: {formatLastUpdate(currentTime)}</span>
           </div>
-        </div>
-      </div>
-
-      {/* Secondary Header */}
-      <div className="px-6 py-2 flex items-center justify-between border-t border-border">
-        <div className="flex items-center gap-3">
-          <div className="text-xl font-bold text-primary tracking-wider">ASTRI</div>
         </div>
 
         <div className="flex items-center gap-4">
