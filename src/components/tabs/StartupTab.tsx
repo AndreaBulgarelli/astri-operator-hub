@@ -19,7 +19,7 @@ interface SCADAComponent {
 export const StartupTab = () => {
   const [isStarting, setIsStarting] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  
+
   const [components, setComponents] = useState<SCADAComponent[]>([
     // Core SCADA Systems
     { id: "ccs", name: "CCS", state: "OFF", x: 400, y: 300, subsystem: "core" },
@@ -29,10 +29,10 @@ export const StartupTab = () => {
     { id: "alarm", name: "Alarm", state: "OFF", x: 450, y: 80, subsystem: "scada" },
     { id: "ooqs-sys", name: "OOQS", state: "OFF", x: 550, y: 100, subsystem: "scada" },
     { id: "hmi", name: "HMI", state: "OFF", x: 300, y: 200, subsystem: "scada" },
-    
+
     // ACS Manager
     { id: "acs", name: "ACS Mgr", state: "OFF", x: 500, y: 200, subsystem: "acs" },
-    
+
     // TCS components (9 telescopes)
     { id: "tcs-a1", name: "TCS-1", state: "OFF", x: 250, y: 350, subsystem: "tcs" },
     { id: "tcs-a2", name: "TCS-2", state: "OFF", x: 180, y: 400, subsystem: "tcs" },
@@ -43,17 +43,17 @@ export const StartupTab = () => {
     { id: "tcs-a7", name: "TCS-7", state: "OFF", x: 550, y: 530, subsystem: "tcs" },
     { id: "tcs-a8", name: "TCS-8", state: "OFF", x: 620, y: 480, subsystem: "tcs" },
     { id: "tcs-a9", name: "TCS-9", state: "OFF", x: 620, y: 400, subsystem: "tcs" },
-    
+
     // ADAS components
     { id: "adas-a1", name: "ADAS-1", state: "OFF", x: 200, y: 320, subsystem: "adas" },
     { id: "adas-a5", name: "ADAS-5", state: "OFF", x: 300, y: 600, subsystem: "adas" },
     { id: "adas-a9", name: "ADAS-9", state: "OFF", x: 670, y: 430, subsystem: "adas" },
-    
-    // OOQS components  
+
+    // OOQS components
     { id: "ooqs-a1", name: "OOQS-1", state: "OFF", x: 150, y: 350, subsystem: "ooqs" },
     { id: "ooqs-a5", name: "OOQS-5", state: "OFF", x: 250, y: 600, subsystem: "ooqs" },
     { id: "ooqs-a9", name: "OOQS-9", state: "OFF", x: 720, y: 400, subsystem: "ooqs" },
-    
+
     // Collectors
     { id: "tsc-col", name: "TSC Col", state: "OFF", x: 550, y: 350, subsystem: "collector" },
     { id: "ems-col", name: "EMS Col", state: "OFF", x: 650, y: 300, subsystem: "collector" },
@@ -61,13 +61,11 @@ export const StartupTab = () => {
   ]);
 
   const startupSteps = [
-    { name: "Monitoring System", subsystems: ["monitoring"] },
-    { name: "Logging & Alarm", subsystems: ["logging", "alarm"] },
-    { name: "ACS Manager", subsystems: ["acs"] },
-    { name: "OOQS System", subsystems: ["ooqs-sys"] },
-    { name: "Operator HMI", subsystems: ["hmi"] },
     { name: "Central Control", subsystems: ["ccs", "rm"] },
-    { name: "Telescope Control", subsystems: ["tcs-a1", "tcs-a2", "tcs-a3", "tcs-a4", "tcs-a5", "tcs-a6", "tcs-a7", "tcs-a8", "tcs-a9"] },
+    {
+      name: "Telescope Control System",
+      subsystems: ["tcs-a1", "tcs-a2", "tcs-a3", "tcs-a4", "tcs-a5", "tcs-a6", "tcs-a7", "tcs-a8", "tcs-a9"],
+    },
     { name: "ADAS Systems", subsystems: ["adas-a1", "adas-a5", "adas-a9"] },
     { name: "OOQS Pipelines", subsystems: ["ooqs-a1", "ooqs-a5", "ooqs-a9"] },
     { name: "Collectors", subsystems: ["tsc-col", "ems-col", "ict-col"] },
@@ -76,19 +74,21 @@ export const StartupTab = () => {
   const handleStartCCS = () => {
     setIsStarting(true);
     setCurrentStep(0);
-    
+
     let stepIndex = 0;
     const interval = setInterval(() => {
       if (stepIndex < startupSteps.length) {
         const currentStepData = startupSteps[stepIndex];
-        
-        setComponents(prev => prev.map(comp => {
-          if (currentStepData.subsystems.includes(comp.id)) {
-            return { ...comp, state: "OPERATIONAL" };
-          }
-          return comp;
-        }));
-        
+
+        setComponents((prev) =>
+          prev.map((comp) => {
+            if (currentStepData.subsystems.includes(comp.id)) {
+              return { ...comp, state: "OPERATIONAL" };
+            }
+            return comp;
+          }),
+        );
+
         setCurrentStep(stepIndex + 1);
         stepIndex++;
       } else {
@@ -104,17 +104,24 @@ export const StartupTab = () => {
 
   const getStateColor = (state: ComponentState) => {
     switch (state) {
-      case "OPERATIONAL": return "hsl(var(--telescope-ready))";
-      case "STANDBY": return "hsl(var(--status-standby))";
-      case "DEGRADED": return "hsl(var(--warning))";
-      case "SAFE": return "hsl(var(--status-active))";
-      case "FAULT": return "hsl(var(--telescope-error))";
-      case "OFF": return "hsl(var(--muted))";
-      default: return "hsl(var(--muted))";
+      case "OPERATIONAL":
+        return "hsl(var(--telescope-ready))";
+      case "STANDBY":
+        return "hsl(var(--status-standby))";
+      case "DEGRADED":
+        return "hsl(var(--warning))";
+      case "SAFE":
+        return "hsl(var(--status-active))";
+      case "FAULT":
+        return "hsl(var(--telescope-error))";
+      case "OFF":
+        return "hsl(var(--muted))";
+      default:
+        return "hsl(var(--muted))";
     }
   };
 
-  const operationalCount = components.filter(c => c.state === "OPERATIONAL").length;
+  const operationalCount = components.filter((c) => c.state === "OPERATIONAL").length;
   const totalComponents = components.length;
   const progress = (operationalCount / totalComponents) * 100;
 
@@ -126,7 +133,7 @@ export const StartupTab = () => {
         <div className="mb-6 space-y-4">
           <Button
             onClick={handleStartCCS}
-            disabled={isStarting || components.some(c => c.state === "OPERATIONAL")}
+            disabled={isStarting || components.some((c) => c.state === "OPERATIONAL")}
             className="w-full gap-2"
             size="lg"
           >
@@ -152,12 +159,8 @@ export const StartupTab = () => {
               <div className="space-y-1">
                 {startupSteps.map((step, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-xs">
-                    <div className={`w-2 h-2 rounded-full ${
-                      idx < currentStep ? 'bg-telescope-ready' : 'bg-muted'
-                    }`} />
-                    <span className={idx < currentStep ? 'text-foreground' : 'text-muted-foreground'}>
-                      {step.name}
-                    </span>
+                    <div className={`w-2 h-2 rounded-full ${idx < currentStep ? "bg-telescope-ready" : "bg-muted"}`} />
+                    <span className={idx < currentStep ? "text-foreground" : "text-muted-foreground"}>{step.name}</span>
                   </div>
                 ))}
               </div>
@@ -181,14 +184,12 @@ export const StartupTab = () => {
             <div className="bg-secondary/50 rounded-lg p-3">
               <div className="text-xs text-muted-foreground mb-1">TCS Systems</div>
               <div className="text-lg font-semibold text-foreground">
-                {components.filter(c => c.subsystem === "tcs" && c.state === "OPERATIONAL").length} / 9
+                {components.filter((c) => c.subsystem === "tcs" && c.state === "OPERATIONAL").length} / 9
               </div>
             </div>
             <div className="bg-secondary/50 rounded-lg p-3">
               <div className="text-xs text-muted-foreground mb-1">Progress</div>
-              <div className="text-lg font-semibold text-foreground">
-                {Math.round(progress)}%
-              </div>
+              <div className="text-lg font-semibold text-foreground">{Math.round(progress)}%</div>
             </div>
           </div>
         </div>
@@ -197,13 +198,15 @@ export const StartupTab = () => {
           <svg width="800" height="650" className="mx-auto">
             {/* CCS to RM */}
             {(() => {
-              const ccs = components.find(c => c.id === "ccs");
-              const rm = components.find(c => c.id === "rm");
+              const ccs = components.find((c) => c.id === "ccs");
+              const rm = components.find((c) => c.id === "rm");
               if (!ccs || !rm) return null;
               return (
                 <line
-                  x1={ccs.x} y1={ccs.y}
-                  x2={rm.x} y2={rm.y}
+                  x1={ccs.x}
+                  y1={ccs.y}
+                  x2={rm.x}
+                  y2={rm.y}
                   stroke="hsl(var(--primary))"
                   strokeWidth="2"
                   opacity="0.6"
@@ -212,64 +215,76 @@ export const StartupTab = () => {
             })()}
 
             {/* SCADA subsystems to CCS */}
-            {components.filter(c => ["monitoring", "logging", "alarm", "ooqs-sys", "hmi", "acs"].includes(c.id)).map(comp => {
-              const ccs = components.find(c => c.id === "ccs");
-              if (!ccs) return null;
-              return (
-                <line
-                  key={`line-${comp.id}`}
-                  x1={ccs.x} y1={ccs.y}
-                  x2={comp.x} y2={comp.y}
-                  stroke="hsl(var(--border))"
-                  strokeWidth="1"
-                  strokeDasharray="4"
-                  opacity="0.3"
-                />
-              );
-            })}
+            {components
+              .filter((c) => ["monitoring", "logging", "alarm", "ooqs-sys", "hmi", "acs"].includes(c.id))
+              .map((comp) => {
+                const ccs = components.find((c) => c.id === "ccs");
+                if (!ccs) return null;
+                return (
+                  <line
+                    key={`line-${comp.id}`}
+                    x1={ccs.x}
+                    y1={ccs.y}
+                    x2={comp.x}
+                    y2={comp.y}
+                    stroke="hsl(var(--border))"
+                    strokeWidth="1"
+                    strokeDasharray="4"
+                    opacity="0.3"
+                  />
+                );
+              })}
 
             {/* CCS to TCS */}
-            {components.filter(c => c.subsystem === "tcs").map(comp => {
-              const ccs = components.find(c => c.id === "ccs");
-              if (!ccs) return null;
-              return (
-                <line
-                  key={`line-${comp.id}`}
-                  x1={ccs.x} y1={ccs.y}
-                  x2={comp.x} y2={comp.y}
-                  stroke="hsl(var(--border))"
-                  strokeWidth="1"
-                  strokeDasharray="4"
-                  opacity="0.3"
-                />
-              );
-            })}
+            {components
+              .filter((c) => c.subsystem === "tcs")
+              .map((comp) => {
+                const ccs = components.find((c) => c.id === "ccs");
+                if (!ccs) return null;
+                return (
+                  <line
+                    key={`line-${comp.id}`}
+                    x1={ccs.x}
+                    y1={ccs.y}
+                    x2={comp.x}
+                    y2={comp.y}
+                    stroke="hsl(var(--border))"
+                    strokeWidth="1"
+                    strokeDasharray="4"
+                    opacity="0.3"
+                  />
+                );
+              })}
 
             {/* CCS to Collectors */}
-            {components.filter(c => c.subsystem === "collector").map(comp => {
-              const ccs = components.find(c => c.id === "ccs");
-              if (!ccs) return null;
-              return (
-                <line
-                  key={`line-${comp.id}`}
-                  x1={ccs.x} y1={ccs.y}
-                  x2={comp.x} y2={comp.y}
-                  stroke="hsl(var(--border))"
-                  strokeWidth="1"
-                  strokeDasharray="4"
-                  opacity="0.3"
-                />
-              );
-            })}
+            {components
+              .filter((c) => c.subsystem === "collector")
+              .map((comp) => {
+                const ccs = components.find((c) => c.id === "ccs");
+                if (!ccs) return null;
+                return (
+                  <line
+                    key={`line-${comp.id}`}
+                    x1={ccs.x}
+                    y1={ccs.y}
+                    x2={comp.x}
+                    y2={comp.y}
+                    stroke="hsl(var(--border))"
+                    strokeWidth="1"
+                    strokeDasharray="4"
+                    opacity="0.3"
+                  />
+                );
+              })}
 
             {/* Draw TCS -> ADAS -> OOQS chains for A1, A5, A9 */}
-            {["a1", "a5", "a9"].map(tel => {
-              const tcs = components.find(c => c.id === `tcs-${tel}`);
-              const adas = components.find(c => c.id === `adas-${tel}`);
-              const ooqs = components.find(c => c.id === `ooqs-${tel}`);
-              
+            {["a1", "a5", "a9"].map((tel) => {
+              const tcs = components.find((c) => c.id === `tcs-${tel}`);
+              const adas = components.find((c) => c.id === `adas-${tel}`);
+              const ooqs = components.find((c) => c.id === `ooqs-${tel}`);
+
               if (!tcs || !adas || !ooqs) return null;
-              
+
               return (
                 <g key={`chain-${tel}`}>
                   {/* TCS -> ADAS */}
@@ -297,7 +312,7 @@ export const StartupTab = () => {
             })}
 
             {/* Draw component nodes */}
-            {components.map(comp => (
+            {components.map((comp) => (
               <g key={comp.id}>
                 <circle
                   cx={comp.x}
