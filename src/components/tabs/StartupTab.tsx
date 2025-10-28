@@ -54,12 +54,12 @@ export const StartupTab = () => {
     { id: "tcs-1", name: "TCS-1", state: "OFF", x: 300, y: 420, subsystem: "tcs" },
     { id: "tcs-2", name: "TCS-2", state: "OFF", x: 400, y: 450, subsystem: "tcs" },
     { id: "tcs-3", name: "TCS-3", state: "OFF", x: 500, y: 470, subsystem: "tcs" },
-    { id: "tcs-4", name: "TCS-4", state: "OFF", x: 300, y: 500, subsystem: "tcs" },
-    { id: "tcs-5", name: "TCS-5", state: "OFF", x: 400, y: 530, subsystem: "tcs" },
-    { id: "tcs-6", name: "TCS-6", state: "OFF", x: 500, y: 550, subsystem: "tcs" },
-    { id: "tcs-7", name: "TCS-7", state: "OFF", x: 300, y: 580, subsystem: "tcs" },
-    { id: "tcs-8", name: "TCS-8", state: "OFF", x: 400, y: 610, subsystem: "tcs" },
-    { id: "tcs-9", name: "TCS-9", state: "OFF", x: 500, y: 630, subsystem: "tcs" },
+    { id: "tcs-4", name: "TCS-4", state: "OFF", x: 600, y: 500, subsystem: "tcs" },
+    { id: "tcs-5", name: "TCS-5", state: "OFF", x: 700, y: 530, subsystem: "tcs" },
+    { id: "tcs-6", name: "TCS-6", state: "OFF", x: 800, y: 550, subsystem: "tcs" },
+    { id: "tcs-7", name: "TCS-7", state: "OFF", x: 900, y: 580, subsystem: "tcs" },
+    { id: "tcs-8", name: "TCS-8", state: "OFF", x: 1000, y: 610, subsystem: "tcs" },
+    { id: "tcs-9", name: "TCS-9", state: "OFF", x: 1100, y: 630, subsystem: "tcs" },
 
     // ADAS components (9)
     { id: "adas-1", name: "ADAS-1", state: "OFF", x: 250, y: 440, subsystem: "adas" },
