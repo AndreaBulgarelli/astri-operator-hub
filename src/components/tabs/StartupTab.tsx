@@ -46,7 +46,13 @@ export const StartupTab = () => {
 
     // ADAS components
     { id: "adas-a1", name: "ADAS-1", state: "OFF", x: 200, y: 320, subsystem: "adas" },
+    { id: "adas-a2", name: "ADAS-2", state: "OFF", x: 200, y: 320, subsystem: "adas" },
+    { id: "adas-a3", name: "ADAS-3", state: "OFF", x: 200, y: 320, subsystem: "adas" },
+    { id: "adas-a4", name: "ADAS-4", state: "OFF", x: 200, y: 320, subsystem: "adas" },
     { id: "adas-a5", name: "ADAS-5", state: "OFF", x: 300, y: 600, subsystem: "adas" },
+    { id: "adas-a6", name: "ADAS-6", state: "OFF", x: 200, y: 320, subsystem: "adas" },
+    { id: "adas-a7", name: "ADAS-7", state: "OFF", x: 200, y: 320, subsystem: "adas" },
+    { id: "adas-a8", name: "ADAS-8", state: "OFF", x: 200, y: 320, subsystem: "adas" },
     { id: "adas-a9", name: "ADAS-9", state: "OFF", x: 670, y: 430, subsystem: "adas" },
 
     // OOQS components
@@ -66,7 +72,10 @@ export const StartupTab = () => {
       name: "Telescope Control System",
       subsystems: ["tcs-a1", "tcs-a2", "tcs-a3", "tcs-a4", "tcs-a5", "tcs-a6", "tcs-a7", "tcs-a8", "tcs-a9"],
     },
-    { name: "ADAS Systems", subsystems: ["adas-a1", "adas-a5", "adas-a9"] },
+    {
+      name: "ADAS Systems",
+      subsystems: ["adas-a1", "adas-a2", "adas-a3", "adas-a4", "adas-a5", "adas-a6", "adas-a7", "adas-a8", "adas-a9"],
+    },
     { name: "OOQS Pipelines", subsystems: ["ooqs-a1", "ooqs-a5", "ooqs-a9"] },
     { name: "Collectors", subsystems: ["tsc-col", "ems-col", "ict-col"] },
   ];
