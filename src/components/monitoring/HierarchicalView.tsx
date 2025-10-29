@@ -25,9 +25,12 @@ export const HierarchicalView = ({ onSelectSystem, selectedSystem }: Hierarchica
 
     const getColor = (status: string) => {
       if (status === "Operational") return "hsl(var(--status-online))";
+      if (status === "Initialised") return "hsl(var(--status-initialised))";
       if (status === "Degraded") return "hsl(var(--status-warning))";
       if (status === "Fault") return "hsl(var(--status-error))";
-      if (status === "Safe") return "hsl(var(--status-warning))";
+      if (status === "Safe") return "hsl(var(--status-active))";
+      if (status === "Standby") return "hsl(var(--status-standby))";
+      if (status === "Eng") return "hsl(var(--primary))";
       return "hsl(var(--status-offline))";
     };
 
@@ -116,6 +119,33 @@ export const HierarchicalView = ({ onSelectSystem, selectedSystem }: Hierarchica
           <div className="border-t border-border pt-6">
             <h3 className="text-lg font-semibold mb-4 text-primary">Site Services</h3>
             <SiteServices onSelectService={onSelectSystem} selectedService={selectedSystem} />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3 justify-center text-xs border-t border-border pt-4">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-status-offline" />
+              <span>Off</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-status-standby" />
+              <span>Standby</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-status-initialised" />
+              <span>Initialised</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-status-online" />
+              <span>Operational</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-status-warning" />
+              <span>Degraded</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-status-error" />
+              <span>Fault</span>
+            </div>
           </div>
         </Card>
       </div>

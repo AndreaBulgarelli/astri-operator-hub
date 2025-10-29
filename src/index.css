@@ -52,6 +52,7 @@ All colors MUST be HSL.
     --status-warning: 38 92% 50%;
     --status-active: 195 100% 50%;
     --status-standby: 280 85% 60%;
+    --status-initialised: 210 80% 60%;
 
     /* Telescope status */
     --telescope-ready: 142 76% 36%;
@@ -103,6 +104,7 @@ All colors MUST be HSL.
     --status-warning: 38 92% 50%;
     --status-active: 195 100% 40%;
     --status-standby: 280 85% 50%;
+    --status-initialised: 210 80% 60%;
 
     /* Telescope status */
     --telescope-ready: 142 76% 36%;

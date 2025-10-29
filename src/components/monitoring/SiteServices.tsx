@@ -59,8 +59,12 @@ export const SiteServices = ({ onSelectService, selectedService }: SiteServicesP
               className={cn(
                 "text-[10px] px-2 py-0",
                 service.status === "Operational" ? "bg-status-online" : 
+                service.status === "Initialised" ? "bg-status-initialised" :
                 service.status === "Degraded" ? "bg-status-warning" :
+                service.status === "Safe" ? "bg-status-active" :
                 service.status === "Fault" ? "bg-status-error" :
+                service.status === "Standby" ? "bg-status-standby" :
+                service.status === "Eng" ? "bg-primary" :
                 service.status === "Off" ? "bg-status-offline" : "bg-secondary"
               )}
             >

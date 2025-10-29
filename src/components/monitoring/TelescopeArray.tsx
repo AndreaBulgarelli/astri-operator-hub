@@ -21,12 +21,12 @@ const telescopes = [
 const getStatusColor = (status: string) => {
   switch (status) {
     case "Operational": return "bg-status-online";
-    case "Safe": return "bg-status-warning";
+    case "Initialised": return "bg-status-initialised";
+    case "Safe": return "bg-status-active";
     case "Fault": return "bg-status-error";
     case "Degraded": return "bg-status-warning";
     case "Off": return "bg-status-offline";
-    case "Standby": return "bg-secondary";
-    case "Initialised": return "bg-status-active";
+    case "Standby": return "bg-status-standby";
     case "Eng": return "bg-primary";
     default: return "bg-secondary";
   }
@@ -63,12 +63,24 @@ export const TelescopeArray = ({ onSelectTelescope, selectedTelescope }: Telesco
       {/* Legend */}
       <div className="absolute bottom-4 right-4 flex flex-col gap-2 bg-card/80 p-3 rounded-lg border border-border">
         <div className="flex items-center gap-2 text-xs">
+          <div className="w-3 h-3 rounded-full bg-status-offline"></div>
+          <span>Off</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          <div className="w-3 h-3 rounded-full bg-status-standby"></div>
+          <span>Standby</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          <div className="w-3 h-3 rounded-full bg-status-initialised"></div>
+          <span>Initialised</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
           <div className="w-3 h-3 rounded-full bg-status-online"></div>
           <span>Operational</span>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <div className="w-3 h-3 rounded-full bg-status-warning"></div>
-          <span>Safe</span>
+          <span>Degraded</span>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <div className="w-3 h-3 rounded-full bg-status-error"></div>

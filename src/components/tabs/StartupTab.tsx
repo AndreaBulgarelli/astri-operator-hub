@@ -5,7 +5,7 @@ import { PlayCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
-type ComponentState = "OFF" | "STANDBY" | "OPERATIONAL" | "DEGRADED" | "SAFE" | "FAULT";
+type ComponentState = "Off" | "Standby" | "Initialised" | "Operational" | "Degraded" | "Safe" | "Fault" | "Eng";
 
 interface SCADAComponent {
   id: string;
@@ -22,66 +22,66 @@ export const StartupTab = () => {
 
   const [components, setComponents] = useState<SCADAComponent[]>([
     // Kubernetes Services (left side)
-    { id: "kafka", name: "Kafka", state: "OFF", x: 80, y: 80, subsystem: "kubernetes" },
-    { id: "scdb", name: "SCDB", state: "OFF", x: 80, y: 160, subsystem: "kubernetes" },
-    { id: "cassandra", name: "Cassandra", state: "OFF", x: 80, y: 240, subsystem: "kubernetes" },
-    { id: "mysql", name: "MySQL", state: "OFF", x: 80, y: 320, subsystem: "kubernetes" },
+    { id: "kafka", name: "Kafka", state: "Off", x: 80, y: 80, subsystem: "kubernetes" },
+    { id: "scdb", name: "SCDB", state: "Off", x: 80, y: 160, subsystem: "kubernetes" },
+    { id: "cassandra", name: "Cassandra", state: "Off", x: 80, y: 240, subsystem: "kubernetes" },
+    { id: "mysql", name: "MySQL", state: "Off", x: 80, y: 320, subsystem: "kubernetes" },
 
     // Core SCADA Systems
-    { id: "ccs", name: "CCS", state: "OFF", x: 500, y: 300, subsystem: "core" },
-    { id: "rm", name: "RM", state: "OFF", x: 500, y: 200, subsystem: "core" },
-    { id: "scc", name: "SCC", state: "OFF", x: 350, y: 300, subsystem: "scada" },
-    { id: "monitoring", name: "MON", state: "OFF", x: 280, y: 100, subsystem: "scada" },
-    { id: "logging", name: "LOG", state: "OFF", x: 380, y: 80, subsystem: "scada" },
-    { id: "alarm", name: "ALARM", state: "OFF", x: 480, y: 80, subsystem: "scada" },
-    { id: "hmi", name: "HMI", state: "OFF", x: 580, y: 100, subsystem: "scada" },
-    { id: "accs", name: "ACCS", state: "OFF", x: 620, y: 200, subsystem: "scada" },
-    { id: "ict", name: "ICTC", state: "OFF", x: 650, y: 300, subsystem: "scada" },
+    { id: "ccs", name: "CCS", state: "Off", x: 500, y: 300, subsystem: "core" },
+    { id: "rm", name: "RM", state: "Off", x: 500, y: 200, subsystem: "core" },
+    { id: "scc", name: "SCC", state: "Off", x: 350, y: 300, subsystem: "scada" },
+    { id: "monitoring", name: "MON", state: "Off", x: 280, y: 100, subsystem: "scada" },
+    { id: "logging", name: "LOG", state: "Off", x: 380, y: 80, subsystem: "scada" },
+    { id: "alarm", name: "ALARM", state: "Off", x: 480, y: 80, subsystem: "scada" },
+    { id: "hmi", name: "HMI", state: "Off", x: 580, y: 100, subsystem: "scada" },
+    { id: "accs", name: "ACCS", state: "Off", x: 620, y: 200, subsystem: "scada" },
+    { id: "ict", name: "ICTC", state: "Off", x: 650, y: 300, subsystem: "scada" },
 
     // ACS Manager
-    { id: "acs", name: "ACS Mgr", state: "OFF", x: 700, y: 340, subsystem: "acs" },
+    { id: "acs", name: "ACS Mgr", state: "Off", x: 700, y: 340, subsystem: "acs" },
 
     // Collectors
-    { id: "atmos-col", name: "Atmos Col", state: "OFF", x: 620, y: 380, subsystem: "collector" },
-    { id: "array-col", name: "Array Col", state: "OFF", x: 700, y: 420, subsystem: "collector" },
-    { id: "tsc-col", name: "TSC Col", state: "OFF", x: 700, y: 500, subsystem: "collector" },
-    { id: "ems-col", name: "EMS Col", state: "OFF", x: 620, y: 540, subsystem: "collector" },
-    { id: "ict-col", name: "ICT Col", state: "OFF", x: 540, y: 580, subsystem: "collector" },
-    { id: "power-col", name: "Power Col", state: "OFF", x: 460, y: 580, subsystem: "collector" },
-    { id: "safety-col", name: "Safety Col", state: "OFF", x: 380, y: 540, subsystem: "collector" },
+    { id: "atmos-col", name: "Atmos Col", state: "Off", x: 620, y: 380, subsystem: "collector" },
+    { id: "array-col", name: "Array Col", state: "Off", x: 700, y: 420, subsystem: "collector" },
+    { id: "tsc-col", name: "TSC Col", state: "Off", x: 700, y: 500, subsystem: "collector" },
+    { id: "ems-col", name: "EMS Col", state: "Off", x: 620, y: 540, subsystem: "collector" },
+    { id: "ict-col", name: "ICT Col", state: "Off", x: 540, y: 580, subsystem: "collector" },
+    { id: "power-col", name: "Power Col", state: "Off", x: 460, y: 580, subsystem: "collector" },
+    { id: "safety-col", name: "Safety Col", state: "Off", x: 380, y: 540, subsystem: "collector" },
 
     // TCS components (9 telescopes)
-    { id: "tcs-1", name: "TCS-1", state: "OFF", x: 80, y: 400, subsystem: "tcs" },
-    { id: "tcs-2", name: "TCS-2", state: "OFF", x: 160, y: 400, subsystem: "tcs" },
-    { id: "tcs-3", name: "TCS-3", state: "OFF", x: 240, y: 400, subsystem: "tcs" },
-    { id: "tcs-4", name: "TCS-4", state: "OFF", x: 320, y: 400, subsystem: "tcs" },
-    { id: "tcs-5", name: "TCS-5", state: "OFF", x: 400, y: 400, subsystem: "tcs" },
-    { id: "tcs-6", name: "TCS-6", state: "OFF", x: 480, y: 400, subsystem: "tcs" },
-    { id: "tcs-7", name: "TCS-7", state: "OFF", x: 560, y: 400, subsystem: "tcs" },
-    { id: "tcs-8", name: "TCS-8", state: "OFF", x: 640, y: 400, subsystem: "tcs" },
-    { id: "tcs-9", name: "TCS-9", state: "OFF", x: 720, y: 400, subsystem: "tcs" },
+    { id: "tcs-1", name: "TCS-1", state: "Off", x: 80, y: 400, subsystem: "tcs" },
+    { id: "tcs-2", name: "TCS-2", state: "Off", x: 160, y: 400, subsystem: "tcs" },
+    { id: "tcs-3", name: "TCS-3", state: "Off", x: 240, y: 400, subsystem: "tcs" },
+    { id: "tcs-4", name: "TCS-4", state: "Off", x: 320, y: 400, subsystem: "tcs" },
+    { id: "tcs-5", name: "TCS-5", state: "Off", x: 400, y: 400, subsystem: "tcs" },
+    { id: "tcs-6", name: "TCS-6", state: "Off", x: 480, y: 400, subsystem: "tcs" },
+    { id: "tcs-7", name: "TCS-7", state: "Off", x: 560, y: 400, subsystem: "tcs" },
+    { id: "tcs-8", name: "TCS-8", state: "Off", x: 640, y: 400, subsystem: "tcs" },
+    { id: "tcs-9", name: "TCS-9", state: "Off", x: 720, y: 400, subsystem: "tcs" },
 
     // ADAS components (9)
-    { id: "adas-1", name: "ADAS-1", state: "OFF", x: 80, y: 500, subsystem: "adas" },
-    { id: "adas-2", name: "ADAS-2", state: "OFF", x: 160, y: 500, subsystem: "adas" },
-    { id: "adas-3", name: "ADAS-3", state: "OFF", x: 240, y: 500, subsystem: "adas" },
-    { id: "adas-4", name: "ADAS-4", state: "OFF", x: 320, y: 500, subsystem: "adas" },
-    { id: "adas-5", name: "ADAS-5", state: "OFF", x: 400, y: 500, subsystem: "adas" },
-    { id: "adas-6", name: "ADAS-6", state: "OFF", x: 480, y: 500, subsystem: "adas" },
-    { id: "adas-7", name: "ADAS-7", state: "OFF", x: 560, y: 500, subsystem: "adas" },
-    { id: "adas-8", name: "ADAS-8", state: "OFF", x: 640, y: 500, subsystem: "adas" },
-    { id: "adas-9", name: "ADAS-9", state: "OFF", x: 720, y: 500, subsystem: "adas" },
+    { id: "adas-1", name: "ADAS-1", state: "Off", x: 80, y: 500, subsystem: "adas" },
+    { id: "adas-2", name: "ADAS-2", state: "Off", x: 160, y: 500, subsystem: "adas" },
+    { id: "adas-3", name: "ADAS-3", state: "Off", x: 240, y: 500, subsystem: "adas" },
+    { id: "adas-4", name: "ADAS-4", state: "Off", x: 320, y: 500, subsystem: "adas" },
+    { id: "adas-5", name: "ADAS-5", state: "Off", x: 400, y: 500, subsystem: "adas" },
+    { id: "adas-6", name: "ADAS-6", state: "Off", x: 480, y: 500, subsystem: "adas" },
+    { id: "adas-7", name: "ADAS-7", state: "Off", x: 560, y: 500, subsystem: "adas" },
+    { id: "adas-8", name: "ADAS-8", state: "Off", x: 640, y: 500, subsystem: "adas" },
+    { id: "adas-9", name: "ADAS-9", state: "Off", x: 720, y: 500, subsystem: "adas" },
 
     // OOQS components (9)
-    { id: "ooqs-1", name: "OOQS-1", state: "OFF", x: 80, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-2", name: "OOQS-2", state: "OFF", x: 160, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-3", name: "OOQS-3", state: "OFF", x: 240, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-4", name: "OOQS-4", state: "OFF", x: 320, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-5", name: "OOQS-5", state: "OFF", x: 400, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-6", name: "OOQS-6", state: "OFF", x: 480, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-7", name: "OOQS-7", state: "OFF", x: 560, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-8", name: "OOQS-8", state: "OFF", x: 640, y: 600, subsystem: "ooqs" },
-    { id: "ooqs-9", name: "OOQS-9", state: "OFF", x: 720, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-1", name: "OOQS-1", state: "Off", x: 80, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-2", name: "OOQS-2", state: "Off", x: 160, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-3", name: "OOQS-3", state: "Off", x: 240, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-4", name: "OOQS-4", state: "Off", x: 320, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-5", name: "OOQS-5", state: "Off", x: 400, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-6", name: "OOQS-6", state: "Off", x: 480, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-7", name: "OOQS-7", state: "Off", x: 560, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-8", name: "OOQS-8", state: "Off", x: 640, y: 600, subsystem: "ooqs" },
+    { id: "ooqs-9", name: "OOQS-9", state: "Off", x: 720, y: 600, subsystem: "ooqs" },
   ]);
 
   const startupSteps = [
@@ -119,7 +119,28 @@ export const StartupTab = () => {
         setComponents((prev) =>
           prev.map((comp) => {
             if (currentStepData.subsystems.includes(comp.id)) {
-              return { ...comp, state: "OPERATIONAL" };
+              // CCS, collectors, MON, LOG, ALARM, HMI, and kubernetes services go to OPERATIONAL
+              // All others go to INITIALISED
+              const operationalComponents = [
+                "ccs",
+                "monitoring",
+                "logging",
+                "alarm",
+                "hmi",
+                "atmos-col",
+                "array-col",
+                "tsc-col",
+                "ems-col",
+                "ict-col",
+                "power-col",
+                "safety-col",
+                "kafka",
+                "scdb",
+                "cassandra",
+                "mysql",
+              ];
+              const targetState = operationalComponents.includes(comp.id) ? "Operational" : "Initialised";
+              return { ...comp, state: targetState };
             }
             return comp;
           }),
@@ -140,24 +161,28 @@ export const StartupTab = () => {
 
   const getStateColor = (state: ComponentState) => {
     switch (state) {
-      case "OPERATIONAL":
-        return "hsl(var(--telescope-ready))";
-      case "STANDBY":
+      case "Operational":
+        return "hsl(var(--status-online))";
+      case "Standby":
         return "hsl(var(--status-standby))";
-      case "DEGRADED":
-        return "hsl(var(--warning))";
-      case "SAFE":
+      case "Initialised":
+        return "hsl(var(--status-initialised))";
+      case "Degraded":
+        return "hsl(var(--status-warning))";
+      case "Safe":
         return "hsl(var(--status-active))";
-      case "FAULT":
-        return "hsl(var(--telescope-error))";
-      case "OFF":
-        return "hsl(var(--muted))";
+      case "Fault":
+        return "hsl(var(--status-error))";
+      case "Eng":
+        return "hsl(var(--primary))";
+      case "Off":
+        return "hsl(var(--status-offline))";
       default:
-        return "hsl(var(--muted))";
+        return "hsl(var(--status-offline))";
     }
   };
 
-  const operationalCount = components.filter((c) => c.state === "OPERATIONAL").length;
+  const operationalCount = components.filter((c) => c.state === "Operational" || c.state === "Initialised").length;
   const totalComponents = components.length;
   const progress = (operationalCount / totalComponents) * 100;
 
@@ -169,7 +194,7 @@ export const StartupTab = () => {
         <div className="mb-6 space-y-4">
           <Button
             onClick={handleStartCCS}
-            disabled={isStarting || components.some((c) => c.state === "OPERATIONAL")}
+            disabled={isStarting || components.some((c) => c.state === "Operational" || c.state === "Initialised")}
             className="w-full gap-2"
             size="lg"
           >
@@ -208,7 +233,7 @@ export const StartupTab = () => {
             <div className="bg-secondary/50 rounded-lg p-3">
               <div className="text-xs text-muted-foreground mb-1">SCADA Status</div>
               <div className="text-lg font-semibold text-primary">
-                {progress === 100 ? "OPERATIONAL" : isStarting ? "STARTING" : "OFF"}
+                {progress === 100 ? "Operational" : isStarting ? "Starting" : "Off"}
               </div>
             </div>
             <div className="bg-secondary/50 rounded-lg p-3">
@@ -220,7 +245,7 @@ export const StartupTab = () => {
             <div className="bg-secondary/50 rounded-lg p-3">
               <div className="text-xs text-muted-foreground mb-1">TCS Systems</div>
               <div className="text-lg font-semibold text-foreground">
-                {components.filter((c) => c.subsystem === "tcs" && c.state === "OPERATIONAL").length} / 9
+                {components.filter((c) => c.subsystem === "tcs" && (c.state === "Operational" || c.state === "Initialised")).length} / 9
               </div>
             </div>
             <div className="bg-secondary/50 rounded-lg p-3">
@@ -404,24 +429,28 @@ export const StartupTab = () => {
 
         <div className="mt-4 flex gap-4 flex-wrap justify-center">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("OFF") }} />
-            <span className="text-xs">OFF</span>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Off") }} />
+            <span className="text-xs">Off</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("STANDBY") }} />
-            <span className="text-xs">STANDBY</span>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Standby") }} />
+            <span className="text-xs">Standby</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("OPERATIONAL") }} />
-            <span className="text-xs">OPERATIONAL</span>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Initialised") }} />
+            <span className="text-xs">Initialised</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("DEGRADED") }} />
-            <span className="text-xs">DEGRADED</span>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Operational") }} />
+            <span className="text-xs">Operational</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("FAULT") }} />
-            <span className="text-xs">FAULT</span>
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Degraded") }} />
+            <span className="text-xs">Degraded</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Fault") }} />
+            <span className="text-xs">Fault</span>
           </div>
         </div>
       </Card>
