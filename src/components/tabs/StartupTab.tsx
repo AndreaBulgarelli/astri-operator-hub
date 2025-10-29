@@ -30,7 +30,6 @@ export const StartupTab = () => {
     // Core SCADA Systems
     { id: "ccs", name: "CCS", state: "Off", x: 500, y: 300, subsystem: "core" },
     { id: "rm", name: "RM", state: "Off", x: 500, y: 200, subsystem: "core" },
-    { id: "scc", name: "SCC", state: "Off", x: 350, y: 300, subsystem: "scada" },
     { id: "monitoring", name: "MON", state: "Off", x: 280, y: 100, subsystem: "scada" },
     { id: "logging", name: "LOG", state: "Off", x: 380, y: 80, subsystem: "scada" },
     { id: "alarm", name: "ALARM", state: "Off", x: 480, y: 80, subsystem: "scada" },
@@ -84,7 +83,7 @@ export const StartupTab = () => {
 
   const startupSteps = [
     { name: "Kubernetes Services", subsystems: ["kafka", "scdb", "cassandra", "mysql"] },
-    { name: "Central Control", subsystems: ["ccs", "rm"] },
+    { name: "Central Control", subsystems: ["ccs", "rm", "scc"] },
     { name: "SCADA Systems", subsystems: ["monitoring", "logging", "alarm", "hmi"] },
     {
       name: "Telescope Control Systems",
