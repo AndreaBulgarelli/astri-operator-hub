@@ -183,7 +183,7 @@ export const PreparationTab = () => {
       case "Standby":
         return <Badge className="bg-status-standby">Standby</Badge>;
       case "Initialised":
-        return <Badge className="bg-status-initialised">Initialised</Badge>;
+        return <Badge className="bg-status-initialised text-white">Initialised</Badge>;
       case "Safe":
         return <Badge className="bg-status-active">Safe</Badge>;
       case "Degraded":
@@ -263,7 +263,7 @@ export const PreparationTab = () => {
                 <div className="flex gap-4">
                   <Button 
                     onClick={handleInitTelescopes}
-                    disabled={isPreparing || !checklist.lidarInit || isSettingOperational}
+                    disabled={isPreparing || isSettingOperational}
                     className="flex-1"
                   >
                     {isPreparing ? "Putting in Standby..." : "Put STANDBY"}
@@ -278,54 +278,48 @@ export const PreparationTab = () => {
                 </div>
 
                 <Card className="p-4 bg-secondary/30">
-                  <ScrollArea className="h-96">
-                    <div className="grid grid-cols-3 gap-2">
-                      {telescopes.map((tel) => (
-                        <Card key={tel.id} className="p-3 bg-background/50">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-semibold text-sm">ASTRI-{tel.id}</span>
-                            {getStatusBadge(tel.status)}
+                  <div className="grid grid-cols-3 gap-2">
+                    {telescopes.map((tel) => (
+                      <Card key={tel.id} className="p-3 bg-background/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-sm">ASTRI-{tel.id}</span>
+                          {getStatusBadge(tel.status)}
+                        </div>
+                        
+                        {/* Camera thermalisation progress */}
+                        {isSettingOperational && thermalisationProgress[tel.id] !== undefined && thermalisationProgress[tel.id] < 100 && (
+                          <div className="mb-2">
+                            <div className="text-xs text-muted-foreground mb-1">Camera thermalisation</div>
+                            <Progress value={thermalisationProgress[tel.id]} className="h-2" />
+                            <div className="text-xs text-right mt-0.5">{Math.round(thermalisationProgress[tel.id])}%</div>
                           </div>
-                          
-                          {/* Camera thermalisation progress */}
-                          {isSettingOperational && thermalisationProgress[tel.id] !== undefined && thermalisationProgress[tel.id] < 100 && (
-                            <div className="mb-2">
-                              <div className="text-xs text-muted-foreground mb-1">Camera thermalisation</div>
-                              <Progress value={thermalisationProgress[tel.id]} className="h-2" />
-                              <div className="text-xs text-right mt-0.5">{Math.round(thermalisationProgress[tel.id])}%</div>
-                            </div>
-                          )}
-                          
-                          <div className="space-y-1 text-xs">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">System:</span>
-                              <span className="font-mono">{tel.status}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Mount:</span>
-                              <span className="font-mono">{tel.mount}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">PMC:</span>
-                              <span className="font-mono">{tel.pmc}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Cherenkov:</span>
-                              <span className="font-mono">{tel.cherenkovCamera}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">SI3:</span>
-                              <span className="font-mono">{tel.si3}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">M2 AMC:</span>
-                              <span className="font-mono">{tel.m2}</span>
-                            </div>
+                        )}
+                        
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Mount:</span>
+                            <span className="font-mono">{tel.mount}</span>
                           </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </ScrollArea>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">PMC:</span>
+                            <span className="font-mono">{tel.pmc}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Cherenkov:</span>
+                            <span className="font-mono">{tel.cherenkovCamera}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">SI3:</span>
+                            <span className="font-mono">{tel.si3}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">M2 AMC:</span>
+                            <span className="font-mono">{tel.m2}</span>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
                 </Card>
               </div>
             </div>
