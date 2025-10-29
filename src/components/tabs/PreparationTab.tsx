@@ -88,32 +88,29 @@ export const PreparationTab = () => {
     let index = 0;
     const interval = setInterval(() => {
       if (index < telescopes.length) {
-        setTelescopes(prev => prev.map((t, i) => {
-          if (i === index) {
-            // Show state transitions: Safe -> Standby for telescope and mount
-            // Off -> Standby -> Initialised for PMC and Cherenkov Camera
-            setTimeout(() => {
-              setTelescopes(p => p.map((tel, idx) => 
-                idx === i ? {
-                  ...tel,
-                  status: "Standby" as TelescopeStatus,
-                  mount: "Standby",
-                  pmc: "Initialised",
-                  cherenkovCamera: "Initialised",
-                } : tel
-              ));
-            }, 300);
-            
-            return {
+        const currentIndex = index;
+        // First transition: Safe -> Standby for telescope, mount, and set PMC/Cherenkov to Standby
+        setTelescopes(prev => prev.map((t, i) => 
+          i === currentIndex ? {
+            ...t,
+            status: "Standby" as TelescopeStatus,
+            mount: "Standby",
+            pmc: "Standby",
+            cherenkovCamera: "Standby",
+          } : t
+        ));
+        
+        // Second transition: PMC and Cherenkov Camera from Standby to Initialised
+        setTimeout(() => {
+          setTelescopes(prev => prev.map((t, i) => 
+            i === currentIndex ? {
               ...t,
-              status: "Standby" as TelescopeStatus,
-              mount: "Standby",
-              pmc: "Standby",
-              cherenkovCamera: "Standby",
-            };
-          }
-          return t;
-        }));
+              pmc: "Initialised",
+              cherenkovCamera: "Initialised",
+            } : t
+          ));
+        }, 400);
+        
         index++;
       } else {
         clearInterval(interval);
@@ -183,7 +180,7 @@ export const PreparationTab = () => {
       case "Standby":
         return <Badge className="bg-status-standby">Standby</Badge>;
       case "Initialised":
-        return <Badge className="bg-status-initialised text-white">Initialised</Badge>;
+        return <Badge className="bg-[hsl(var(--status-initialised))] text-white">Initialised</Badge>;
       case "Safe":
         return <Badge className="bg-status-active">Safe</Badge>;
       case "Degraded":
