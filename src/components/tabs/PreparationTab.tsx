@@ -12,8 +12,11 @@ export const PreparationTab = () => {
   const [isPreparing, setIsPreparing] = useState(false);
   const [isSettingOperational, setIsSettingOperational] = useState(false);
   const [thermalisationProgress, setThermalisationProgress] = useState<{ [key: string]: number }>({});
-  const [lidarStatus, setLidarStatus] = useState<"Off" | "Standby" | "Initialised">("Off");
+  const [lidarStatus, setLidarStatus] = useState<"Off" | "Standby" | "Initialised" | "Running">("Off");
   const [overallStatus, setOverallStatus] = useState<"SAFE" | "STANDBY" | "OPERATIONAL">("SAFE");
+  const [isOpeningLids, setIsOpeningLids] = useState(false);
+  const [lidProgress, setLidProgress] = useState<{ [key: string]: number }>({});
+  const [preCalibrationDone, setPreCalibrationDone] = useState(false);
   
   const [checklist, setChecklist] = useState({
     maSystemCheck: false,
@@ -27,15 +30,15 @@ export const PreparationTab = () => {
   type TelescopeStatus = "Safe" | "Standby" | "Operational" | "Fault";
   
   const [telescopes, setTelescopes] = useState([
-    { id: "1", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
-    { id: "2", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
-    { id: "3", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
-    { id: "4", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
-    { id: "5", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
-    { id: "6", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
-    { id: "7", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
-    { id: "8", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
-    { id: "9", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off" },
+    { id: "1", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "2", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "3", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "4", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "5", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "6", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "7", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "8", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "9", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
   ]);
 
   const [sqms, setSqms] = useState([
@@ -61,6 +64,61 @@ export const PreparationTab = () => {
         });
       }, 1500);
     }
+  };
+
+  const handleLidarRun = () => {
+    setLidarStatus("Running");
+    toast({
+      title: "LIDAR Running",
+      description: "LIDAR is now in Running mode",
+    });
+  };
+
+  const handleOpenLids = () => {
+    if (!preCalibrationDone) {
+      toast({
+        title: "Pre-calibration Required",
+        description: "Please complete pre-calibration procedure first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsOpeningLids(true);
+    telescopes.forEach((tel, idx) => {
+      const duration = 10000; // 10 seconds
+      const steps = 100;
+      const interval = duration / steps;
+      
+      let currentProgress = 0;
+      const progressInterval = setInterval(() => {
+        currentProgress += 100 / steps;
+        setLidProgress(prev => ({
+          ...prev,
+          [tel.id]: Math.min(currentProgress, 100)
+        }));
+        
+        if (currentProgress >= 100) {
+          clearInterval(progressInterval);
+          
+          // Update telescope LID to Opened
+          setTelescopes(prev => prev.map(t => 
+            t.id === tel.id ? { ...t, lid: "Opened" } : t
+          ));
+          
+          // Check if all done
+          if (idx === telescopes.length - 1) {
+            setTimeout(() => {
+              setIsOpeningLids(false);
+              toast({
+                title: "LIDs Opened",
+                description: "All telescope LIDs are now open",
+              });
+            }, 500);
+          }
+        }
+      }, interval);
+    });
   };
 
   const handleInitSqm = (sqmId: string) => {
@@ -181,6 +239,8 @@ export const PreparationTab = () => {
         return <Badge className="bg-status-standby">Standby</Badge>;
       case "Initialised":
         return <Badge className="bg-[hsl(var(--status-initialised))] text-white">Initialised</Badge>;
+      case "Running":
+        return <Badge className="bg-status-online text-white">Running</Badge>;
       case "Safe":
         return <Badge className="bg-status-active">Safe</Badge>;
       case "Degraded":
@@ -231,7 +291,7 @@ export const PreparationTab = () => {
 
             {/* LIDAR */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">1. Initialize LIDAR</h3>
+              <h3 className="text-lg font-semibold">1. LIDAR</h3>
               <Card className="p-4 bg-secondary/30">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -243,13 +303,23 @@ export const PreparationTab = () => {
                   </div>
                   {getStatusBadge(lidarStatus)}
                 </div>
-                <Button 
-                  onClick={handleInitLidar}
-                  disabled={lidarStatus === "Initialised" || !checklist.maSystemCheck}
-                  className="w-full"
-                >
-                  {lidarStatus === "Standby" ? "Completing Initialization..." : "Initialize LIDAR"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleInitLidar}
+                    disabled={lidarStatus !== "Off" || !checklist.maSystemCheck}
+                    className="flex-1"
+                  >
+                    {lidarStatus === "Standby" ? "Completing Initialization..." : "Initialize LIDAR"}
+                  </Button>
+                  <Button 
+                    onClick={handleLidarRun}
+                    disabled={lidarStatus !== "Initialised"}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    LIDAR Run
+                  </Button>
+                </div>
               </Card>
             </div>
 
@@ -269,10 +339,31 @@ export const PreparationTab = () => {
                     onClick={handleSetOperational}
                     disabled={!checklist.telescopesStandby || isSettingOperational}
                     variant="outline"
+                    className="flex-1"
                   >
                     {isSettingOperational ? "Setting Operational..." : "Set OPERATIONAL"}
                   </Button>
+                  <Button 
+                    onClick={handleOpenLids}
+                    disabled={!allTelescopesReady || isOpeningLids}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    {isOpeningLids ? "Opening LIDs..." : "Open LIDs"}
+                  </Button>
                 </div>
+
+                {allTelescopesReady && !isOpeningLids && telescopes.every(t => t.lid === "Closed") && (
+                  <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg">
+                    <Checkbox 
+                      checked={preCalibrationDone}
+                      onCheckedChange={(checked) => setPreCalibrationDone(checked as boolean)}
+                    />
+                    <label className="text-sm font-medium cursor-pointer">
+                      Pre-calibration procedure done
+                    </label>
+                  </div>
+                )}
 
                 <Card className="p-4 bg-secondary/30">
                   <div className="grid grid-cols-3 gap-2">
@@ -289,6 +380,15 @@ export const PreparationTab = () => {
                             <div className="text-xs text-muted-foreground mb-1">Camera thermalisation</div>
                             <Progress value={thermalisationProgress[tel.id]} className="h-2" />
                             <div className="text-xs text-right mt-0.5">{Math.round(thermalisationProgress[tel.id])}%</div>
+                          </div>
+                        )}
+
+                        {/* LID opening progress */}
+                        {isOpeningLids && lidProgress[tel.id] !== undefined && lidProgress[tel.id] < 100 && (
+                          <div className="mb-2">
+                            <div className="text-xs text-muted-foreground mb-1">Opening LID</div>
+                            <Progress value={lidProgress[tel.id]} className="h-2" />
+                            <div className="text-xs text-right mt-0.5">{Math.round(lidProgress[tel.id])}%</div>
                           </div>
                         )}
                         
@@ -312,6 +412,10 @@ export const PreparationTab = () => {
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">M2 AMC:</span>
                             <span className="font-mono">{tel.m2}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">LID:</span>
+                            <span className="font-mono">{tel.lid}</span>
                           </div>
                         </div>
                       </Card>

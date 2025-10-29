@@ -17,17 +17,35 @@ export const ObservationTab = () => {
 
   // Mock observing plans
   const observingPlans = [
+    { id: "OP-2024-000", name: "Pre-calibration" },
     { id: "OP-2024-001", name: "Crab Nebula Survey" },
     { id: "OP-2024-002", name: "AGN Monitoring" },
     { id: "OP-2024-003", name: "Galactic Center" },
   ];
 
   // Mock scheduling blocks for selected plan
-  const schedulingBlocks = selectedPlan ? [
-    { id: "SB.01", name: "Pre-calibration", duration: "30min" },
-    { id: "SB.02", name: "Main Observation", duration: "2h" },
-    { id: "SB.03", name: "Post-calibration", duration: "30min" },
-  ] : [];
+  const getSchedulingBlocks = () => {
+    if (!selectedPlan) return [];
+    
+    if (selectedPlan === "OP-2024-000") {
+      // Pre-calibration plan with 3 OBs
+      return [
+        { id: "OB.01", name: "Stairs Calibration (C1,1)", duration: "15min" },
+        { id: "OB.02", name: "HG/LG Pulse Height Distribution for the pedestal determination (C1,4)", duration: "20min" },
+        { id: "OB.03", name: "Pulse Height Distribution for HG gain and cross-talk determination (C1,4)", duration: "20min" },
+      ];
+    } else {
+      // Other plans with 4 Wobble mode OBs
+      return [
+        { id: "OB.01", name: "Wobble 1", duration: "30min" },
+        { id: "OB.02", name: "Wobble 2", duration: "30min" },
+        { id: "OB.03", name: "Wobble 3", duration: "30min" },
+        { id: "OB.04", name: "Wobble 4", duration: "30min" },
+      ];
+    }
+  };
+
+  const schedulingBlocks = getSchedulingBlocks();
 
   const handleStart = () => {
     if (!selectedPlan) {
