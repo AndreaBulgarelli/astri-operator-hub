@@ -31,12 +31,10 @@ export const StartupTab = () => {
     { id: "ccs", name: "CCS", state: "Off", x: 500, y: 300, subsystem: "core" },
     { id: "rm", name: "RM", state: "Off", x: 500, y: 200, subsystem: "core" },
     { id: "scc", name: "SCC", state: "Off", x: 350, y: 300, subsystem: "scada" },
-    { id: "monitoring", name: "MON", state: "Off", x: 280, y: 100, subsystem: "scada" },
-    { id: "logging", name: "LOG", state: "Off", x: 380, y: 100, subsystem: "scada" },
-    { id: "alarm", name: "ALARM", state: "Off", x: 480, y: 100, subsystem: "scada" },
-    { id: "hmi", name: "HMI", state: "Off", x: 580, y: 100, subsystem: "scada" },
-    { id: "accs", name: "ACCS", state: "Off", x: 620, y: 200, subsystem: "scada" },
-    { id: "ict", name: "ICTC", state: "Off", x: 650, y: 300, subsystem: "scada" },
+    { id: "monitoring", name: "MON", state: "Off", x: 280, y: 80, subsystem: "scada" },
+    { id: "logging", name: "LOG", state: "Off", x: 380, y: 80, subsystem: "scada" },
+    { id: "alarm", name: "ALARM", state: "Off", x: 480, y: 80, subsystem: "scada" },
+    { id: "hmi", name: "HMI", state: "Off", x: 580, y: 80, subsystem: "scada" }, },
 
     // ACS Manager
     { id: "acs", name: "ACS Mgr", state: "Off", x: 700, y: 340, subsystem: "acs" },
@@ -87,7 +85,7 @@ export const StartupTab = () => {
   const startupSteps = [
     { name: "Kubernetes Services", subsystems: ["kafka", "scdb", "cassandra", "mysql"] },
     { name: "Central Control", subsystems: ["ccs", "rm", "scc"] },
-    { name: "SCADA Systems", subsystems: ["monitoring", "logging", "alarm", "hmi", "accs", "ict"] },
+    { name: "SCADA Systems", subsystems: ["monitoring", "logging", "alarm", "hmi"] },
     {
       name: "Telescope Control Systems",
       subsystems: ["tcs-1", "tcs-2", "tcs-3", "tcs-4", "tcs-5", "tcs-6", "tcs-7", "tcs-8", "tcs-9"],
@@ -245,12 +243,7 @@ export const StartupTab = () => {
             <div className="bg-secondary/50 rounded-lg p-3">
               <div className="text-xs text-muted-foreground mb-1">TCS Systems</div>
               <div className="text-lg font-semibold text-foreground">
-                {
-                  components.filter(
-                    (c) => c.subsystem === "tcs" && (c.state === "Operational" || c.state === "Initialised"),
-                  ).length
-                }{" "}
-                / 9
+                {components.filter((c) => c.subsystem === "tcs" && (c.state === "Operational" || c.state === "Initialised")).length} / 9
               </div>
             </div>
             <div className="bg-secondary/50 rounded-lg p-3">
