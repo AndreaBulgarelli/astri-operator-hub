@@ -20,12 +20,16 @@ interface RunningPlan {
   planName: string;
   selectedSB: string;
   selectedOB: string;
+  expandedSB: string | null;
 }
 
 export const ObservationTab = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const [selectedSB, setSelectedSB] = useState<string>("");
+  const [selectedOB, setSelectedOB] = useState<string>("");
+  const [expandedSB, setExpandedSB] = useState<string | null>(null);
   const [runningPlans, setRunningPlans] = useState<RunningPlan[]>([]);
-  const [activePlanTab, setActivePlanTab] = useState<string>("selection");
+  const [activeTab, setActiveTab] = useState<string>("main");
   
   // Check statuses per SB
   const [sbChecks, setSBChecks] = useState<{[key: string]: {weather: CheckStatus, atmo: CheckStatus, telescopes: CheckStatus}}>({});
@@ -166,45 +170,27 @@ export const ObservationTab = () => {
   ]);
 
   const selectedPlanData = observingPlans.find(p => p.id === selectedPlan);
-  
-  // Get selected SB and OB from running plan or default to first
-  const getRunningPlan = (planId: string) => runningPlans.find(rp => rp.planId === planId);
-  
-  const getPlanSBData = (planId: string) => {
-    const plan = observingPlans.find(p => p.id === planId);
-    const runningPlan = getRunningPlan(planId);
-    const selectedSB = runningPlan?.selectedSB || plan?.schedulingBlocks[0]?.id;
-    return plan?.schedulingBlocks.find(sb => sb.id === selectedSB);
-  };
-
-  const getPlanOBData = (planId: string) => {
-    const sbData = getPlanSBData(planId);
-    const runningPlan = getRunningPlan(planId);
-    const selectedOB = runningPlan?.selectedOB || sbData?.observationBlocks[0]?.id;
-    return sbData?.observationBlocks.find(ob => ob.id === selectedOB);
-  };
+  const selectedSBData = selectedPlanData?.schedulingBlocks.find(sb => sb.id === selectedSB);
+  const selectedOBData = selectedSBData?.observationBlocks.find(ob => ob.id === selectedOB);
 
   // Mock metadata for selected SB
-  const getMetadataForPlan = (planId: string) => {
-    const sbData = getPlanSBData(planId);
-    return sbData ? {
-      sblId: "2021.S0001.R.SB0001",
-      proID: "2021.S0001.R",
-      proName: "ASTRI SVF 1",
-      target: "CrabNebula",
-      coordinates: { ra: "83.63321 deg", dec: "22.01444 deg" },
-      instrumentMode: "SCI - SWB",
-      telescopes: ["ASTRI1", "ASTRI8", "ASTRI9"],
-      maxWindVelocity: "30 km/s",
-      skyBackground: "15.0 DarkNSB",
-      observingWindow: {
-        start: "2024-01-10T00:00:00Z",
-        end: "2024-12-10T00:00:00Z"
-      },
-      haRange: { min: "-4 hour", max: "4 hour" },
-      zaRange: { min: "0 deg", max: "60 deg" }
-    } : null;
-  };
+  const sbMetadata = selectedSBData ? {
+    sblId: "2021.S0001.R.SB0001",
+    proID: "2021.S0001.R",
+    proName: "ASTRI SVF 1",
+    target: "CrabNebula",
+    coordinates: { ra: "83.63321 deg", dec: "22.01444 deg" },
+    instrumentMode: "SCI - SWB",
+    telescopes: ["ASTRI1", "ASTRI8", "ASTRI9"],
+    maxWindVelocity: "30 km/s",
+    skyBackground: "15.0 DarkNSB",
+    observingWindow: {
+      start: "2024-01-10T00:00:00Z",
+      end: "2024-12-10T00:00:00Z"
+    },
+    haRange: { min: "-4 hour", max: "4 hour" },
+    zaRange: { min: "0 deg", max: "60 deg" }
+  } : null;
 
   const performChecks = async (sbId: string) => {
     setSBChecks(prev => ({
@@ -312,40 +298,10 @@ export const ObservationTab = () => {
       return;
     }
 
-    // Check if plan is already running
-    if (runningPlans.some(rp => rp.planId === selectedPlan)) {
-      toast({
-        title: "Plan Already Running",
-        description: `${plan.name} is already in execution.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Add plan to running plans
-    const newRunningPlan: RunningPlan = {
-      planId: selectedPlan,
-      planName: plan.name,
-      selectedSB: plan.schedulingBlocks[0].id,
-      selectedOB: plan.schedulingBlocks[0].observationBlocks[0]?.id || ""
-    };
-    
-    setRunningPlans(prev => [...prev, newRunningPlan]);
-    setActivePlanTab(selectedPlan);
     setIsPlanRunning(true);
-
-    toast({
-      title: "Plan Started",
-      description: `Starting ${plan.name}...`,
-    });
 
     // Execute all SBs in sequence
     for (const sb of plan.schedulingBlocks) {
-      // Update selected SB for this plan
-      setRunningPlans(prev => prev.map(rp => 
-        rp.planId === selectedPlan ? { ...rp, selectedSB: sb.id } : rp
-      ));
-
       const checksOk = await performChecks(sb.id);
       
       if (!checksOk) {
@@ -383,35 +339,14 @@ export const ObservationTab = () => {
     setIsPlanRunning(false);
   };
 
-  const handleStartSB = async (sbId: string, planId?: string) => {
-    const targetPlanId = planId || selectedPlan;
-    
-    if (!targetPlanId) {
+  const handleStartSB = async (sbId: string) => {
+    if (!selectedPlan) {
       toast({
         title: "No Plan Selected",
         description: "Please select an observing plan.",
         variant: "destructive",
       });
       return;
-    }
-
-    const plan = observingPlans.find(p => p.id === targetPlanId);
-    const sb = plan?.schedulingBlocks.find(s => s.id === sbId);
-
-    // Update or add to running plans
-    if (!runningPlans.some(rp => rp.planId === targetPlanId)) {
-      const newRunningPlan: RunningPlan = {
-        planId: targetPlanId,
-        planName: plan?.name || "",
-        selectedSB: sbId,
-        selectedOB: sb?.observationBlocks[0]?.id || ""
-      };
-      setRunningPlans(prev => [...prev, newRunningPlan]);
-      setActivePlanTab(targetPlanId);
-    } else {
-      setRunningPlans(prev => prev.map(rp => 
-        rp.planId === targetPlanId ? { ...rp, selectedSB: sbId } : rp
-      ));
     }
 
     const checksOk = await performChecks(sbId);
@@ -425,12 +360,13 @@ export const ObservationTab = () => {
       return;
     }
 
+    const sbData = selectedPlanData?.schedulingBlocks.find(sb => sb.id === sbId);
     toast({
       title: "Scheduling Block Started",
-      description: `Starting ${sb?.name}...`,
+      description: `Starting ${sbData?.name}...`,
     });
 
-    simulateExecution(targetPlanId, sbId);
+    simulateExecution(selectedPlan, sbId);
   };
 
   const handleStop = () => {
@@ -480,6 +416,9 @@ export const ObservationTab = () => {
               <label className="text-sm font-medium">Observing Plan</label>
               <Select value={selectedPlan} onValueChange={(val) => {
                 setSelectedPlan(val);
+                setSelectedSB("");
+                setSelectedOB("");
+                setExpandedSB(null);
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select observing plan..." />
@@ -501,12 +440,49 @@ export const ObservationTab = () => {
                   <div><span className="text-muted-foreground">End:</span> {new Date(selectedPlanData.endDate).toLocaleString()}</div>
                 </div>
 
-                {/* SB Metadata - shown only for selection, not for running plans */}
-                {!runningPlans.some(rp => rp.planId === selectedPlan) && (
+                {/* SB Metadata */}
+                {sbMetadata && selectedSB && (
                   <>
-                    <ScrollArea className="h-[200px] rounded-lg border border-border p-3">
-                      <div className="text-xs text-muted-foreground text-center py-4">
-                        Select a plan and start execution to view details
+                    <div className="border-t border-border my-4"></div>
+                    <ScrollArea className="h-[300px] rounded-lg border border-border p-3">
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Scheduling Block</div>
+                          <div className="text-muted-foreground">{sbMetadata.sblId}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Project</div>
+                          <div>{sbMetadata.proID} - {sbMetadata.proName}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Target</div>
+                          <div>{sbMetadata.target}</div>
+                          <div className="text-muted-foreground">RA: {sbMetadata.coordinates.ra}, Dec: {sbMetadata.coordinates.dec}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Instrument</div>
+                          <div>{sbMetadata.instrumentMode}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Array Configuration</div>
+                          <div>{sbMetadata.telescopes.join(", ")}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Weather Constraints</div>
+                          <div>Max Wind: {sbMetadata.maxWindVelocity}</div>
+                          <div>Sky Background: {sbMetadata.skyBackground}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Observing Window</div>
+                          <div className="text-muted-foreground">
+                            {new Date(sbMetadata.observingWindow.start).toLocaleDateString()} - {new Date(sbMetadata.observingWindow.end).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Pointing Constraints</div>
+                          <div>HA: {sbMetadata.haRange.min} to {sbMetadata.haRange.max}</div>
+                          <div>ZA: {sbMetadata.zaRange.min} to {sbMetadata.zaRange.max}</div>
+                        </div>
                       </div>
                     </ScrollArea>
                   </>
@@ -536,197 +512,120 @@ export const ObservationTab = () => {
             </div>
           </div>
 
-          {/* Middle & Right: Tabs for Running Plans */}
-          <div className="col-span-2">
-            {runningPlans.length > 0 ? (
-              <Tabs value={activePlanTab} onValueChange={setActivePlanTab}>
-                <TabsList>
-                  {runningPlans.map(rp => (
-                    <TabsTrigger key={rp.planId} value={rp.planId}>
-                      {rp.planName}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                
-                {runningPlans.map(rp => {
-                  const plan = observingPlans.find(p => p.id === rp.planId);
-                  const sbData = getPlanSBData(rp.planId);
-                  const metadata = getMetadataForPlan(rp.planId);
-                  
-                  return (
-                    <TabsContent key={rp.planId} value={rp.planId} className="space-y-4">
-                      {/* Metadata Section */}
-                      {metadata && (
-                        <Card className="p-4">
-                          <ScrollArea className="h-[200px]">
-                            <div className="space-y-3 text-xs">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <div className="font-semibold text-primary mb-1">Scheduling Block</div>
-                                  <div className="text-muted-foreground">{metadata.sblId}</div>
-                                </div>
-                                <div>
-                                  <div className="font-semibold text-primary mb-1">Project</div>
-                                  <div>{metadata.proID} - {metadata.proName}</div>
-                                </div>
-                              </div>
-                              <div>
-                                <div className="font-semibold text-primary mb-1">Target</div>
-                                <div>{metadata.target}</div>
-                                <div className="text-muted-foreground">RA: {metadata.coordinates.ra}, Dec: {metadata.coordinates.dec}</div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <div className="font-semibold text-primary mb-1">Instrument</div>
-                                  <div>{metadata.instrumentMode}</div>
-                                </div>
-                                <div>
-                                  <div className="font-semibold text-primary mb-1">Array Configuration</div>
-                                  <div>{metadata.telescopes.join(", ")}</div>
-                                </div>
-                              </div>
-                            </div>
-                          </ScrollArea>
-                        </Card>
-                      )}
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Scheduling Blocks */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Scheduling Blocks</label>
-                          <ScrollArea className="h-[400px] border rounded-lg p-2">
-                            {plan?.schedulingBlocks.map(sb => {
-                              const sbCheck = getSBCheckStatus(sb.id);
-                              const isSelected = rp.selectedSB === sb.id;
-                              
-                              return (
-                                <div key={sb.id} className="space-y-2 mb-4">
-                                  {/* Start SB Button */}
-                                  {!isPlanRunning && (
-                                    <Button 
-                                      onClick={() => handleStartSB(sb.id, rp.planId)}
-                                      size="sm"
-                                      variant="secondary"
-                                      className="w-full gap-2"
-                                    >
-                                      <Play className="h-3 w-3" />
-                                      Start SB
-                                    </Button>
-                                  )}
+          {/* Middle: SB List */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Scheduling Blocks</label>
+            <ScrollArea className="h-[400px] border rounded-lg p-2">
+              {selectedPlanData?.schedulingBlocks.map(sb => {
+                const sbCheck = getSBCheckStatus(sb.id);
+                return (
+                  <div key={sb.id} className="space-y-2 mb-4">
+                    {/* Start SB Button */}
+                    {!isPlanRunning && (
+                      <Button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartSB(sb.id);
+                        }}
+                        size="sm"
+                        variant="secondary"
+                        className="w-full gap-2"
+                      >
+                        <Play className="h-3 w-3" />
+                        Start SB
+                      </Button>
+                    )}
 
-                                  {/* Central Control Checks */}
-                                  <div className="p-2 rounded-lg bg-card/50 border border-border space-y-1">
-                                    <div className="text-xs font-semibold text-primary mb-1">Central Control Checks</div>
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span>Weather Condition</span>
-                                      {getCheckIcon(sbCheck.weather)}
-                                    </div>
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span>Atmo Condition</span>
-                                      {getCheckIcon(sbCheck.atmo)}
-                                    </div>
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span>Available Telescopes</span>
-                                      {getCheckIcon(sbCheck.telescopes)}
-                                    </div>
-                                  </div>
+                    {/* Central Control Checks before each SB */}
+                    <div className="p-2 rounded-lg bg-card/50 border border-border space-y-1">
+                      <div className="text-xs font-semibold text-primary mb-1">Central Control Checks</div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Weather Condition</span>
+                        {getCheckIcon(sbCheck.weather)}
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Atmo Condition</span>
+                        {getCheckIcon(sbCheck.atmo)}
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Available Telescopes</span>
+                        {getCheckIcon(sbCheck.telescopes)}
+                      </div>
+                    </div>
 
-                                  {/* SB Block */}
-                                  <div 
-                                    className={`p-3 rounded-lg cursor-pointer transition-colors ${isSelected ? 'bg-primary/20 border-2 border-primary' : 'bg-secondary/50 hover:bg-secondary/80'}`}
-                                    onClick={() => {
-                                      setRunningPlans(prev => prev.map(p => 
-                                        p.planId === rp.planId ? { ...p, selectedSB: sb.id } : p
-                                      ));
-                                    }}
-                                  >
-                                    <div className="flex items-center justify-between mb-2">
-                                      <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-sm">{sb.id}</span>
-                                        <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Progress value={sb.progress} className="flex-1 h-2" />
-                                      <span className="text-xs font-mono">{sb.progress}%</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </ScrollArea>
-                        </div>
-
-                        {/* Observation Blocks */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Observation Blocks</label>
-                          <ScrollArea className="h-[400px] border rounded-lg p-3">
-                            {sbData && sbData.observationBlocks.length > 0 ? (
-                              <div className="space-y-2">
-                                {sbData.observationBlocks.map((ob) => {
-                                  const isSelected = rp.selectedOB === ob.id;
-                                  
-                                  return (
-                                    <div
-                                      key={ob.id}
-                                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                                        isSelected ? "bg-primary/10 border-2 border-primary" : "bg-card border border-border hover:bg-secondary/30"
-                                      }`}
-                                      onClick={() => {
-                                        setRunningPlans(prev => prev.map(p => 
-                                          p.planId === rp.planId ? { ...p, selectedOB: ob.id } : p
-                                        ));
-                                      }}
-                                    >
-                                      <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                          <Badge variant="outline" className="text-xs">{ob.id}</Badge>
-                                          <span className="text-sm font-medium">{ob.name}</span>
-                                        </div>
-                                        <Badge className={getStatusColor(ob.status)} variant="secondary">
-                                          {ob.status}
-                                        </Badge>
-                                      </div>
-                                      
-                                      {ob.runId && (
-                                        <div className="mb-2">
-                                          <a 
-                                            href={`#/data-capture/${ob.runId}`}
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="text-xs text-primary hover:underline flex items-center gap-1"
-                                          >
-                                            {ob.runId}
-                                            <ExternalLink className="h-3 w-3" />
-                                          </a>
-                                        </div>
-                                      )}
-                                      
-                                      <Progress value={ob.progress} className="h-2 mb-1" />
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-xs text-muted-foreground">{ob.duration}</span>
-                                        <span className="text-xs text-muted-foreground">{ob.progress}%</span>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div className="text-sm text-muted-foreground text-center py-8">
-                                No observation blocks available
-                              </div>
-                            )}
-                          </ScrollArea>
+                    {/* SB Block */}
+                    <div 
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedSB === sb.id ? 'bg-primary/20 border-2 border-primary' : 'bg-secondary/50 hover:bg-secondary/80'}`}
+                      onClick={() => setSelectedSB(sb.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{sb.id}</span>
+                          <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
                         </div>
                       </div>
-                    </TabsContent>
-                  );
-                })}
-              </Tabs>
-            ) : (
-              <div className="col-span-2 h-[400px] border rounded-lg flex items-center justify-center text-muted-foreground">
-                Start an observing plan to view Scheduling Blocks and Observation Blocks
-              </div>
-            )}
+                      <div className="flex items-center gap-2">
+                        <Progress value={sb.progress} className="flex-1 h-2" />
+                        <span className="text-xs font-mono">{sb.progress}%</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </ScrollArea>
+          </div>
+
+          {/* Right: OBs List */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Observation Blocks</label>
+            <ScrollArea className="h-[400px] border rounded-lg p-3">
+              {selectedSBData && selectedSBData.observationBlocks.length > 0 ? (
+                <div className="space-y-2">
+                  {selectedSBData.observationBlocks.map((ob) => (
+                    <div
+                      key={ob.id}
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedOB === ob.id ? "bg-primary/10 border-2 border-primary" : "bg-card border border-border hover:bg-secondary/30"
+                      }`}
+                      onClick={() => setSelectedOB(ob.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">{ob.id}</Badge>
+                          <span className="text-sm font-medium">{ob.name}</span>
+                        </div>
+                        <Badge className={getStatusColor(ob.status)} variant="secondary">
+                          {ob.status}
+                        </Badge>
+                      </div>
+                      
+                      {ob.runId && (
+                        <div className="mb-2">
+                          <a 
+                            href={`#/data-capture/${ob.runId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            {ob.runId}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      )}
+                      
+                      <Progress value={ob.progress} className="h-2 mb-1" />
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">{ob.duration}</span>
+                        <span className="text-xs text-muted-foreground">{ob.progress}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground text-center py-8">
+                  {selectedSB ? "No observation blocks available" : "Select a scheduling block"}
+                </div>
+              )}
+            </ScrollArea>
           </div>
         </div>
       </Card>
