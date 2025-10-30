@@ -512,14 +512,30 @@ export const ObservationTab = () => {
             </div>
           </div>
 
-          {/* Middle: SB & OB List */}
+          {/* Middle: SB List */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Scheduling Blocks & OBs</label>
+            <label className="text-sm font-medium">Scheduling Blocks</label>
             <ScrollArea className="h-[400px] border rounded-lg p-2">
               {selectedPlanData?.schedulingBlocks.map(sb => {
                 const sbCheck = getSBCheckStatus(sb.id);
                 return (
                   <div key={sb.id} className="space-y-2 mb-4">
+                    {/* Start SB Button */}
+                    {!isPlanRunning && (
+                      <Button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartSB(sb.id);
+                        }}
+                        size="sm"
+                        variant="secondary"
+                        className="w-full gap-2"
+                      >
+                        <Play className="h-3 w-3" />
+                        Start SB
+                      </Button>
+                    )}
+
                     {/* Central Control Checks before each SB */}
                     <div className="p-2 rounded-lg bg-card/50 border border-border space-y-1">
                       <div className="text-xs font-semibold text-primary mb-1">Central Control Checks</div>
@@ -537,33 +553,13 @@ export const ObservationTab = () => {
                       </div>
                     </div>
 
-                    {/* Start SB Button */}
-                    {!isPlanRunning && (
-                      <Button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStartSB(sb.id);
-                        }}
-                        size="sm"
-                        variant="secondary"
-                        className="w-full gap-2"
-                      >
-                        <Play className="h-3 w-3" />
-                        Start SB
-                      </Button>
-                    )}
-
                     {/* SB Block */}
                     <div 
                       className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedSB === sb.id ? 'bg-primary/20 border-2 border-primary' : 'bg-secondary/50 hover:bg-secondary/80'}`}
-                      onClick={() => {
-                        setSelectedSB(sb.id);
-                        setExpandedSB(expandedSB === sb.id ? null : sb.id);
-                      }}
+                      onClick={() => setSelectedSB(sb.id)}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          {expandedSB === sb.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                           <span className="font-semibold text-sm">{sb.id}</span>
                           <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
                         </div>
@@ -573,39 +569,6 @@ export const ObservationTab = () => {
                         <span className="text-xs font-mono">{sb.progress}%</span>
                       </div>
                     </div>
-
-                    {expandedSB === sb.id && (
-                      <div className="ml-4 mt-2 space-y-1">
-                        {sb.observationBlocks.map(ob => (
-                          <div 
-                            key={ob.id}
-                            className={`p-2 rounded-lg text-sm cursor-pointer transition-colors ${selectedOB === ob.id ? 'bg-primary/20 border-2 border-primary' : 'bg-card/50 hover:bg-card/80 border border-border'}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedOB(ob.id);
-                            }}
-                          >
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-xs">{ob.id}</Badge>
-                                {ob.runId && (
-                                  <a href={`#/data-capture/${ob.runId}`} className="text-xs text-primary hover:underline flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                    {ob.runId}
-                                    <ExternalLink className="h-3 w-3" />
-                                  </a>
-                                )}
-                              </div>
-                              <Badge className={getStatusColor(ob.status)} variant="outline">{ob.status}</Badge>
-                            </div>
-                            <div className="text-xs text-muted-foreground mb-1">{ob.name} ({ob.duration})</div>
-                            <div className="flex items-center gap-2">
-                              <Progress value={ob.progress} className="flex-1 h-1.5" />
-                              <span className="text-xs font-mono">{ob.progress}%</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 );
               })}
