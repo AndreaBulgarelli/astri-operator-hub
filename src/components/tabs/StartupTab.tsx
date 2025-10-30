@@ -34,7 +34,7 @@ export const StartupTab = () => {
     { id: "monitoring", name: "MON", state: "Off", x: 280, y: 80, subsystem: "scada" },
     { id: "logging", name: "LOG", state: "Off", x: 380, y: 80, subsystem: "scada" },
     { id: "alarm", name: "ALARM", state: "Off", x: 480, y: 80, subsystem: "scada" },
-    { id: "hmi", name: "HMI", state: "Off", x: 580, y: 80, subsystem: "scada" }, },
+    { id: "hmi", name: "HMI", state: "Off", x: 580, y: 80, subsystem: "scada" },
 
     // ACS Manager
     { id: "acs", name: "ACS Mgr", state: "Off", x: 700, y: 340, subsystem: "acs" },
@@ -243,7 +243,12 @@ export const StartupTab = () => {
             <div className="bg-secondary/50 rounded-lg p-3">
               <div className="text-xs text-muted-foreground mb-1">TCS Systems</div>
               <div className="text-lg font-semibold text-foreground">
-                {components.filter((c) => c.subsystem === "tcs" && (c.state === "Operational" || c.state === "Initialised")).length} / 9
+                {
+                  components.filter(
+                    (c) => c.subsystem === "tcs" && (c.state === "Operational" || c.state === "Initialised"),
+                  ).length
+                }{" "}
+                / 9
               </div>
             </div>
             <div className="bg-secondary/50 rounded-lg p-3">
