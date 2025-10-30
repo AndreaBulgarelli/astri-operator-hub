@@ -434,10 +434,60 @@ export const ObservationTab = () => {
             </div>
 
             {selectedPlanData && (
-              <div className="p-3 rounded-lg bg-secondary/30 space-y-1 text-xs">
-                <div><span className="text-muted-foreground">Start:</span> {new Date(selectedPlanData.startDate).toLocaleString()}</div>
-                <div><span className="text-muted-foreground">End:</span> {new Date(selectedPlanData.endDate).toLocaleString()}</div>
-              </div>
+              <>
+                <div className="p-3 rounded-lg bg-secondary/30 space-y-1 text-xs">
+                  <div><span className="text-muted-foreground">Start:</span> {new Date(selectedPlanData.startDate).toLocaleString()}</div>
+                  <div><span className="text-muted-foreground">End:</span> {new Date(selectedPlanData.endDate).toLocaleString()}</div>
+                </div>
+
+                {/* SB Metadata */}
+                {sbMetadata && selectedSB && (
+                  <>
+                    <div className="border-t border-border my-4"></div>
+                    <ScrollArea className="h-[300px] rounded-lg border border-border p-3">
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Scheduling Block</div>
+                          <div className="text-muted-foreground">{sbMetadata.sblId}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Project</div>
+                          <div>{sbMetadata.proID} - {sbMetadata.proName}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Target</div>
+                          <div>{sbMetadata.target}</div>
+                          <div className="text-muted-foreground">RA: {sbMetadata.coordinates.ra}, Dec: {sbMetadata.coordinates.dec}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Instrument</div>
+                          <div>{sbMetadata.instrumentMode}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Array Configuration</div>
+                          <div>{sbMetadata.telescopes.join(", ")}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Weather Constraints</div>
+                          <div>Max Wind: {sbMetadata.maxWindVelocity}</div>
+                          <div>Sky Background: {sbMetadata.skyBackground}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Observing Window</div>
+                          <div className="text-muted-foreground">
+                            {new Date(sbMetadata.observingWindow.start).toLocaleDateString()} - {new Date(sbMetadata.observingWindow.end).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Pointing Constraints</div>
+                          <div>HA: {sbMetadata.haRange.min} to {sbMetadata.haRange.max}</div>
+                          <div>ZA: {sbMetadata.zaRange.min} to {sbMetadata.zaRange.max}</div>
+                        </div>
+                      </div>
+                    </ScrollArea>
+                  </>
+                )}
+              </>
             )}
 
 
@@ -562,53 +612,54 @@ export const ObservationTab = () => {
             </ScrollArea>
           </div>
 
-          {/* Right: Metadata */}
+          {/* Right: OBs List */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Metadata</label>
-            <ScrollArea className="h-[400px] border rounded-lg p-4">
-              {sbMetadata && selectedSB ? (
-                <div className="space-y-3 text-xs">
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Scheduling Block</div>
-                    <div className="text-muted-foreground">{sbMetadata.sblId}</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Project</div>
-                    <div>{sbMetadata.proID} - {sbMetadata.proName}</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Target</div>
-                    <div>{sbMetadata.target}</div>
-                    <div className="text-muted-foreground">RA: {sbMetadata.coordinates.ra}, Dec: {sbMetadata.coordinates.dec}</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Instrument</div>
-                    <div>{sbMetadata.instrumentMode}</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Array Configuration</div>
-                    <div>{sbMetadata.telescopes.join(", ")}</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Weather Constraints</div>
-                    <div>Max Wind: {sbMetadata.maxWindVelocity}</div>
-                    <div>Sky Background: {sbMetadata.skyBackground}</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Observing Window</div>
-                    <div className="text-muted-foreground">
-                      {new Date(sbMetadata.observingWindow.start).toLocaleDateString()} - {new Date(sbMetadata.observingWindow.end).toLocaleDateString()}
+            <label className="text-sm font-medium">Observation Blocks</label>
+            <ScrollArea className="h-[400px] border rounded-lg p-3">
+              {selectedSBData && selectedSBData.observationBlocks.length > 0 ? (
+                <div className="space-y-2">
+                  {selectedSBData.observationBlocks.map((ob) => (
+                    <div
+                      key={ob.id}
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedOB === ob.id ? "bg-primary/10 border-2 border-primary" : "bg-card border border-border hover:bg-secondary/30"
+                      }`}
+                      onClick={() => setSelectedOB(ob.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">{ob.id}</Badge>
+                          <span className="text-sm font-medium">{ob.name}</span>
+                        </div>
+                        <Badge className={getStatusColor(ob.status)} variant="secondary">
+                          {ob.status}
+                        </Badge>
+                      </div>
+                      
+                      {ob.runId && (
+                        <div className="mb-2">
+                          <a 
+                            href={`#/data-capture/${ob.runId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            {ob.runId}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      )}
+                      
+                      <Progress value={ob.progress} className="h-2 mb-1" />
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">{ob.duration}</span>
+                        <span className="text-xs text-muted-foreground">{ob.progress}%</span>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-primary mb-1">Pointing Constraints</div>
-                    <div>HA: {sbMetadata.haRange.min} to {sbMetadata.haRange.max}</div>
-                    <div>ZA: {sbMetadata.zaRange.min} to {sbMetadata.zaRange.max}</div>
-                  </div>
+                  ))}
                 </div>
               ) : (
-                <div className="text-muted-foreground text-center py-8">
-                  Select a Scheduling Block to view metadata
+                <div className="text-sm text-muted-foreground text-center py-8">
+                  {selectedSB ? "No observation blocks available" : "Select a scheduling block"}
                 </div>
               )}
             </ScrollArea>
