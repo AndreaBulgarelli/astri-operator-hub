@@ -7,6 +7,8 @@ import { PreparationTab } from "@/components/tabs/PreparationTab";
 import { ObservationTab } from "@/components/tabs/ObservationTab";
 import { EndTab } from "@/components/tabs/EndTab";
 import { UtilityTab } from "@/components/tabs/UtilityTab";
+import { AlarmPanel } from "@/components/monitoring/AlarmPanel";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Card } from "@/components/ui/card";
 import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } from "lucide-react";
 
@@ -40,42 +42,56 @@ const Index = () => {
           ))}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="bg-secondary w-full justify-start">
-            <TabsTrigger value="monitoring">System Monitoring</TabsTrigger>
-            <TabsTrigger value="startup">Startup</TabsTrigger>
-            <TabsTrigger value="preparation">Preparation</TabsTrigger>
-            <TabsTrigger value="observation">Observation</TabsTrigger>
-            <TabsTrigger value="end">End</TabsTrigger>
-            <TabsTrigger value="utility">Utility</TabsTrigger>
-          </TabsList>
+        <ResizablePanelGroup direction="horizontal" className="flex-1">
+          <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+            <div className="h-full pr-2">
+              <AlarmPanel />
+            </div>
+          </ResizablePanel>
 
-          <div className="flex-1 mt-2">
-            <TabsContent value="monitoring" className="h-full m-0">
-              <SystemMonitoring />
-            </TabsContent>
+          <ResizableHandle withHandle />
 
-            <TabsContent value="startup" className="h-full m-0">
-              <StartupTab />
-            </TabsContent>
+          <ResizablePanel defaultSize={75} minSize={60}>
+            <div className="h-full pl-2">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+                <TabsList className="bg-secondary w-full justify-start">
+                  <TabsTrigger value="monitoring">System Monitoring</TabsTrigger>
+                  <TabsTrigger value="startup">Startup</TabsTrigger>
+                  <TabsTrigger value="preparation">Preparation</TabsTrigger>
+                  <TabsTrigger value="observation">Observation</TabsTrigger>
+                  <TabsTrigger value="end">End</TabsTrigger>
+                  <TabsTrigger value="utility">Utility</TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="preparation" className="h-full m-0">
-              <PreparationTab />
-            </TabsContent>
+                <div className="flex-1 mt-2">
+                  <TabsContent value="monitoring" className="h-full m-0">
+                    <SystemMonitoring />
+                  </TabsContent>
 
-            <TabsContent value="observation" className="h-full m-0">
-              <ObservationTab />
-            </TabsContent>
+                  <TabsContent value="startup" className="h-full m-0">
+                    <StartupTab />
+                  </TabsContent>
 
-            <TabsContent value="end" className="h-full m-0">
-              <EndTab />
-            </TabsContent>
+                  <TabsContent value="preparation" className="h-full m-0">
+                    <PreparationTab />
+                  </TabsContent>
 
-            <TabsContent value="utility" className="h-full m-0">
-              <UtilityTab />
-            </TabsContent>
-          </div>
-        </Tabs>
+                  <TabsContent value="observation" className="h-full m-0">
+                    <ObservationTab />
+                  </TabsContent>
+
+                  <TabsContent value="end" className="h-full m-0">
+                    <EndTab />
+                  </TabsContent>
+
+                  <TabsContent value="utility" className="h-full m-0">
+                    <UtilityTab />
+                  </TabsContent>
+                </div>
+              </Tabs>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </div>
   );

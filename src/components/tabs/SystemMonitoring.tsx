@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { HierarchicalView } from "@/components/monitoring/HierarchicalView";
 import { DetailPanel } from "@/components/monitoring/DetailPanel";
-import { AlarmPanel } from "@/components/monitoring/AlarmPanel";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 export const SystemMonitoring = () => {
@@ -19,21 +18,9 @@ export const SystemMonitoring = () => {
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={40} minSize={30}>
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={60}>
-              <div className="h-full p-4 overflow-auto">
-                <DetailPanel selectedSystem={selectedSystem} />
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            <ResizablePanel defaultSize={40}>
-              <div className="h-full p-4 overflow-auto">
-                <AlarmPanel />
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+          <div className="h-full p-4 overflow-auto">
+            <DetailPanel selectedSystem={selectedSystem} />
+          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
