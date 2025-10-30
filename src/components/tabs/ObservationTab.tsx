@@ -6,20 +6,39 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OOQSPanel } from "@/components/observation/OOQSPanel";
 import { DataCapturePanel } from "@/components/observation/DataCapturePanel";
-import { useState } from "react";
+import { PointingPanel } from "@/components/observation/PointingPanel";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Play, Square, ChevronRight, ChevronDown, ExternalLink } from "lucide-react";
+import { Play, Square, ChevronRight, ChevronDown, ExternalLink, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+type CheckStatus = "idle" | "checking" | "ok" | "error";
+
+interface RunningPlan {
+  planId: string;
+  planName: string;
+  selectedSB: string;
+  selectedOB: string;
+  expandedSB: string | null;
+}
 
 export const ObservationTab = () => {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [selectedSB, setSelectedSB] = useState<string>("");
   const [selectedOB, setSelectedOB] = useState<string>("");
-  const [isObserving, setIsObserving] = useState(false);
   const [expandedSB, setExpandedSB] = useState<string | null>(null);
+  const [runningPlans, setRunningPlans] = useState<RunningPlan[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("main");
+  
+  // Check statuses
+  const [weatherCheck, setWeatherCheck] = useState<CheckStatus>("idle");
+  const [atmoCheck, setAtmoCheck] = useState<CheckStatus>("idle");
+  const [telescopesCheck, setTelescopesCheck] = useState<CheckStatus>("idle");
+  const [isPlanRunning, setIsPlanRunning] = useState(false);
 
   // Mock observing plans with metadata
-  const observingPlans = [
+  const [observingPlans, setObservingPlans] = useState([
     { 
       id: "OP-2024-000", 
       name: "Pre-calibration",
@@ -29,11 +48,11 @@ export const ObservationTab = () => {
         {
           id: "SB.001",
           name: "Pre-calibration SB",
-          progress: 66,
-          status: "running",
+          progress: 0,
+          status: "pending",
           observationBlocks: [
-            { id: "OB.01", name: "Stairs Calibration (C1,1)", duration: "15min", progress: 100, status: "succeeded", runId: "RUN-2024-0001" },
-            { id: "OB.02", name: "HG/LG Pulse Height Distribution (C1,4)", duration: "20min", progress: 100, status: "succeeded", runId: "RUN-2024-0002" },
+            { id: "OB.01", name: "Stairs Calibration (C1,1)", duration: "15min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.02", name: "HG/LG Pulse Height Distribution (C1,4)", duration: "20min", progress: 0, status: "pending", runId: "" },
             { id: "OB.03", name: "Pulse Height Distribution for HG gain (C1,4)", duration: "20min", progress: 0, status: "pending", runId: "" },
           ]
         }
@@ -47,14 +66,36 @@ export const ObservationTab = () => {
       schedulingBlocks: [
         {
           id: "SB.001",
-          name: "Wobble Mode Observation",
-          progress: 50,
-          status: "running",
+          name: "Wobble Mode Observation - Set 1",
+          progress: 0,
+          status: "pending",
           observationBlocks: [
-            { id: "OB.01", name: "Wobble 1", duration: "30min", progress: 100, status: "succeeded", runId: "RUN-2024-0003" },
-            { id: "OB.02", name: "Wobble 2", duration: "30min", progress: 100, status: "succeeded", runId: "RUN-2024-0004" },
+            { id: "OB.01", name: "Wobble 1", duration: "30min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.02", name: "Wobble 2", duration: "30min", progress: 0, status: "pending", runId: "" },
             { id: "OB.03", name: "Wobble 3", duration: "30min", progress: 0, status: "pending", runId: "" },
             { id: "OB.04", name: "Wobble 4", duration: "30min", progress: 0, status: "pending", runId: "" },
+          ]
+        },
+        {
+          id: "SB.002",
+          name: "Wobble Mode Observation - Set 2",
+          progress: 0,
+          status: "pending",
+          observationBlocks: [
+            { id: "OB.05", name: "Wobble 5", duration: "30min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.06", name: "Wobble 6", duration: "30min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.07", name: "Wobble 7", duration: "30min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.08", name: "Wobble 8", duration: "30min", progress: 0, status: "pending", runId: "" },
+          ]
+        },
+        {
+          id: "SB.003",
+          name: "Deep Field Observation",
+          progress: 0,
+          status: "pending",
+          observationBlocks: [
+            { id: "OB.09", name: "Deep Field 1", duration: "60min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.10", name: "Deep Field 2", duration: "60min", progress: 0, status: "pending", runId: "" },
           ]
         }
       ]
@@ -64,16 +105,71 @@ export const ObservationTab = () => {
       name: "AGN Monitoring",
       startDate: "2024-03-15T00:00:00Z",
       endDate: "2024-06-15T02:00:00Z",
-      schedulingBlocks: []
+      schedulingBlocks: [
+        {
+          id: "SB.001",
+          name: "Mrk 421 Monitoring",
+          progress: 0,
+          status: "pending",
+          observationBlocks: [
+            { id: "OB.01", name: "Mrk 421 - Night 1", duration: "45min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.02", name: "Mrk 421 - Night 2", duration: "45min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.03", name: "Mrk 421 - Night 3", duration: "45min", progress: 0, status: "pending", runId: "" },
+          ]
+        },
+        {
+          id: "SB.002",
+          name: "Mrk 501 Monitoring",
+          progress: 0,
+          status: "pending",
+          observationBlocks: [
+            { id: "OB.04", name: "Mrk 501 - Night 1", duration: "45min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.05", name: "Mrk 501 - Night 2", duration: "45min", progress: 0, status: "pending", runId: "" },
+          ]
+        }
+      ]
     },
     { 
       id: "OP-2024-003", 
       name: "Galactic Center",
       startDate: "2024-04-01T00:00:00Z",
       endDate: "2024-07-01T02:00:00Z",
-      schedulingBlocks: []
+      schedulingBlocks: [
+        {
+          id: "SB.001",
+          name: "GC Deep Survey - Phase 1",
+          progress: 0,
+          status: "pending",
+          observationBlocks: [
+            { id: "OB.01", name: "GC Region A", duration: "90min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.02", name: "GC Region B", duration: "90min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.03", name: "GC Region C", duration: "90min", progress: 0, status: "pending", runId: "" },
+          ]
+        },
+        {
+          id: "SB.002",
+          name: "GC Deep Survey - Phase 2",
+          progress: 0,
+          status: "pending",
+          observationBlocks: [
+            { id: "OB.04", name: "GC Region D", duration: "90min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.05", name: "GC Region E", duration: "90min", progress: 0, status: "pending", runId: "" },
+          ]
+        },
+        {
+          id: "SB.003",
+          name: "GC Extended Sources",
+          progress: 0,
+          status: "pending",
+          observationBlocks: [
+            { id: "OB.06", name: "Extended Source 1", duration: "60min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.07", name: "Extended Source 2", duration: "60min", progress: 0, status: "pending", runId: "" },
+            { id: "OB.08", name: "Extended Source 3", duration: "60min", progress: 0, status: "pending", runId: "" },
+          ]
+        }
+      ]
     },
-  ];
+  ]);
 
   const selectedPlanData = observingPlans.find(p => p.id === selectedPlan);
   const selectedSBData = selectedPlanData?.schedulingBlocks.find(sb => sb.id === selectedSB);
@@ -98,25 +194,162 @@ export const ObservationTab = () => {
     zaRange: { min: "0 deg", max: "60 deg" }
   } : null;
 
-  const handleStart = () => {
-    if (!selectedPlan || !selectedSB || !selectedOB) {
+  const performChecks = async () => {
+    setWeatherCheck("checking");
+    setAtmoCheck("checking");
+    setTelescopesCheck("checking");
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setWeatherCheck(Math.random() > 0.2 ? "ok" : "error");
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setAtmoCheck(Math.random() > 0.2 ? "ok" : "error");
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setTelescopesCheck(Math.random() > 0.1 ? "ok" : "error");
+  };
+
+  const simulateExecution = (planId: string, sbId: string) => {
+    const plan = observingPlans.find(p => p.id === planId);
+    const sb = plan?.schedulingBlocks.find(s => s.id === sbId);
+    if (!sb) return;
+
+    let currentOBIndex = 0;
+    const obs = sb.observationBlocks;
+
+    const interval = setInterval(() => {
+      setObservingPlans(prev => prev.map(p => {
+        if (p.id !== planId) return p;
+        return {
+          ...p,
+          schedulingBlocks: p.schedulingBlocks.map(s => {
+            if (s.id !== sbId) return s;
+            
+            const updatedOBs = s.observationBlocks.map((ob, idx) => {
+              if (idx < currentOBIndex) {
+                return { ...ob, progress: 100, status: "succeeded" as const, runId: ob.runId || `RUN-2024-${Math.floor(Math.random() * 10000)}` };
+              } else if (idx === currentOBIndex) {
+                const newProgress = Math.min(ob.progress + 10, 100);
+                const newStatus = newProgress === 100 ? "succeeded" as const : "running" as const;
+                const newRunId = ob.runId || `RUN-2024-${Math.floor(Math.random() * 10000)}`;
+                
+                if (newProgress === 100) {
+                  currentOBIndex++;
+                }
+                
+                return { ...ob, progress: newProgress, status: newStatus, runId: newRunId };
+              }
+              return ob;
+            });
+
+            const sbProgress = Math.floor(updatedOBs.reduce((acc, ob) => acc + ob.progress, 0) / updatedOBs.length);
+            const allDone = updatedOBs.every(ob => ob.progress === 100);
+
+            if (allDone) {
+              clearInterval(interval);
+              toast({
+                title: "Scheduling Block Completed",
+                description: `${s.name} has completed successfully.`,
+              });
+            }
+
+            return {
+              ...s,
+              observationBlocks: updatedOBs,
+              progress: sbProgress,
+              status: allDone ? "succeeded" as const : "running" as const
+            };
+          })
+        };
+      }));
+    }, 2000);
+  };
+
+  const handleStartPlan = async () => {
+    if (!selectedPlan) {
       toast({
-        title: "Incomplete Selection",
-        description: "Please select an observing plan, scheduling block, and observation block.",
+        title: "No Plan Selected",
+        description: "Please select an observing plan.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsObserving(true);
+    setIsPlanRunning(true);
+    await performChecks();
+
+    if (weatherCheck === "error" || atmoCheck === "error" || telescopesCheck === "error") {
+      toast({
+        title: "Pre-checks Failed",
+        description: "Cannot start plan due to failed conditions.",
+        variant: "destructive",
+      });
+      setIsPlanRunning(false);
+      return;
+    }
+
+    const plan = observingPlans.find(p => p.id === selectedPlan);
+    if (!plan || plan.schedulingBlocks.length === 0) {
+      toast({
+        title: "No Scheduling Blocks",
+        description: "This plan has no scheduling blocks.",
+        variant: "destructive",
+      });
+      setIsPlanRunning(false);
+      return;
+    }
+
+    // Add to running plans as new tab
+    const newTab: RunningPlan = {
+      planId: selectedPlan,
+      planName: plan.name,
+      selectedSB: plan.schedulingBlocks[0].id,
+      selectedOB: plan.schedulingBlocks[0].observationBlocks[0]?.id || "",
+      expandedSB: plan.schedulingBlocks[0].id
+    };
+    
+    setRunningPlans(prev => [...prev, newTab]);
+    setActiveTab(selectedPlan);
+
     toast({
-      title: "Observation Started",
-      description: `Starting ${selectedOBData?.name}...`,
+      title: "Plan Started",
+      description: `Starting ${plan.name}...`,
     });
+
+    simulateExecution(selectedPlan, plan.schedulingBlocks[0].id);
+  };
+
+  const handleStartSB = async () => {
+    if (!selectedPlan || !selectedSB) {
+      toast({
+        title: "Incomplete Selection",
+        description: "Please select a scheduling block.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await performChecks();
+
+    if (weatherCheck === "error" || atmoCheck === "error" || telescopesCheck === "error") {
+      toast({
+        title: "Pre-checks Failed",
+        description: "Cannot start SB due to failed conditions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Scheduling Block Started",
+      description: `Starting ${selectedSBData?.name}...`,
+    });
+
+    simulateExecution(selectedPlan, selectedSB);
   };
 
   const handleStop = () => {
-    setIsObserving(false);
+    setIsPlanRunning(false);
     toast({
       title: "Observation Stopped",
       description: "Observation sequence terminated.",
@@ -133,6 +366,15 @@ export const ObservationTab = () => {
     }
   };
 
+  const getCheckIcon = (status: CheckStatus) => {
+    if (status === "idle") return <div className="w-4 h-4 rounded-full bg-muted" />;
+    if (status === "checking") return <Loader2 className="w-4 h-4 text-primary animate-spin" />;
+    if (status === "ok") return <CheckCircle2 className="w-4 h-4 text-success" />;
+    return <XCircle className="w-4 h-4 text-destructive" />;
+  };
+
+  const checksAllOk = weatherCheck === "ok" && atmoCheck === "ok" && telescopesCheck === "ok";
+
   return (
     <div className="h-full p-6 space-y-6">
       <Card className="control-panel p-6">
@@ -141,11 +383,11 @@ export const ObservationTab = () => {
             <h2 className="text-xl font-semibold text-primary">Observation Control</h2>
             <p className="text-sm text-muted-foreground">Select and execute observing plans</p>
           </div>
-          {isObserving && <Badge className="bg-status-active">OBSERVING</Badge>}
+          {isPlanRunning && <Badge className="bg-status-active">OBSERVING</Badge>}
         </div>
 
         <div className="grid grid-cols-3 gap-6">
-          {/* Left: Selection */}
+          {/* Left: Selection & Checks */}
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Observing Plan</label>
@@ -154,7 +396,10 @@ export const ObservationTab = () => {
                 setSelectedSB("");
                 setSelectedOB("");
                 setExpandedSB(null);
-              }} disabled={isObserving}>
+                setWeatherCheck("idle");
+                setAtmoCheck("idle");
+                setTelescopesCheck("idle");
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select observing plan..." />
                 </SelectTrigger>
@@ -175,13 +420,50 @@ export const ObservationTab = () => {
               </div>
             )}
 
-            <div className="flex gap-2">
-              {!isObserving ? (
-                <Button onClick={handleStart} disabled={!selectedOB} size="lg" className="gap-2 w-full">
+            {/* Central Control Checks */}
+            {selectedPlan && (
+              <div className="space-y-2 p-3 rounded-lg bg-card border border-border">
+                <div className="text-xs font-semibold text-primary mb-2">Central Control Checks</div>
+                <div className="flex items-center justify-between text-xs">
+                  <span>Weather Condition</span>
+                  {getCheckIcon(weatherCheck)}
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span>Atmo Condition</span>
+                  {getCheckIcon(atmoCheck)}
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span>Available Telescopes</span>
+                  {getCheckIcon(telescopesCheck)}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Button 
+                onClick={handleStartPlan} 
+                disabled={!selectedPlan || isPlanRunning} 
+                size="lg" 
+                className="gap-2 w-full"
+              >
+                <Play className="h-4 w-4" />
+                Start Plan
+              </Button>
+              
+              {!isPlanRunning && selectedSB && (
+                <Button 
+                  onClick={handleStartSB} 
+                  disabled={!selectedSB} 
+                  size="lg" 
+                  variant="secondary"
+                  className="gap-2 w-full"
+                >
                   <Play className="h-4 w-4" />
-                  Start OB
+                  Start SB
                 </Button>
-              ) : (
+              )}
+
+              {isPlanRunning && (
                 <Button onClick={handleStop} variant="destructive" size="lg" className="gap-2 w-full">
                   <Square className="h-4 w-4" />
                   Stop
@@ -312,6 +594,7 @@ export const ObservationTab = () => {
           <TabsTrigger value="ooqs">OOQS</TabsTrigger>
           <TabsTrigger value="summary">Array Summary</TabsTrigger>
           <TabsTrigger value="datacapture">Data Capture</TabsTrigger>
+          <TabsTrigger value="pointing">Pointing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="ooqs" className="mt-4">
@@ -322,21 +605,35 @@ export const ObservationTab = () => {
           <Card className="control-panel p-6">
             <h3 className="text-lg font-semibold mb-4 text-primary">Array Summary</h3>
             <div className="grid grid-cols-3 gap-4">
-              {Array.from({ length: 9 }, (_, i) => (
-                <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold">A{i + 1}</span>
-                    <Badge className="bg-telescope-ready text-xs">Ready</Badge>
+              {Array.from({ length: 9 }, (_, i) => {
+                const dataRateData = Array.from({ length: 10 }, () => 950 + Math.random() * 100);
+                return (
+                  <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">A{i + 1}</span>
+                      <Badge className="bg-telescope-ready text-xs">Ready</Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-2">Events: {1000 + i * 100}</div>
+                    <ResponsiveContainer width="100%" height={60}>
+                      <LineChart data={dataRateData.map((val, idx) => ({ value: val }))}>
+                        <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={1.5} dot={false} />
+                        <YAxis hide domain={[900, 1100]} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                    <div className="text-xs text-center text-muted-foreground mt-1">Data Rate (MB/s)</div>
                   </div>
-                  <div className="text-xs text-muted-foreground">Events: {1000 + i * 100}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="datacapture" className="mt-4">
           <DataCapturePanel />
+        </TabsContent>
+
+        <TabsContent value="pointing" className="mt-4">
+          <PointingPanel />
         </TabsContent>
       </Tabs>
     </div>
