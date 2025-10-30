@@ -31,10 +31,8 @@ export const ObservationTab = () => {
   const [runningPlans, setRunningPlans] = useState<RunningPlan[]>([]);
   const [activeTab, setActiveTab] = useState<string>("main");
   
-  // Check statuses
-  const [weatherCheck, setWeatherCheck] = useState<CheckStatus>("idle");
-  const [atmoCheck, setAtmoCheck] = useState<CheckStatus>("idle");
-  const [telescopesCheck, setTelescopesCheck] = useState<CheckStatus>("idle");
+  // Check statuses per SB
+  const [sbChecks, setSBChecks] = useState<{[key: string]: {weather: CheckStatus, atmo: CheckStatus, telescopes: CheckStatus}}>({});
   const [isPlanRunning, setIsPlanRunning] = useState(false);
 
   // Mock observing plans with metadata
@@ -194,19 +192,34 @@ export const ObservationTab = () => {
     zaRange: { min: "0 deg", max: "60 deg" }
   } : null;
 
-  const performChecks = async () => {
-    setWeatherCheck("checking");
-    setAtmoCheck("checking");
-    setTelescopesCheck("checking");
+  const performChecks = async (sbId: string) => {
+    setSBChecks(prev => ({
+      ...prev,
+      [sbId]: { weather: "checking", atmo: "checking", telescopes: "checking" }
+    }));
 
     await new Promise(resolve => setTimeout(resolve, 1500));
-    setWeatherCheck(Math.random() > 0.2 ? "ok" : "error");
+    const weatherOk = Math.random() > 0.2 ? "ok" : "error";
+    setSBChecks(prev => ({
+      ...prev,
+      [sbId]: { ...prev[sbId], weather: weatherOk }
+    }));
 
     await new Promise(resolve => setTimeout(resolve, 1000));
-    setAtmoCheck(Math.random() > 0.2 ? "ok" : "error");
+    const atmoOk = Math.random() > 0.2 ? "ok" : "error";
+    setSBChecks(prev => ({
+      ...prev,
+      [sbId]: { ...prev[sbId], atmo: atmoOk }
+    }));
 
     await new Promise(resolve => setTimeout(resolve, 1000));
-    setTelescopesCheck(Math.random() > 0.1 ? "ok" : "error");
+    const telescopesOk = Math.random() > 0.1 ? "ok" : "error";
+    setSBChecks(prev => ({
+      ...prev,
+      [sbId]: { ...prev[sbId], telescopes: telescopesOk }
+    }));
+
+    return weatherOk === "ok" && atmoOk === "ok" && telescopesOk === "ok";
   };
 
   const simulateExecution = (planId: string, sbId: string) => {
@@ -275,19 +288,6 @@ export const ObservationTab = () => {
       return;
     }
 
-    setIsPlanRunning(true);
-    await performChecks();
-
-    if (weatherCheck === "error" || atmoCheck === "error" || telescopesCheck === "error") {
-      toast({
-        title: "Pre-checks Failed",
-        description: "Cannot start plan due to failed conditions.",
-        variant: "destructive",
-      });
-      setIsPlanRunning(false);
-      return;
-    }
-
     const plan = observingPlans.find(p => p.id === selectedPlan);
     if (!plan || plan.schedulingBlocks.length === 0) {
       toast({
@@ -295,43 +295,63 @@ export const ObservationTab = () => {
         description: "This plan has no scheduling blocks.",
         variant: "destructive",
       });
-      setIsPlanRunning(false);
       return;
     }
 
-    // Add to running plans as new tab
-    const newTab: RunningPlan = {
-      planId: selectedPlan,
-      planName: plan.name,
-      selectedSB: plan.schedulingBlocks[0].id,
-      selectedOB: plan.schedulingBlocks[0].observationBlocks[0]?.id || "",
-      expandedSB: plan.schedulingBlocks[0].id
-    };
-    
-    setRunningPlans(prev => [...prev, newTab]);
-    setActiveTab(selectedPlan);
+    setIsPlanRunning(true);
+
+    // Execute all SBs in sequence
+    for (const sb of plan.schedulingBlocks) {
+      const checksOk = await performChecks(sb.id);
+      
+      if (!checksOk) {
+        toast({
+          title: "Pre-checks Failed",
+          description: `Cannot start ${sb.name} due to failed conditions.`,
+          variant: "destructive",
+        });
+        setIsPlanRunning(false);
+        return;
+      }
+
+      toast({
+        title: "Starting Scheduling Block",
+        description: `Starting ${sb.name}...`,
+      });
+
+      await new Promise(resolve => {
+        simulateExecution(selectedPlan, sb.id);
+        // Wait for this SB to complete before starting next
+        const checkInterval = setInterval(() => {
+          const currentSB = observingPlans.find(p => p.id === selectedPlan)?.schedulingBlocks.find(s => s.id === sb.id);
+          if (currentSB?.status === "succeeded") {
+            clearInterval(checkInterval);
+            resolve(null);
+          }
+        }, 1000);
+      });
+    }
 
     toast({
-      title: "Plan Started",
-      description: `Starting ${plan.name}...`,
+      title: "Plan Completed",
+      description: `${plan.name} has completed successfully.`,
     });
-
-    simulateExecution(selectedPlan, plan.schedulingBlocks[0].id);
+    setIsPlanRunning(false);
   };
 
-  const handleStartSB = async () => {
-    if (!selectedPlan || !selectedSB) {
+  const handleStartSB = async (sbId: string) => {
+    if (!selectedPlan) {
       toast({
-        title: "Incomplete Selection",
-        description: "Please select a scheduling block.",
+        title: "No Plan Selected",
+        description: "Please select an observing plan.",
         variant: "destructive",
       });
       return;
     }
 
-    await performChecks();
+    const checksOk = await performChecks(sbId);
 
-    if (weatherCheck === "error" || atmoCheck === "error" || telescopesCheck === "error") {
+    if (!checksOk) {
       toast({
         title: "Pre-checks Failed",
         description: "Cannot start SB due to failed conditions.",
@@ -340,12 +360,13 @@ export const ObservationTab = () => {
       return;
     }
 
+    const sbData = selectedPlanData?.schedulingBlocks.find(sb => sb.id === sbId);
     toast({
       title: "Scheduling Block Started",
-      description: `Starting ${selectedSBData?.name}...`,
+      description: `Starting ${sbData?.name}...`,
     });
 
-    simulateExecution(selectedPlan, selectedSB);
+    simulateExecution(selectedPlan, sbId);
   };
 
   const handleStop = () => {
@@ -373,7 +394,9 @@ export const ObservationTab = () => {
     return <XCircle className="w-4 h-4 text-destructive" />;
   };
 
-  const checksAllOk = weatherCheck === "ok" && atmoCheck === "ok" && telescopesCheck === "ok";
+  const getSBCheckStatus = (sbId: string) => {
+    return sbChecks[sbId] || { weather: "idle", atmo: "idle", telescopes: "idle" };
+  };
 
   return (
     <div className="h-full p-6 space-y-6">
@@ -396,9 +419,6 @@ export const ObservationTab = () => {
                 setSelectedSB("");
                 setSelectedOB("");
                 setExpandedSB(null);
-                setWeatherCheck("idle");
-                setAtmoCheck("idle");
-                setTelescopesCheck("idle");
               }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select observing plan..." />
@@ -420,24 +440,6 @@ export const ObservationTab = () => {
               </div>
             )}
 
-            {/* Central Control Checks */}
-            {selectedPlan && (
-              <div className="space-y-2 p-3 rounded-lg bg-card border border-border">
-                <div className="text-xs font-semibold text-primary mb-2">Central Control Checks</div>
-                <div className="flex items-center justify-between text-xs">
-                  <span>Weather Condition</span>
-                  {getCheckIcon(weatherCheck)}
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span>Atmo Condition</span>
-                  {getCheckIcon(atmoCheck)}
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span>Available Telescopes</span>
-                  {getCheckIcon(telescopesCheck)}
-                </div>
-              </div>
-            )}
 
             <div className="space-y-2">
               <Button 
@@ -450,18 +452,6 @@ export const ObservationTab = () => {
                 Start Plan
               </Button>
               
-              {!isPlanRunning && selectedSB && (
-                <Button 
-                  onClick={handleStartSB} 
-                  disabled={!selectedSB} 
-                  size="lg" 
-                  variant="secondary"
-                  className="gap-2 w-full"
-                >
-                  <Play className="h-4 w-4" />
-                  Start SB
-                </Button>
-              )}
 
               {isPlanRunning && (
                 <Button onClick={handleStop} variant="destructive" size="lg" className="gap-2 w-full">
