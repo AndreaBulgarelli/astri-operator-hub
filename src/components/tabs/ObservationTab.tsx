@@ -178,7 +178,6 @@ export const ObservationTab = () => {
         <TabsList className="bg-secondary">
           <TabsTrigger value="ooqs">OOQS</TabsTrigger>
           <TabsTrigger value="summary">Array Summary</TabsTrigger>
-          <TabsTrigger value="events">Events</TabsTrigger>
         </TabsList>
 
         <TabsContent value="ooqs" className="mt-4">
@@ -198,17 +197,6 @@ export const ObservationTab = () => {
                   <div className="text-xs text-muted-foreground">Events: {1000 + i * 100}</div>
                 </div>
               ))}
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="events" className="mt-4">
-          <Card className="control-panel p-6">
-            <h3 className="text-lg font-semibold mb-4 text-primary">Event Log</h3>
-            <div className="space-y-2 font-mono text-xs">
-              <div className="p-2 bg-secondary/30 rounded">21:31:45 - OB.1 Phase start_taking_data ended</div>
-              <div className="p-2 bg-secondary/30 rounded">21:31:31 - OB.1 Phase configure ended</div>
-              <div className="p-2 bg-secondary/30 rounded">21:31:31 - SB.05 Started</div>
             </div>
           </Card>
         </TabsContent>

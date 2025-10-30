@@ -8,6 +8,7 @@ import { ObservationTab } from "@/components/tabs/ObservationTab";
 import { EndTab } from "@/components/tabs/EndTab";
 import { UtilityTab } from "@/components/tabs/UtilityTab";
 import { AlarmPanel } from "@/components/monitoring/AlarmPanel";
+import { EventLog } from "@/components/monitoring/EventLog";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Card } from "@/components/ui/card";
 import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } from "lucide-react";
@@ -44,9 +45,21 @@ const Index = () => {
 
         <ResizablePanelGroup direction="horizontal" className="flex-1">
           <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-            <div className="h-full pr-2">
-              <AlarmPanel />
-            </div>
+            <ResizablePanelGroup direction="vertical" className="h-full">
+              <ResizablePanel defaultSize={50} minSize={30}>
+                <div className="h-full pr-2 pb-2">
+                  <AlarmPanel />
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+
+              <ResizablePanel defaultSize={50} minSize={30}>
+                <div className="h-full pr-2 pt-2">
+                  <EventLog />
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
           </ResizablePanel>
 
           <ResizableHandle withHandle />
