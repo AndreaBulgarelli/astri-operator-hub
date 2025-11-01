@@ -2,13 +2,16 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ChevronRight, ChevronDown, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 interface RunningPlanTabProps {
   planData: any;
 }
 
 export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
+  const [expandedSB, setExpandedSB] = useState<string | null>(null);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "succeeded": return "bg-success";
@@ -17,6 +20,20 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
       default: return "bg-muted";
     }
   };
+
+  const getCheckIcon = (status: string) => {
+    if (status === "idle") return <div className="w-4 h-4 rounded-full bg-muted" />;
+    if (status === "checking") return <Loader2 className="w-4 h-4 text-primary animate-spin" />;
+    if (status === "ok") return <CheckCircle2 className="w-4 h-4 text-success" />;
+    return <XCircle className="w-4 h-4 text-destructive" />;
+  };
+
+  // Mock check statuses for demo
+  const getCheckStatus = () => ({
+    weather: "ok",
+    atmo: "error",
+    telescopes: "error"
+  });
 
   return (
     <div className="h-full p-6 space-y-4">
@@ -43,6 +60,35 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
                     </div>
                   </div>
                   <div className="text-sm mb-2">{sb.name}</div>
+                  
+                  {/* Central Control Checks */}
+                  <div className="mb-2 p-2 rounded-lg bg-card border border-border">
+                    <div 
+                      className="flex items-center justify-between cursor-pointer"
+                      onClick={() => setExpandedSB(expandedSB === sb.id ? null : sb.id)}
+                    >
+                      <span className="text-sm font-semibold text-primary">Central Control Checks</span>
+                      {expandedSB === sb.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </div>
+                    
+                    {expandedSB === sb.id && (
+                      <div className="mt-2 space-y-1 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span>Weather Condition</span>
+                          {getCheckIcon(getCheckStatus().weather)}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Atmo Condition</span>
+                          {getCheckIcon(getCheckStatus().atmo)}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Available Telescopes</span>
+                          {getCheckIcon(getCheckStatus().telescopes)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-2">
                     <Progress value={sb.progress} className="flex-1 h-2" />
                     <span className="text-xs font-mono">{sb.progress}%</span>
