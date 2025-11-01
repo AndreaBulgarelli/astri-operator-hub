@@ -2,7 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ExternalLink, ChevronRight, ChevronDown, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, ChevronRight, ChevronDown, CheckCircle2, XCircle, Loader2, Play } from "lucide-react";
 import { useState } from "react";
 
 interface RunningPlanTabProps {
@@ -52,15 +53,15 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
             <label className="text-sm font-medium">Scheduling Blocks</label>
             <ScrollArea className="h-[500px] border rounded-lg p-3">
               {planData.schedulingBlocks.map((sb: any) => (
-                <div key={sb.id} className="mb-4 p-3 rounded-lg bg-secondary/50 border border-border">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">{sb.id}</span>
-                      <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
-                    </div>
-                  </div>
-                  <div className="text-sm mb-2">{sb.name}</div>
-                  
+                <div key={sb.id} className="mb-4">
+                  <Button
+                    variant="secondary"
+                    className="w-full mb-2"
+                    disabled={sb.status === "running" || sb.status === "succeeded"}
+                  >
+                    <Play className="mr-2 h-4 w-4" /> Start SB
+                  </Button>
+
                   {/* Central Control Checks */}
                   <div className="mb-2 p-2 rounded-lg bg-card border border-border">
                     <div 
@@ -89,9 +90,18 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Progress value={sb.progress} className="flex-1 h-2" />
-                    <span className="text-xs font-mono">{sb.progress}%</span>
+                  {/* SB Block */}
+                  <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">{sb.id}</span>
+                        <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Progress value={sb.progress} className="flex-1 h-2" />
+                      <span className="text-xs font-mono">{sb.progress}%</span>
+                    </div>
                   </div>
                 </div>
               ))}
