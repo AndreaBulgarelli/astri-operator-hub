@@ -414,32 +414,34 @@ export const ObservationTab = () => {
 
         {/* Progress Bar with SB and OB blocks */}
         {selectedPlanData && selectedPlanData.schedulingBlocks.length > 0 && (
-          <div className="mb-6 p-4 rounded-lg bg-secondary/30 border border-border">
-            <div className="text-xs font-medium text-muted-foreground mb-2">Plan Progress</div>
-            <div className="flex gap-1">
-              {selectedPlanData.schedulingBlocks.map((sb) => {
-                const totalOBs = sb.observationBlocks.length;
-                const sbWidth = `${(totalOBs / selectedPlanData.schedulingBlocks.reduce((acc, s) => acc + s.observationBlocks.length, 0)) * 100}%`;
-                
-                return (
-                  <div key={sb.id} className="flex gap-0.5" style={{ width: sbWidth }}>
-                    {sb.observationBlocks.map((ob) => {
-                      let bgColor = "bg-muted"; // pending/idle
-                      if (ob.status === "running") bgColor = "bg-status-active";
-                      if (ob.status === "succeeded") bgColor = "bg-success";
-                      
-                      return (
-                        <div
-                          key={ob.id}
-                          className={`h-6 ${bgColor} transition-colors border border-border/50`}
-                          style={{ flex: 1 }}
-                          title={`${sb.id} - ${ob.name} (${ob.status})`}
-                        />
-                      );
-                    })}
-                  </div>
-                );
-              })}
+          <div className="mb-4 p-3 rounded-lg bg-secondary/30 border border-border">
+            <div className="flex items-center gap-3">
+              <div className="text-xs font-medium text-muted-foreground whitespace-nowrap">Plan Progress</div>
+              <div className="flex gap-1 flex-1">
+                {selectedPlanData.schedulingBlocks.map((sb) => {
+                  const totalOBs = sb.observationBlocks.length;
+                  const sbWidth = `${(totalOBs / selectedPlanData.schedulingBlocks.reduce((acc, s) => acc + s.observationBlocks.length, 0)) * 100}%`;
+                  
+                  return (
+                    <div key={sb.id} className="flex gap-0.5" style={{ width: sbWidth }}>
+                      {sb.observationBlocks.map((ob) => {
+                        let bgColor = "bg-muted"; // pending/idle
+                        if (ob.status === "running") bgColor = "bg-status-active";
+                        if (ob.status === "succeeded") bgColor = "bg-success";
+                        
+                        return (
+                          <div
+                            key={ob.id}
+                            className={`h-4 ${bgColor} transition-colors border border-border/50`}
+                            style={{ flex: 1 }}
+                            title={`${sb.id} - ${ob.name} (${ob.status})`}
+                          />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
