@@ -360,6 +360,9 @@ export const ObservationTab = () => {
       return;
     }
 
+    // Auto-select the SB when started
+    setSelectedSB(sbId);
+
     const sbData = selectedPlanData?.schedulingBlocks.find(sb => sb.id === sbId);
     toast({
       title: "Scheduling Block Started",
@@ -408,6 +411,38 @@ export const ObservationTab = () => {
           </div>
           {isPlanRunning && <Badge className="bg-status-active">OBSERVING</Badge>}
         </div>
+
+        {/* Progress Bar with SB and OB blocks */}
+        {selectedPlanData && selectedPlanData.schedulingBlocks.length > 0 && (
+          <div className="mb-6 p-4 rounded-lg bg-secondary/30 border border-border">
+            <div className="text-xs font-medium text-muted-foreground mb-2">Plan Progress</div>
+            <div className="flex gap-1">
+              {selectedPlanData.schedulingBlocks.map((sb) => {
+                const totalOBs = sb.observationBlocks.length;
+                const sbWidth = `${(totalOBs / selectedPlanData.schedulingBlocks.reduce((acc, s) => acc + s.observationBlocks.length, 0)) * 100}%`;
+                
+                return (
+                  <div key={sb.id} className="flex gap-0.5" style={{ width: sbWidth }}>
+                    {sb.observationBlocks.map((ob) => {
+                      let bgColor = "bg-muted"; // pending/idle
+                      if (ob.status === "running") bgColor = "bg-status-active";
+                      if (ob.status === "succeeded") bgColor = "bg-success";
+                      
+                      return (
+                        <div
+                          key={ob.id}
+                          className={`h-6 ${bgColor} transition-colors border border-border/50`}
+                          style={{ flex: 1 }}
+                          title={`${sb.id} - ${ob.name} (${ob.status})`}
+                        />
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-6">
           {/* Left: Selection & Checks */}
