@@ -539,8 +539,34 @@ export const ObservationTab = ({
                     <label className="text-sm font-medium">Scheduling Blocks</label>
                     <ScrollArea className="h-[400px] border rounded-lg p-3">
                       {selectedPlanData?.schedulingBlocks.map((sb) => {
+                        const checks = getSBCheckStatus(sb.id);
+                        const allChecksOk = checks.weather === "ok" && checks.atmo === "ok" && checks.telescopes === "ok";
+                        const anyCheckError = checks.weather === "error" || checks.atmo === "error" || checks.telescopes === "error";
+                        
                         return (
                           <div key={sb.id} className="mb-3">
+                            {/* Central Control Checks */}
+                            <div className="mb-2 p-2 rounded-lg bg-card border border-border">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-semibold text-primary">Central Control Checks</span>
+                              </div>
+                              
+                              <div className="space-y-1 text-sm">
+                                <div className="flex items-center justify-between">
+                                  <span>Weather Condition</span>
+                                  {getCheckIcon(checks.weather)}
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span>Atmo Condition</span>
+                                  {getCheckIcon(checks.atmo)}
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span>Available Telescopes</span>
+                                  {getCheckIcon(checks.telescopes)}
+                                </div>
+                              </div>
+                            </div>
+
                             {/* SB Block */}
                             <div 
                               className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedSB === sb.id ? 'bg-primary/20 border-2 border-primary' : 'bg-secondary/50 hover:bg-secondary/80'}`}
@@ -553,6 +579,14 @@ export const ObservationTab = ({
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
+                                <div 
+                                  className={`w-3 h-3 rounded-sm mr-1 ${
+                                    allChecksOk ? 'bg-success' : 
+                                    anyCheckError ? 'bg-destructive' : 
+                                    'bg-muted'
+                                  }`} 
+                                  title={`Checks: ${allChecksOk ? 'OK' : anyCheckError ? 'Error' : 'Pending'}`}
+                                />
                                 <Progress value={sb.progress} className="flex-1 h-2" />
                                 <span className="text-xs font-mono">{sb.progress}%</span>
                               </div>
