@@ -7,7 +7,6 @@ import { PreparationTab } from "@/components/tabs/PreparationTab";
 import { ObservationTab } from "@/components/tabs/ObservationTab";
 import { EndTab } from "@/components/tabs/EndTab";
 import { UtilityTab } from "@/components/tabs/UtilityTab";
-import { RunningPlanTab } from "@/components/tabs/RunningPlanTab";
 import { AlarmPanel } from "@/components/monitoring/AlarmPanel";
 import { EventLog } from "@/components/monitoring/EventLog";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -17,7 +16,6 @@ import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } f
 const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
   const [currentPlanData, setCurrentPlanData] = useState<any>(null);
-  const [runningPlans, setRunningPlans] = useState<any[]>([]);
 
   const metrics = [
     { icon: Telescope, value: 9 , label: "6 Operational, 1 Safe, 1 Fault", color: "text-status-online" },
@@ -111,11 +109,6 @@ const Index = () => {
                   <TabsTrigger value="observation">Observation</TabsTrigger>
                   <TabsTrigger value="end">End</TabsTrigger>
                   <TabsTrigger value="utility">Utility</TabsTrigger>
-                  {runningPlans.map((plan) => (
-                    <TabsTrigger key={plan.id} value={`plan-${plan.id}`}>
-                      {plan.name}
-                    </TabsTrigger>
-                  ))}
                 </TabsList>
 
                 <div className="flex-1 mt-2">
@@ -132,16 +125,7 @@ const Index = () => {
                   </TabsContent>
 
                   <TabsContent value="observation" className="h-full m-0">
-                    <ObservationTab 
-                      onPlanDataChange={setCurrentPlanData}
-                      onPlanStart={(planData) => {
-                        const planExists = runningPlans.some(p => p.id === planData.id);
-                        if (!planExists) {
-                          setRunningPlans([...runningPlans, planData]);
-                          setActiveTab(`plan-${planData.id}`);
-                        }
-                      }}
-                    />
+                    <ObservationTab onPlanDataChange={setCurrentPlanData} />
                   </TabsContent>
 
                   <TabsContent value="end" className="h-full m-0">
@@ -151,12 +135,6 @@ const Index = () => {
                   <TabsContent value="utility" className="h-full m-0">
                     <UtilityTab />
                   </TabsContent>
-
-                  {runningPlans.map((plan) => (
-                    <TabsContent key={plan.id} value={`plan-${plan.id}`} className="h-full m-0">
-                      <RunningPlanTab planData={plan} />
-                    </TabsContent>
-                  ))}
                 </div>
               </Tabs>
             </div>
