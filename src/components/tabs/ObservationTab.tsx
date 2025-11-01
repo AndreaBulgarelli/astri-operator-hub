@@ -329,8 +329,6 @@ export const ObservationTab = ({
       onPlanStart(plan);
     }
 
-    setIsPlanRunning(true);
-
     // Execute all SBs in sequence
     for (const sb of plan.schedulingBlocks) {
       const checksOk = await performChecks(sb.id);
@@ -341,7 +339,6 @@ export const ObservationTab = ({
           description: `Cannot start ${sb.name} due to failed conditions.`,
           variant: "destructive",
         });
-        setIsPlanRunning(false);
         return;
       }
 
@@ -367,7 +364,6 @@ export const ObservationTab = ({
       title: "Plan Completed",
       description: `${plan.name} has completed successfully.`,
     });
-    setIsPlanRunning(false);
   };
 
   const handleStartSB = async (sbId: string) => {
@@ -436,28 +432,72 @@ export const ObservationTab = ({
     <div className="h-full p-6 space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
         <TabsList className="bg-secondary">
-          <TabsTrigger value="main">Observing Plan</TabsTrigger>
-          {runningPlans.map((runningPlan) => (
-            <TabsTrigger key={runningPlan.planId} value={runningPlan.planId}>
-              {runningPlan.planName}
-            </TabsTrigger>
-          ))}
           <TabsTrigger value="ooqs">OOQS</TabsTrigger>
           <TabsTrigger value="summary">Array Summary</TabsTrigger>
           <TabsTrigger value="datacapture">Data Capture</TabsTrigger>
           <TabsTrigger value="pointing">Pointing</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="main" className="mt-4">
-          <Card className="control-panel p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-primary">Observation Control</h2>
-                <p className="text-sm text-muted-foreground">Select and execute observing plans</p>
-              </div>
-              {isPlanRunning && <Badge className="bg-status-active">OBSERVING</Badge>}
-            </div>
+        <TabsContent value="ooqs" className="mt-4">
+          <OOQSPanel />
+        </TabsContent>
 
+        <TabsContent value="summary" className="mt-4">
+          <Card className="control-panel p-6">
+            <h3 className="text-lg font-semibold mb-4 text-primary">Array Summary</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {Array.from({ length: 9 }, (_, i) => {
+                const dataRateData = Array.from({ length: 10 }, () => 950 + Math.random() * 100);
+                return (
+                  <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">A{i + 1}</span>
+                      <Badge className="bg-telescope-ready text-xs">Ready</Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-2">Events: {1000 + i * 100}</div>
+                    <ResponsiveContainer width="100%" height={60}>
+                      <LineChart data={dataRateData.map((val, idx) => ({ value: val }))}>
+                        <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={1.5} dot={false} />
+                        <YAxis hide domain={[900, 1100]} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                    <div className="text-xs text-center text-muted-foreground mt-1">Data Rate (MB/s)</div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="datacapture" className="mt-4">
+          <DataCapturePanel />
+        </TabsContent>
+
+        <TabsContent value="pointing" className="mt-4">
+          <PointingPanel />
+        </TabsContent>
+      </Tabs>
+
+      {/* Observing Plan Section with nested tabs */}
+      <Card className="control-panel p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-primary">Observation Control</h2>
+            <p className="text-sm text-muted-foreground">Select and execute observing plans</p>
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+          <TabsList className="bg-secondary/50">
+            <TabsTrigger value="main">Observing Plan</TabsTrigger>
+            {runningPlans.map((runningPlan) => (
+              <TabsTrigger key={runningPlan.planId} value={runningPlan.planId}>
+                {runningPlan.planName}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="main" className="mt-4">
             <div className="grid grid-cols-3 gap-6">
               {/* Left: Selection & Checks */}
               <div className="space-y-4">
@@ -484,120 +524,71 @@ export const ObservationTab = ({
 
                 {selectedPlanData && (
                   <>
-                    <div className="p-3 rounded-lg bg-secondary/30 space-y-1 text-xs">
-                      <div><span className="text-muted-foreground">Start:</span> {new Date(selectedPlanData.startDate).toLocaleString()}</div>
-                      <div><span className="text-muted-foreground">End:</span> {new Date(selectedPlanData.endDate).toLocaleString()}</div>
+                    <div className="text-sm space-y-1 p-3 bg-secondary/30 rounded-lg">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Start:</span>
+                        <span className="font-mono text-xs">{new Date(selectedPlanData.startDate).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">End:</span>
+                        <span className="font-mono text-xs">{new Date(selectedPlanData.endDate).toLocaleString()}</span>
+                      </div>
                     </div>
 
-                    {/* SB Metadata */}
-                    {sbMetadata && selectedSB && (
-                      <>
-                        <div className="border-t border-border my-4"></div>
-                        <ScrollArea className="h-[300px] rounded-lg border border-border p-3">
-                          <div className="space-y-3 text-xs">
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Scheduling Block</div>
-                              <div className="text-muted-foreground">{sbMetadata.sblId}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Project</div>
-                              <div>{sbMetadata.proID} - {sbMetadata.proName}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Target</div>
-                              <div>{sbMetadata.target}</div>
-                              <div className="text-muted-foreground">RA: {sbMetadata.coordinates.ra}, Dec: {sbMetadata.coordinates.dec}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Instrument</div>
-                              <div>{sbMetadata.instrumentMode}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Array Configuration</div>
-                              <div>{sbMetadata.telescopes.join(", ")}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Weather Constraints</div>
-                              <div>Max Wind: {sbMetadata.maxWindVelocity}</div>
-                              <div>Sky Background: {sbMetadata.skyBackground}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Observing Window</div>
-                              <div className="text-muted-foreground">
-                                {new Date(sbMetadata.observingWindow.start).toLocaleDateString()} - {new Date(sbMetadata.observingWindow.end).toLocaleDateString()}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Pointing Constraints</div>
-                              <div>HA: {sbMetadata.haRange.min} to {sbMetadata.haRange.max}</div>
-                              <div>ZA: {sbMetadata.zaRange.min} to {sbMetadata.zaRange.max}</div>
-                            </div>
-                          </div>
-                        </ScrollArea>
-                      </>
-                    )}
+                    <Button 
+                      className="w-full bg-primary hover:bg-primary/90" 
+                      onClick={handleStartPlan}
+                    >
+                      <Play className="mr-2 h-4 w-4" /> Start Plan
+                    </Button>
                   </>
                 )}
-
-                <div className="space-y-2">
-                  <Button 
-                    onClick={handleStartPlan} 
-                    disabled={!selectedPlan || isPlanRunning} 
-                    size="lg" 
-                    className="gap-2 w-full"
-                  >
-                    <Play className="h-4 w-4" />
-                    Start Plan
-                  </Button>
-                  
-                  {isPlanRunning && (
-                    <Button onClick={handleStop} variant="destructive" size="lg" className="gap-2 w-full">
-                      <Square className="h-4 w-4" />
-                      Stop
-                    </Button>
-                  )}
-                </div>
               </div>
 
-              {/* Middle: SB List */}
+              {/* Middle: SBs List */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Scheduling Blocks</label>
-                <ScrollArea className="h-[400px] border rounded-lg p-2">
-                  {selectedPlanData?.schedulingBlocks.map(sb => {
-                    const sbCheck = getSBCheckStatus(sb.id);
-                    return (
-                      <div key={sb.id} className="space-y-2 mb-4">
-                        {/* Start SB Button */}
-                        {!isPlanRunning && (
-                          <Button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStartSB(sb.id);
-                            }}
-                            size="sm"
-                            variant="secondary"
-                            className="w-full gap-2"
-                          >
-                            <Play className="h-3 w-3" />
-                            Start SB
-                          </Button>
-                        )}
+                <ScrollArea className="h-[400px] border rounded-lg p-3">
+                  {selectedPlanData?.schedulingBlocks.map((sb) => {
+                    const checks = getSBCheckStatus(sb.id);
+                    const isExpanded = expandedSB === sb.id;
 
-                        {/* Central Control Checks before each SB */}
-                        <div className="p-2 rounded-lg bg-card/50 border border-border space-y-1">
-                          <div className="text-xs font-semibold text-primary mb-1">Central Control Checks</div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span>Weather Condition</span>
-                            {getCheckIcon(sbCheck.weather)}
+                    return (
+                      <div key={sb.id} className="mb-3">
+                        <Button
+                          variant="secondary"
+                          className="w-full mb-2"
+                          onClick={() => handleStartSB(sb.id)}
+                          disabled={sb.status === "running" || sb.status === "succeeded"}
+                        >
+                          <Play className="mr-2 h-4 w-4" /> Start SB
+                        </Button>
+
+                        <div className="mb-2 p-2 rounded-lg bg-card border border-border">
+                          <div 
+                            className="flex items-center justify-between cursor-pointer"
+                            onClick={() => setExpandedSB(isExpanded ? null : sb.id)}
+                          >
+                            <span className="text-sm font-semibold text-primary">Central Control Checks</span>
+                            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                           </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span>Atmo Condition</span>
-                            {getCheckIcon(sbCheck.atmo)}
-                          </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span>Available Telescopes</span>
-                            {getCheckIcon(sbCheck.telescopes)}
-                          </div>
+                          
+                          {isExpanded && (
+                            <div className="mt-2 space-y-1 text-sm">
+                              <div className="flex items-center justify-between">
+                                <span>Weather Condition</span>
+                                {getCheckIcon(checks.weather)}
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span>Atmo Condition</span>
+                                {getCheckIcon(checks.atmo)}
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span>Available Telescopes</span>
+                                {getCheckIcon(checks.telescopes)}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* SB Block */}
@@ -675,57 +666,19 @@ export const ObservationTab = ({
                 </ScrollArea>
               </div>
             </div>
-          </Card>
-        </TabsContent>
+          </TabsContent>
 
-        {runningPlans.map((runningPlan) => {
-          const planData = observingPlans.find(p => p.id === runningPlan.planId);
-          return planData ? (
-            <TabsContent key={runningPlan.planId} value={runningPlan.planId} className="mt-4">
-              <RunningPlanTab planData={planData} />
-            </TabsContent>
-          ) : null;
-        })}
-
-        <TabsContent value="ooqs" className="mt-4">
-          <OOQSPanel />
-        </TabsContent>
-
-        <TabsContent value="summary" className="mt-4">
-          <Card className="control-panel p-6">
-            <h3 className="text-lg font-semibold mb-4 text-primary">Array Summary</h3>
-            <div className="grid grid-cols-3 gap-4">
-              {Array.from({ length: 9 }, (_, i) => {
-                const dataRateData = Array.from({ length: 10 }, () => 950 + Math.random() * 100);
-                return (
-                  <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold">A{i + 1}</span>
-                      <Badge className="bg-telescope-ready text-xs">Ready</Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground mb-2">Events: {1000 + i * 100}</div>
-                    <ResponsiveContainer width="100%" height={60}>
-                      <LineChart data={dataRateData.map((val, idx) => ({ value: val }))}>
-                        <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={1.5} dot={false} />
-                        <YAxis hide domain={[900, 1100]} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                    <div className="text-xs text-center text-muted-foreground mt-1">Data Rate (MB/s)</div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="datacapture" className="mt-4">
-          <DataCapturePanel />
-        </TabsContent>
-
-        <TabsContent value="pointing" className="mt-4">
-          <PointingPanel />
-        </TabsContent>
-      </Tabs>
+          {runningPlans.map((runningPlan) => {
+            const planData = observingPlans.find(p => p.id === runningPlan.planId);
+            return planData ? (
+              <TabsContent key={runningPlan.planId} value={runningPlan.planId} className="mt-4">
+                <RunningPlanTab planData={planData} />
+              </TabsContent>
+            ) : null;
+          })}
+        </Tabs>
+      </Card>
     </div>
   );
 };
+
