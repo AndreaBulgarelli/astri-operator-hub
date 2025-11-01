@@ -3,16 +3,54 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronRight, ChevronDown, CheckCircle2, XCircle, Loader2, Play } from "lucide-react";
-import { useState } from "react";
+import { ExternalLink, CheckCircle2, XCircle, Loader2, Play } from "lucide-react";
+import { useState, useEffect } from "react";
+
+type CheckStatus = "idle" | "checking" | "ok" | "error";
 
 interface RunningPlanTabProps {
   planData: any;
 }
 
 export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
-  const [expandedSB, setExpandedSB] = useState<string | null>(null);
+  const [sbChecks, setSBChecks] = useState<{[key: string]: {weather: CheckStatus, atmo: CheckStatus, telescopes: CheckStatus}}>({});
 
+  useEffect(() => {
+    // Perform checks for all SBs when component mounts
+    planData.schedulingBlocks.forEach((sb: any) => {
+      if (sb.status === "pending") {
+        performChecks(sb.id);
+      }
+    });
+  }, []);
+
+  const performChecks = async (sbId: string) => {
+    setSBChecks(prev => ({
+      ...prev,
+      [sbId]: { weather: "checking", atmo: "checking", telescopes: "checking" }
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const weatherOk = Math.random() > 0.15 ? "ok" : "error";
+    setSBChecks(prev => ({
+      ...prev,
+      [sbId]: { ...prev[sbId], weather: weatherOk }
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const atmoOk = Math.random() > 0.15 ? "ok" : "error";
+    setSBChecks(prev => ({
+      ...prev,
+      [sbId]: { ...prev[sbId], atmo: atmoOk }
+    }));
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const telescopesOk = Math.random() > 0.15 ? "ok" : "error";
+    setSBChecks(prev => ({
+      ...prev,
+      [sbId]: { ...prev[sbId], telescopes: telescopesOk }
+    }));
+  };
   const getStatusColor = (status: string) => {
     switch (status) {
       case "succeeded": return "bg-success";
@@ -22,19 +60,16 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
     }
   };
 
-  const getCheckIcon = (status: string) => {
+  const getCheckIcon = (status: CheckStatus) => {
     if (status === "idle") return <div className="w-4 h-4 rounded-full bg-muted" />;
     if (status === "checking") return <Loader2 className="w-4 h-4 text-primary animate-spin" />;
     if (status === "ok") return <CheckCircle2 className="w-4 h-4 text-success" />;
     return <XCircle className="w-4 h-4 text-destructive" />;
   };
 
-  // Mock check statuses for demo
-  const getCheckStatus = () => ({
-    weather: "ok",
-    atmo: "error",
-    telescopes: "error"
-  });
+  const getSBCheckStatus = (sbId: string) => {
+    return sbChecks[sbId] || { weather: "idle", atmo: "idle", telescopes: "idle" };
+  };
 
   return (
     <div className="h-full p-6 space-y-4">
@@ -52,8 +87,11 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
           <div className="space-y-2">
             <label className="text-sm font-medium">Scheduling Blocks</label>
             <ScrollArea className="h-[500px] border rounded-lg p-3">
-              {planData.schedulingBlocks.map((sb: any) => (
-                <div key={sb.id} className="mb-4">
+              {planData.schedulingBlocks.map((sb: any) => {
+                const checks = getSBCheckStatus(sb.id);
+                
+                return (
+                  <div key={sb.id} className="mb-4">
                   <Button
                     variant="secondary"
                     className="w-full mb-2"
@@ -71,15 +109,15 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
                     <div className="space-y-1 text-sm">
                       <div className="flex items-center justify-between">
                         <span>Weather Condition</span>
-                        {getCheckIcon(getCheckStatus().weather)}
+                        {getCheckIcon(checks.weather)}
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Atmo Condition</span>
-                        {getCheckIcon(getCheckStatus().atmo)}
+                        {getCheckIcon(checks.atmo)}
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Available Telescopes</span>
-                        {getCheckIcon(getCheckStatus().telescopes)}
+                        {getCheckIcon(checks.telescopes)}
                       </div>
                     </div>
                   </div>
@@ -98,7 +136,8 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </ScrollArea>
           </div>
 
