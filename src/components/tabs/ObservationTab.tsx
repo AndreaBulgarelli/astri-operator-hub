@@ -539,47 +539,8 @@ export const ObservationTab = ({
                     <label className="text-sm font-medium">Scheduling Blocks</label>
                     <ScrollArea className="h-[400px] border rounded-lg p-3">
                       {selectedPlanData?.schedulingBlocks.map((sb) => {
-                        const checks = getSBCheckStatus(sb.id);
-                        const isExpanded = expandedSB === sb.id;
-
                         return (
                           <div key={sb.id} className="mb-3">
-                            <Button
-                              variant="secondary"
-                              className="w-full mb-2"
-                              onClick={() => handleStartSB(sb.id)}
-                              disabled={sb.status === "running" || sb.status === "succeeded"}
-                            >
-                              <Play className="mr-2 h-4 w-4" /> Start SB
-                            </Button>
-
-                            <div className="mb-2 p-2 rounded-lg bg-card border border-border">
-                              <div 
-                                className="flex items-center justify-between cursor-pointer"
-                                onClick={() => setExpandedSB(isExpanded ? null : sb.id)}
-                              >
-                                <span className="text-sm font-semibold text-primary">Central Control Checks</span>
-                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              </div>
-                              
-                              {isExpanded && (
-                                <div className="mt-2 space-y-1 text-sm">
-                                  <div className="flex items-center justify-between">
-                                    <span>Weather Condition</span>
-                                    {getCheckIcon(checks.weather)}
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span>Atmo Condition</span>
-                                    {getCheckIcon(checks.atmo)}
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span>Available Telescopes</span>
-                                    {getCheckIcon(checks.telescopes)}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
                             {/* SB Block */}
                             <div 
                               className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedSB === sb.id ? 'bg-primary/20 border-2 border-primary' : 'bg-secondary/50 hover:bg-secondary/80'}`}
