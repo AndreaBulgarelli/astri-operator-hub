@@ -539,34 +539,8 @@ export const ObservationTab = ({
                     <label className="text-sm font-medium">Scheduling Blocks</label>
                     <ScrollArea className="h-[400px] border rounded-lg p-3">
                       {selectedPlanData?.schedulingBlocks.map((sb) => {
-                        const checks = getSBCheckStatus(sb.id);
-                        const allChecksOk = checks.weather === "ok" && checks.atmo === "ok" && checks.telescopes === "ok";
-                        const anyCheckError = checks.weather === "error" || checks.atmo === "error" || checks.telescopes === "error";
-                        
                         return (
                           <div key={sb.id} className="mb-3">
-                            {/* Central Control Checks */}
-                            <div className="mb-2 p-2 rounded-lg bg-card border border-border">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-semibold text-primary">Central Control Checks</span>
-                              </div>
-                              
-                              <div className="space-y-1 text-sm">
-                                <div className="flex items-center justify-between">
-                                  <span>Weather Condition</span>
-                                  {getCheckIcon(checks.weather)}
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span>Atmo Condition</span>
-                                  {getCheckIcon(checks.atmo)}
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span>Available Telescopes</span>
-                                  {getCheckIcon(checks.telescopes)}
-                                </div>
-                              </div>
-                            </div>
-
                             {/* SB Block */}
                             <div 
                               className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedSB === sb.id ? 'bg-primary/20 border-2 border-primary' : 'bg-secondary/50 hover:bg-secondary/80'}`}
@@ -579,14 +553,6 @@ export const ObservationTab = ({
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                <div 
-                                  className={`w-3 h-3 rounded-sm mr-1 ${
-                                    allChecksOk ? 'bg-success' : 
-                                    anyCheckError ? 'bg-destructive' : 
-                                    'bg-muted'
-                                  }`} 
-                                  title={`Checks: ${allChecksOk ? 'OK' : anyCheckError ? 'Error' : 'Pending'}`}
-                                />
                                 <Progress value={sb.progress} className="flex-1 h-2" />
                                 <span className="text-xs font-mono">{sb.progress}%</span>
                               </div>
@@ -597,57 +563,127 @@ export const ObservationTab = ({
                     </ScrollArea>
                   </div>
 
-                  {/* Right: OBs List */}
+                  {/* Right: SB Metadata or OBs */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Observation Blocks</label>
-                    <ScrollArea className="h-[400px] border rounded-lg p-3">
-                      {selectedSBData && selectedSBData.observationBlocks.length > 0 ? (
-                        <div className="space-y-2">
-                          {selectedSBData.observationBlocks.map((ob) => (
-                            <div
-                              key={ob.id}
-                              className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                                selectedOB === ob.id ? "bg-primary/10 border-2 border-primary" : "bg-card border border-border hover:bg-secondary/30"
-                              }`}
-                              onClick={() => setSelectedOB(ob.id)}
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className="text-xs">{ob.id}</Badge>
-                                  <span className="text-sm font-medium">{ob.name}</span>
-                                </div>
-                                <Badge className={getStatusColor(ob.status)} variant="secondary">
-                                  {ob.status}
-                                </Badge>
+                    {selectedSB && !selectedSBData?.observationBlocks.some(ob => ob.status === "running" || ob.status === "succeeded") ? (
+                      <>
+                        <label className="text-sm font-medium">SB Metadata</label>
+                        <div className="border rounded-lg p-4 h-[400px] overflow-y-auto">
+                          {sbMetadata && (
+                            <div className="space-y-3 text-sm">
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">SBL ID:</span>
+                                <span className="font-mono text-xs">{sbMetadata.sblId}</span>
                               </div>
-                              
-                              {ob.runId && (
-                                <div className="mb-2">
-                                  <a 
-                                    href={`#/data-capture/${ob.runId}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                                  >
-                                    {ob.runId}
-                                    <ExternalLink className="h-3 w-3" />
-                                  </a>
-                                </div>
-                              )}
-                              
-                              <Progress value={ob.progress} className="h-2 mb-1" />
-                              <div className="flex justify-between items-center">
-                                <span className="text-xs text-muted-foreground">{ob.duration}</span>
-                                <span className="text-xs text-muted-foreground">{ob.progress}%</span>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">PRO ID:</span>
+                                <span className="font-mono text-xs">{sbMetadata.proID}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">PRO Name:</span>
+                                <span className="font-mono text-xs">{sbMetadata.proName}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">Target:</span>
+                                <span className="font-mono text-xs">{sbMetadata.target}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">RA:</span>
+                                <span className="font-mono text-xs">{sbMetadata.coordinates.ra}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">DEC:</span>
+                                <span className="font-mono text-xs">{sbMetadata.coordinates.dec}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">Instrument Mode:</span>
+                                <span className="font-mono text-xs">{sbMetadata.instrumentMode}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">Telescopes:</span>
+                                <span className="font-mono text-xs">{sbMetadata.telescopes.join(", ")}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">Max Wind:</span>
+                                <span className="font-mono text-xs">{sbMetadata.maxWindVelocity}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">Sky Background:</span>
+                                <span className="font-mono text-xs">{sbMetadata.skyBackground}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">Obs. Window Start:</span>
+                                <span className="font-mono text-xs">{new Date(sbMetadata.observingWindow.start).toLocaleString()}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">Obs. Window End:</span>
+                                <span className="font-mono text-xs">{new Date(sbMetadata.observingWindow.end).toLocaleString()}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">HA Range:</span>
+                                <span className="font-mono text-xs">{sbMetadata.haRange.min} to {sbMetadata.haRange.max}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <span className="text-muted-foreground">ZA Range:</span>
+                                <span className="font-mono text-xs">{sbMetadata.zaRange.min} to {sbMetadata.zaRange.max}</span>
                               </div>
                             </div>
-                          ))}
+                          )}
                         </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground text-center py-8">
-                          {selectedSB ? "No observation blocks available" : "Select a scheduling block"}
-                        </div>
-                      )}
-                    </ScrollArea>
+                      </>
+                    ) : (
+                      <>
+                        <label className="text-sm font-medium">Observation Blocks</label>
+                        <ScrollArea className="h-[400px] border rounded-lg p-3">
+                          {selectedSBData && selectedSBData.observationBlocks.length > 0 ? (
+                            <div className="space-y-2">
+                              {selectedSBData.observationBlocks.map((ob) => (
+                                <div
+                                  key={ob.id}
+                                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                                    selectedOB === ob.id ? "bg-primary/10 border-2 border-primary" : "bg-card border border-border hover:bg-secondary/30"
+                                  }`}
+                                  onClick={() => setSelectedOB(ob.id)}
+                                >
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="text-xs">{ob.id}</Badge>
+                                      <span className="text-sm font-medium">{ob.name}</span>
+                                    </div>
+                                    <Badge className={getStatusColor(ob.status)} variant="secondary">
+                                      {ob.status}
+                                    </Badge>
+                                  </div>
+                                  
+                                  {ob.runId && (
+                                    <div className="mb-2">
+                                      <a 
+                                        href={`#/data-capture/${ob.runId}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="text-xs text-primary hover:underline flex items-center gap-1"
+                                      >
+                                        {ob.runId}
+                                        <ExternalLink className="h-3 w-3" />
+                                      </a>
+                                    </div>
+                                  )}
+                                  
+                                  <Progress value={ob.progress} className="h-2 mb-1" />
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-xs text-muted-foreground">{ob.duration}</span>
+                                    <span className="text-xs text-muted-foreground">{ob.progress}%</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground text-center py-8">
+                              {selectedSB ? "No observation blocks available" : "Select a scheduling block"}
+                            </div>
+                          )}
+                        </ScrollArea>
+                      </>
+                    )}
                   </div>
                 </div>
               </TabsContent>

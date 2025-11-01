@@ -62,32 +62,26 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
                     <Play className="mr-2 h-4 w-4" /> Start SB
                   </Button>
 
-                  {/* Central Control Checks */}
+                  {/* Central Control Checks - Always Open */}
                   <div className="mb-2 p-2 rounded-lg bg-card border border-border">
-                    <div 
-                      className="flex items-center justify-between cursor-pointer"
-                      onClick={() => setExpandedSB(expandedSB === sb.id ? null : sb.id)}
-                    >
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold text-primary">Central Control Checks</span>
-                      {expandedSB === sb.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </div>
                     
-                    {expandedSB === sb.id && (
-                      <div className="mt-2 space-y-1 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span>Weather Condition</span>
-                          {getCheckIcon(getCheckStatus().weather)}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>Atmo Condition</span>
-                          {getCheckIcon(getCheckStatus().atmo)}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span>Available Telescopes</span>
-                          {getCheckIcon(getCheckStatus().telescopes)}
-                        </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span>Weather Condition</span>
+                        {getCheckIcon(getCheckStatus().weather)}
                       </div>
-                    )}
+                      <div className="flex items-center justify-between">
+                        <span>Atmo Condition</span>
+                        {getCheckIcon(getCheckStatus().atmo)}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Available Telescopes</span>
+                        {getCheckIcon(getCheckStatus().telescopes)}
+                      </div>
+                    </div>
                   </div>
 
                   {/* SB Block */}
