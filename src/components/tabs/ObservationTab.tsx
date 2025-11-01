@@ -312,7 +312,19 @@ export const ObservationTab = ({
       return;
     }
 
-    // Notify parent to create new tab
+    // Create new running plan tab
+    setRunningPlans(prev => [...prev, {
+      planId: plan.id,
+      planName: plan.name,
+      selectedSB: "",
+      selectedOB: "",
+      expandedSB: null
+    }]);
+
+    // Switch to the new plan tab
+    setActiveTab(plan.id);
+
+    // Notify parent
     if (onPlanStart) {
       onPlanStart(plan);
     }
@@ -422,12 +434,12 @@ export const ObservationTab = ({
 
   return (
     <div className="h-full p-6 space-y-6">
-      <Tabs defaultValue="observing-plan" className="flex-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
         <TabsList className="bg-secondary">
-          <TabsTrigger value="observing-plan">Observing Plan</TabsTrigger>
-          {observingPlans.filter(p => p.schedulingBlocks.some(sb => sb.status === "running" || sb.observationBlocks.some(ob => ob.status === "running"))).map((plan) => (
-            <TabsTrigger key={plan.id} value={`plan-${plan.id}`}>
-              {plan.name}
+          <TabsTrigger value="main">Observing Plan</TabsTrigger>
+          {runningPlans.map((runningPlan) => (
+            <TabsTrigger key={runningPlan.planId} value={runningPlan.planId}>
+              {runningPlan.planName}
             </TabsTrigger>
           ))}
           <TabsTrigger value="ooqs">OOQS</TabsTrigger>
@@ -436,7 +448,7 @@ export const ObservationTab = ({
           <TabsTrigger value="pointing">Pointing</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="observing-plan" className="mt-4">
+        <TabsContent value="main" className="mt-4">
           <Card className="control-panel p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -666,11 +678,14 @@ export const ObservationTab = ({
           </Card>
         </TabsContent>
 
-        {observingPlans.filter(p => p.schedulingBlocks.some(sb => sb.status === "running" || sb.observationBlocks.some(ob => ob.status === "running"))).map((plan) => (
-          <TabsContent key={plan.id} value={`plan-${plan.id}`} className="mt-4">
-            <RunningPlanTab planData={plan} />
-          </TabsContent>
-        ))}
+        {runningPlans.map((runningPlan) => {
+          const planData = observingPlans.find(p => p.id === runningPlan.planId);
+          return planData ? (
+            <TabsContent key={runningPlan.planId} value={runningPlan.planId} className="mt-4">
+              <RunningPlanTab planData={planData} />
+            </TabsContent>
+          ) : null;
+        })}
 
         <TabsContent value="ooqs" className="mt-4">
           <OOQSPanel />
