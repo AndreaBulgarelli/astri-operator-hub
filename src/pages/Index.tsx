@@ -15,6 +15,7 @@ import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } f
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
+  const [currentPlanData, setCurrentPlanData] = useState<any>(null);
 
   const metrics = [
     { icon: Telescope, value: 9 , label: "6 Operational, 1 Safe, 1 Fault", color: "text-status-online" },
@@ -42,6 +43,40 @@ const Index = () => {
             </Card>
           ))}
         </div>
+
+        {/* Plan Progress Bar */}
+        {currentPlanData && currentPlanData.schedulingBlocks.length > 0 && (
+          <div className="mb-3 p-2 rounded-lg bg-secondary/30 border border-border">
+            <div className="flex items-center gap-3">
+              <div className="text-xs font-medium text-muted-foreground whitespace-nowrap">Plan Progress</div>
+              <div className="flex gap-1 flex-1">
+                {currentPlanData.schedulingBlocks.map((sb: any) => {
+                  const totalOBs = sb.observationBlocks.length;
+                  const sbWidth = `${(totalOBs / currentPlanData.schedulingBlocks.reduce((acc: number, s: any) => acc + s.observationBlocks.length, 0)) * 100}%`;
+                  
+                  return (
+                    <div key={sb.id} className="flex gap-0.5" style={{ width: sbWidth }}>
+                      {sb.observationBlocks.map((ob: any) => {
+                        let bgColor = "bg-muted";
+                        if (ob.status === "running") bgColor = "bg-status-active";
+                        if (ob.status === "succeeded") bgColor = "bg-success";
+                        
+                        return (
+                          <div
+                            key={ob.id}
+                            className={`h-2.5 ${bgColor} transition-colors border border-border/50 cursor-pointer hover:opacity-80`}
+                            style={{ flex: 1 }}
+                            title={`Plan: ${currentPlanData.name}\nSB: ${sb.id}\nOB: ${ob.name}\nStatus: ${ob.status}`}
+                          />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         <ResizablePanelGroup direction="horizontal" className="flex-1">
           <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
@@ -90,7 +125,7 @@ const Index = () => {
                   </TabsContent>
 
                   <TabsContent value="observation" className="h-full m-0">
-                    <ObservationTab />
+                    <ObservationTab onPlanDataChange={setCurrentPlanData} />
                   </TabsContent>
 
                   <TabsContent value="end" className="h-full m-0">

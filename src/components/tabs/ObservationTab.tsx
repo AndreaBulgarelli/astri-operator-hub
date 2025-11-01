@@ -23,7 +23,11 @@ interface RunningPlan {
   expandedSB: string | null;
 }
 
-export const ObservationTab = () => {
+export const ObservationTab = ({ 
+  onPlanDataChange 
+}: { 
+  onPlanDataChange?: (planData: any) => void 
+}) => {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [selectedSB, setSelectedSB] = useState<string>("");
   const [selectedOB, setSelectedOB] = useState<string>("");
@@ -172,6 +176,13 @@ export const ObservationTab = () => {
   const selectedPlanData = observingPlans.find(p => p.id === selectedPlan);
   const selectedSBData = selectedPlanData?.schedulingBlocks.find(sb => sb.id === selectedSB);
   const selectedOBData = selectedSBData?.observationBlocks.find(ob => ob.id === selectedOB);
+
+  // Notify parent component of plan data changes
+  useEffect(() => {
+    if (onPlanDataChange && selectedPlanData) {
+      onPlanDataChange(selectedPlanData);
+    }
+  }, [selectedPlanData, onPlanDataChange]);
 
   // Mock metadata for selected SB
   const sbMetadata = selectedSBData ? {
@@ -412,39 +423,6 @@ export const ObservationTab = () => {
           {isPlanRunning && <Badge className="bg-status-active">OBSERVING</Badge>}
         </div>
 
-        {/* Progress Bar with SB and OB blocks */}
-        {selectedPlanData && selectedPlanData.schedulingBlocks.length > 0 && (
-          <div className="mb-4 p-3 rounded-lg bg-secondary/30 border border-border">
-            <div className="flex items-center gap-3">
-              <div className="text-xs font-medium text-muted-foreground whitespace-nowrap">Plan Progress</div>
-              <div className="flex gap-1 flex-1">
-                {selectedPlanData.schedulingBlocks.map((sb) => {
-                  const totalOBs = sb.observationBlocks.length;
-                  const sbWidth = `${(totalOBs / selectedPlanData.schedulingBlocks.reduce((acc, s) => acc + s.observationBlocks.length, 0)) * 100}%`;
-                  
-                  return (
-                    <div key={sb.id} className="flex gap-0.5" style={{ width: sbWidth }}>
-                      {sb.observationBlocks.map((ob) => {
-                        let bgColor = "bg-muted"; // pending/idle
-                        if (ob.status === "running") bgColor = "bg-status-active";
-                        if (ob.status === "succeeded") bgColor = "bg-success";
-                        
-                        return (
-                          <div
-                            key={ob.id}
-                            className={`h-4 ${bgColor} transition-colors border border-border/50`}
-                            style={{ flex: 1 }}
-                            title={`${sb.id} - ${ob.name} (${ob.status})`}
-                          />
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-3 gap-6">
           {/* Left: Selection & Checks */}
