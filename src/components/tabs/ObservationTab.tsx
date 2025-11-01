@@ -313,16 +313,42 @@ export const ObservationTab = ({
       return;
     }
 
-    // Create new running plan tab
-    setRunningPlans(prev => [...prev, {
-      planId: plan.id,
-      planName: plan.name,
-      selectedSB: "",
-      selectedOB: "",
-      expandedSB: null
-    }]);
+    // Check if plan tab already exists
+    const existingPlanIndex = runningPlans.findIndex(rp => rp.planId === plan.id);
+    
+    if (existingPlanIndex === -1) {
+      // Check if there's a finished plan to replace
+      const finishedPlanIndex = runningPlans.findIndex(rp => {
+        const planData = observingPlans.find(p => p.id === rp.planId);
+        return planData?.schedulingBlocks.every(sb => sb.status === "succeeded");
+      });
 
-    // Switch to the new plan tab
+      if (finishedPlanIndex !== -1) {
+        // Replace the finished plan
+        setRunningPlans(prev => prev.map((rp, idx) => 
+          idx === finishedPlanIndex 
+            ? {
+                planId: plan.id,
+                planName: plan.name,
+                selectedSB: "",
+                selectedOB: "",
+                expandedSB: null
+              }
+            : rp
+        ));
+      } else {
+        // Add new running plan tab
+        setRunningPlans(prev => [...prev, {
+          planId: plan.id,
+          planName: plan.name,
+          selectedSB: "",
+          selectedOB: "",
+          expandedSB: null
+        }]);
+      }
+    }
+
+    // Switch to the plan tab
     setActivePlanTab(plan.id);
 
     // Notify parent
