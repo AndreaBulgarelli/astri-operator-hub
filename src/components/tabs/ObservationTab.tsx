@@ -24,9 +24,11 @@ interface RunningPlan {
 }
 
 export const ObservationTab = ({ 
-  onPlanDataChange 
+  onPlanDataChange,
+  onPlanStart
 }: { 
-  onPlanDataChange?: (planData: any) => void 
+  onPlanDataChange?: (planData: any) => void;
+  onPlanStart?: (planData: any) => void;
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [selectedSB, setSelectedSB] = useState<string>("");
@@ -307,6 +309,11 @@ export const ObservationTab = ({
         variant: "destructive",
       });
       return;
+    }
+
+    // Notify parent to create new tab
+    if (onPlanStart) {
+      onPlanStart(plan);
     }
 
     setIsPlanRunning(true);
