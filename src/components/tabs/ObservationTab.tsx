@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { OOQSPanel } from "@/components/observation/OOQSPanel";
 import { DataCapturePanel } from "@/components/observation/DataCapturePanel";
 import { PointingPanel } from "@/components/observation/PointingPanel";
+import { ArraySummaryPanel } from "@/components/observation/ArraySummaryPanel";
 import { RunningPlanTab } from "./RunningPlanTab";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -673,30 +674,7 @@ export const ObservationTab = ({
         </TabsContent>
 
         <TabsContent value="summary" className="mt-4">
-          <Card className="control-panel p-6">
-            <h3 className="text-lg font-semibold mb-4 text-primary">Array Summary</h3>
-            <div className="grid grid-cols-3 gap-4">
-              {Array.from({ length: 9 }, (_, i) => {
-                const dataRateData = Array.from({ length: 10 }, () => 950 + Math.random() * 100);
-                return (
-                  <div key={i} className="p-4 rounded-lg bg-secondary/50 border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold">A{i + 1}</span>
-                      <Badge className="bg-telescope-ready text-xs">Ready</Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground mb-2">Events: {1000 + i * 100}</div>
-                    <ResponsiveContainer width="100%" height={60}>
-                      <LineChart data={dataRateData.map((val, idx) => ({ value: val }))}>
-                        <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={1.5} dot={false} />
-                        <YAxis hide domain={[900, 1100]} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                    <div className="text-xs text-center text-muted-foreground mt-1">Data Rate (MB/s)</div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
+          <ArraySummaryPanel />
         </TabsContent>
 
         <TabsContent value="datacapture" className="mt-4">

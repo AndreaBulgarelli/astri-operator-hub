@@ -1,36 +1,61 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useState, useEffect } from "react";
 
 // Mock data for temporal charts
-const generateMockData = (points: number = 20) => {
+const generateMockData = (points: number = 20, baseValues?: number[]) => {
   const now = Date.now();
   return Array.from({ length: points }, (_, i) => ({
     time: new Date(now - (points - i) * 60000).toLocaleTimeString(),
-    A1: 1000 + Math.random() * 200,
-    A2: 950 + Math.random() * 200,
-    A3: 1050 + Math.random() * 200,
-    A4: 980 + Math.random() * 200,
-    A5: 1020 + Math.random() * 200,
-    A6: 990 + Math.random() * 200,
-    A7: 1030 + Math.random() * 200,
-    A8: 1010 + Math.random() * 200,
-    A9: 960 + Math.random() * 200,
+    A1: (baseValues?.[0] || 1000) + Math.sin(i * 0.1) * 50 + Math.random() * 30,
+    A2: (baseValues?.[1] || 950) + Math.sin(i * 0.15) * 50 + Math.random() * 30,
+    A3: (baseValues?.[2] || 1050) + Math.sin(i * 0.12) * 50 + Math.random() * 30,
+    A4: (baseValues?.[3] || 980) + Math.sin(i * 0.18) * 50 + Math.random() * 30,
+    A5: (baseValues?.[4] || 1020) + Math.sin(i * 0.14) * 50 + Math.random() * 30,
+    A6: (baseValues?.[5] || 990) + Math.sin(i * 0.16) * 50 + Math.random() * 30,
+    A7: (baseValues?.[6] || 1030) + Math.sin(i * 0.11) * 50 + Math.random() * 30,
+    A8: (baseValues?.[7] || 1010) + Math.sin(i * 0.13) * 50 + Math.random() * 30,
+    A9: (baseValues?.[8] || 960) + Math.sin(i * 0.17) * 50 + Math.random() * 30,
   }));
 };
 
-const weatherData = Array.from({ length: 20 }, (_, i) => ({
-  time: new Date(Date.now() - (20 - i) * 60000).toLocaleTimeString(),
-  temperature: 15 + Math.random() * 5,
-  humidity: 40 + Math.random() * 20,
-  windSpeed: 10 + Math.random() * 15,
-  pressure: 1010 + Math.random() * 10,
-}));
-
+const generateWeatherData = (points: number = 20, baseValues?: number[]) => {
+  const now = Date.now();
+  return Array.from({ length: points }, (_, i) => ({
+    time: new Date(now - (points - i) * 60000).toLocaleTimeString(),
+    temperature: (baseValues?.[0] || 15) + Math.sin(i * 0.2) * 2 + Math.random() * 1,
+    humidity: (baseValues?.[1] || 50) + Math.sin(i * 0.15) * 5 + Math.random() * 3,
+    windSpeed: (baseValues?.[2] || 17) + Math.sin(i * 0.25) * 3 + Math.random() * 2,
+    pressure: (baseValues?.[3] || 1015) + Math.sin(i * 0.1) * 3 + Math.random() * 1,
+  }));
+};
 
 export const DataCapturePanel = () => {
-  const eventRateData = generateMockData();
-  const dataRateData = generateMockData();
+  const [eventRateData, setEventRateData] = useState(generateMockData());
+  const [dataRateData, setDataRateData] = useState(generateMockData());
+  const [weatherData, setWeatherData] = useState(generateWeatherData());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setEventRateData(prev => {
+        const lastPoint = prev[prev.length - 1];
+        const baseValues = [1000, 950, 1050, 980, 1020, 990, 1030, 1010, 960];
+        return generateMockData(20, baseValues);
+      });
+      setDataRateData(prev => {
+        const baseValues = [1000, 950, 1050, 980, 1020, 990, 1030, 1010, 960];
+        return generateMockData(20, baseValues);
+      });
+      setWeatherData(prev => {
+        const lastPoint = prev[prev.length - 1];
+        const baseValues = [lastPoint.temperature, lastPoint.humidity, lastPoint.windSpeed, lastPoint.pressure];
+        return generateWeatherData(20, baseValues);
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Card className="control-panel p-6">
