@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { OOQSPanel } from "@/components/observation/OOQSPanel";
 import { DataCapturePanel } from "@/components/observation/DataCapturePanel";
 import { PointingPanel } from "@/components/observation/PointingPanel";
-import { RunningPlanTab } from "./RunningPlanTab";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Play, Square, ChevronRight, ChevronDown, ExternalLink, CheckCircle2, XCircle, Loader2 } from "lucide-react";
@@ -422,255 +421,244 @@ export const ObservationTab = ({
 
   return (
     <div className="h-full p-6 space-y-6">
-      <Tabs defaultValue="observing-plan" className="flex-1">
+      <Card className="control-panel p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-primary">Observation Control</h2>
+            <p className="text-sm text-muted-foreground">Select and execute observing plans</p>
+          </div>
+          {isPlanRunning && <Badge className="bg-status-active">OBSERVING</Badge>}
+        </div>
+
+
+        <div className="grid grid-cols-3 gap-6">
+          {/* Left: Selection & Checks */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Observing Plan</label>
+              <Select value={selectedPlan} onValueChange={(val) => {
+                setSelectedPlan(val);
+                setSelectedSB("");
+                setSelectedOB("");
+                setExpandedSB(null);
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select observing plan..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {observingPlans.map(plan => (
+                    <SelectItem key={plan.id} value={plan.id}>
+                      {plan.id} - {plan.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedPlanData && (
+              <>
+                <div className="p-3 rounded-lg bg-secondary/30 space-y-1 text-xs">
+                  <div><span className="text-muted-foreground">Start:</span> {new Date(selectedPlanData.startDate).toLocaleString()}</div>
+                  <div><span className="text-muted-foreground">End:</span> {new Date(selectedPlanData.endDate).toLocaleString()}</div>
+                </div>
+
+                {/* SB Metadata */}
+                {sbMetadata && selectedSB && (
+                  <>
+                    <div className="border-t border-border my-4"></div>
+                    <ScrollArea className="h-[300px] rounded-lg border border-border p-3">
+                      <div className="space-y-3 text-xs">
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Scheduling Block</div>
+                          <div className="text-muted-foreground">{sbMetadata.sblId}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Project</div>
+                          <div>{sbMetadata.proID} - {sbMetadata.proName}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Target</div>
+                          <div>{sbMetadata.target}</div>
+                          <div className="text-muted-foreground">RA: {sbMetadata.coordinates.ra}, Dec: {sbMetadata.coordinates.dec}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Instrument</div>
+                          <div>{sbMetadata.instrumentMode}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Array Configuration</div>
+                          <div>{sbMetadata.telescopes.join(", ")}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Weather Constraints</div>
+                          <div>Max Wind: {sbMetadata.maxWindVelocity}</div>
+                          <div>Sky Background: {sbMetadata.skyBackground}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Observing Window</div>
+                          <div className="text-muted-foreground">
+                            {new Date(sbMetadata.observingWindow.start).toLocaleDateString()} - {new Date(sbMetadata.observingWindow.end).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-primary mb-1">Pointing Constraints</div>
+                          <div>HA: {sbMetadata.haRange.min} to {sbMetadata.haRange.max}</div>
+                          <div>ZA: {sbMetadata.zaRange.min} to {sbMetadata.zaRange.max}</div>
+                        </div>
+                      </div>
+                    </ScrollArea>
+                  </>
+                )}
+              </>
+            )}
+
+
+            <div className="space-y-2">
+              <Button 
+                onClick={handleStartPlan} 
+                disabled={!selectedPlan || isPlanRunning} 
+                size="lg" 
+                className="gap-2 w-full"
+              >
+                <Play className="h-4 w-4" />
+                Start Plan
+              </Button>
+              
+
+              {isPlanRunning && (
+                <Button onClick={handleStop} variant="destructive" size="lg" className="gap-2 w-full">
+                  <Square className="h-4 w-4" />
+                  Stop
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Middle: SB List */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Scheduling Blocks</label>
+            <ScrollArea className="h-[400px] border rounded-lg p-2">
+              {selectedPlanData?.schedulingBlocks.map(sb => {
+                const sbCheck = getSBCheckStatus(sb.id);
+                return (
+                  <div key={sb.id} className="space-y-2 mb-4">
+                    {/* Start SB Button */}
+                    {!isPlanRunning && (
+                      <Button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartSB(sb.id);
+                        }}
+                        size="sm"
+                        variant="secondary"
+                        className="w-full gap-2"
+                      >
+                        <Play className="h-3 w-3" />
+                        Start SB
+                      </Button>
+                    )}
+
+                    {/* Central Control Checks before each SB */}
+                    <div className="p-2 rounded-lg bg-card/50 border border-border space-y-1">
+                      <div className="text-xs font-semibold text-primary mb-1">Central Control Checks</div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Weather Condition</span>
+                        {getCheckIcon(sbCheck.weather)}
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Atmo Condition</span>
+                        {getCheckIcon(sbCheck.atmo)}
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span>Available Telescopes</span>
+                        {getCheckIcon(sbCheck.telescopes)}
+                      </div>
+                    </div>
+
+                    {/* SB Block */}
+                    <div 
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedSB === sb.id ? 'bg-primary/20 border-2 border-primary' : 'bg-secondary/50 hover:bg-secondary/80'}`}
+                      onClick={() => setSelectedSB(sb.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{sb.id}</span>
+                          <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Progress value={sb.progress} className="flex-1 h-2" />
+                        <span className="text-xs font-mono">{sb.progress}%</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </ScrollArea>
+          </div>
+
+          {/* Right: OBs List */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Observation Blocks</label>
+            <ScrollArea className="h-[400px] border rounded-lg p-3">
+              {selectedSBData && selectedSBData.observationBlocks.length > 0 ? (
+                <div className="space-y-2">
+                  {selectedSBData.observationBlocks.map((ob) => (
+                    <div
+                      key={ob.id}
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedOB === ob.id ? "bg-primary/10 border-2 border-primary" : "bg-card border border-border hover:bg-secondary/30"
+                      }`}
+                      onClick={() => setSelectedOB(ob.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">{ob.id}</Badge>
+                          <span className="text-sm font-medium">{ob.name}</span>
+                        </div>
+                        <Badge className={getStatusColor(ob.status)} variant="secondary">
+                          {ob.status}
+                        </Badge>
+                      </div>
+                      
+                      {ob.runId && (
+                        <div className="mb-2">
+                          <a 
+                            href={`#/data-capture/${ob.runId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            {ob.runId}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      )}
+                      
+                      <Progress value={ob.progress} className="h-2 mb-1" />
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">{ob.duration}</span>
+                        <span className="text-xs text-muted-foreground">{ob.progress}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground text-center py-8">
+                  {selectedSB ? "No observation blocks available" : "Select a scheduling block"}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+        </div>
+      </Card>
+
+      <Tabs defaultValue="ooqs" className="flex-1">
         <TabsList className="bg-secondary">
-          <TabsTrigger value="observing-plan">Observing Plan</TabsTrigger>
-          {observingPlans.filter(p => p.schedulingBlocks.some(sb => sb.status === "running" || sb.observationBlocks.some(ob => ob.status === "running"))).map((plan) => (
-            <TabsTrigger key={plan.id} value={`plan-${plan.id}`}>
-              {plan.name}
-            </TabsTrigger>
-          ))}
           <TabsTrigger value="ooqs">OOQS</TabsTrigger>
           <TabsTrigger value="summary">Array Summary</TabsTrigger>
           <TabsTrigger value="datacapture">Data Capture</TabsTrigger>
           <TabsTrigger value="pointing">Pointing</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="observing-plan" className="mt-4">
-          <Card className="control-panel p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-primary">Observation Control</h2>
-                <p className="text-sm text-muted-foreground">Select and execute observing plans</p>
-              </div>
-              {isPlanRunning && <Badge className="bg-status-active">OBSERVING</Badge>}
-            </div>
-
-            <div className="grid grid-cols-3 gap-6">
-              {/* Left: Selection & Checks */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Observing Plan</label>
-                  <Select value={selectedPlan} onValueChange={(val) => {
-                    setSelectedPlan(val);
-                    setSelectedSB("");
-                    setSelectedOB("");
-                    setExpandedSB(null);
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select observing plan..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {observingPlans.map(plan => (
-                        <SelectItem key={plan.id} value={plan.id}>
-                          {plan.id} - {plan.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {selectedPlanData && (
-                  <>
-                    <div className="p-3 rounded-lg bg-secondary/30 space-y-1 text-xs">
-                      <div><span className="text-muted-foreground">Start:</span> {new Date(selectedPlanData.startDate).toLocaleString()}</div>
-                      <div><span className="text-muted-foreground">End:</span> {new Date(selectedPlanData.endDate).toLocaleString()}</div>
-                    </div>
-
-                    {/* SB Metadata */}
-                    {sbMetadata && selectedSB && (
-                      <>
-                        <div className="border-t border-border my-4"></div>
-                        <ScrollArea className="h-[300px] rounded-lg border border-border p-3">
-                          <div className="space-y-3 text-xs">
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Scheduling Block</div>
-                              <div className="text-muted-foreground">{sbMetadata.sblId}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Project</div>
-                              <div>{sbMetadata.proID} - {sbMetadata.proName}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Target</div>
-                              <div>{sbMetadata.target}</div>
-                              <div className="text-muted-foreground">RA: {sbMetadata.coordinates.ra}, Dec: {sbMetadata.coordinates.dec}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Instrument</div>
-                              <div>{sbMetadata.instrumentMode}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Array Configuration</div>
-                              <div>{sbMetadata.telescopes.join(", ")}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Weather Constraints</div>
-                              <div>Max Wind: {sbMetadata.maxWindVelocity}</div>
-                              <div>Sky Background: {sbMetadata.skyBackground}</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Observing Window</div>
-                              <div className="text-muted-foreground">
-                                {new Date(sbMetadata.observingWindow.start).toLocaleDateString()} - {new Date(sbMetadata.observingWindow.end).toLocaleDateString()}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-primary mb-1">Pointing Constraints</div>
-                              <div>HA: {sbMetadata.haRange.min} to {sbMetadata.haRange.max}</div>
-                              <div>ZA: {sbMetadata.zaRange.min} to {sbMetadata.zaRange.max}</div>
-                            </div>
-                          </div>
-                        </ScrollArea>
-                      </>
-                    )}
-                  </>
-                )}
-
-                <div className="space-y-2">
-                  <Button 
-                    onClick={handleStartPlan} 
-                    disabled={!selectedPlan || isPlanRunning} 
-                    size="lg" 
-                    className="gap-2 w-full"
-                  >
-                    <Play className="h-4 w-4" />
-                    Start Plan
-                  </Button>
-                  
-                  {isPlanRunning && (
-                    <Button onClick={handleStop} variant="destructive" size="lg" className="gap-2 w-full">
-                      <Square className="h-4 w-4" />
-                      Stop
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {/* Middle: SB List */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Scheduling Blocks</label>
-                <ScrollArea className="h-[400px] border rounded-lg p-2">
-                  {selectedPlanData?.schedulingBlocks.map(sb => {
-                    const sbCheck = getSBCheckStatus(sb.id);
-                    return (
-                      <div key={sb.id} className="space-y-2 mb-4">
-                        {/* Start SB Button */}
-                        {!isPlanRunning && (
-                          <Button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStartSB(sb.id);
-                            }}
-                            size="sm"
-                            variant="secondary"
-                            className="w-full gap-2"
-                          >
-                            <Play className="h-3 w-3" />
-                            Start SB
-                          </Button>
-                        )}
-
-                        {/* Central Control Checks before each SB */}
-                        <div className="p-2 rounded-lg bg-card/50 border border-border space-y-1">
-                          <div className="text-xs font-semibold text-primary mb-1">Central Control Checks</div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span>Weather Condition</span>
-                            {getCheckIcon(sbCheck.weather)}
-                          </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span>Atmo Condition</span>
-                            {getCheckIcon(sbCheck.atmo)}
-                          </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span>Available Telescopes</span>
-                            {getCheckIcon(sbCheck.telescopes)}
-                          </div>
-                        </div>
-
-                        {/* SB Block */}
-                        <div 
-                          className={`p-3 rounded-lg cursor-pointer transition-colors ${selectedSB === sb.id ? 'bg-primary/20 border-2 border-primary' : 'bg-secondary/50 hover:bg-secondary/80'}`}
-                          onClick={() => setSelectedSB(sb.id)}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-sm">{sb.id}</span>
-                              <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Progress value={sb.progress} className="flex-1 h-2" />
-                            <span className="text-xs font-mono">{sb.progress}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </ScrollArea>
-              </div>
-
-              {/* Right: OBs List */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Observation Blocks</label>
-                <ScrollArea className="h-[400px] border rounded-lg p-3">
-                  {selectedSBData && selectedSBData.observationBlocks.length > 0 ? (
-                    <div className="space-y-2">
-                      {selectedSBData.observationBlocks.map((ob) => (
-                        <div
-                          key={ob.id}
-                          className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                            selectedOB === ob.id ? "bg-primary/10 border-2 border-primary" : "bg-card border border-border hover:bg-secondary/30"
-                          }`}
-                          onClick={() => setSelectedOB(ob.id)}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">{ob.id}</Badge>
-                              <span className="text-sm font-medium">{ob.name}</span>
-                            </div>
-                            <Badge className={getStatusColor(ob.status)} variant="secondary">
-                              {ob.status}
-                            </Badge>
-                          </div>
-                          
-                          {ob.runId && (
-                            <div className="mb-2">
-                              <a 
-                                href={`#/data-capture/${ob.runId}`}
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-xs text-primary hover:underline flex items-center gap-1"
-                              >
-                                {ob.runId}
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            </div>
-                          )}
-                          
-                          <Progress value={ob.progress} className="h-2 mb-1" />
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-muted-foreground">{ob.duration}</span>
-                            <span className="text-xs text-muted-foreground">{ob.progress}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground text-center py-8">
-                      {selectedSB ? "No observation blocks available" : "Select a scheduling block"}
-                    </div>
-                  )}
-                </ScrollArea>
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
-
-        {observingPlans.filter(p => p.schedulingBlocks.some(sb => sb.status === "running" || sb.observationBlocks.some(ob => ob.status === "running"))).map((plan) => (
-          <TabsContent key={plan.id} value={`plan-${plan.id}`} className="mt-4">
-            <RunningPlanTab planData={plan} />
-          </TabsContent>
-        ))}
 
         <TabsContent value="ooqs" className="mt-4">
           <OOQSPanel />
