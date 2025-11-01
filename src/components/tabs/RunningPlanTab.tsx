@@ -2,7 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, ChevronRight, ChevronDown, CheckCircle2, XCircle, Loader2, Play } from "lucide-react";
 import { useState } from "react";
 
 interface RunningPlanTabProps {
@@ -10,7 +11,7 @@ interface RunningPlanTabProps {
 }
 
 export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
-  const [selectedSB, setSelectedSB] = useState<string | null>(null);
+  const [expandedSB, setExpandedSB] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -21,9 +22,19 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
     }
   };
 
-  const selectedSBData = selectedSB 
-    ? planData.schedulingBlocks.find((sb: any) => sb.id === selectedSB)
-    : null;
+  const getCheckIcon = (status: string) => {
+    if (status === "idle") return <div className="w-4 h-4 rounded-full bg-muted" />;
+    if (status === "checking") return <Loader2 className="w-4 h-4 text-primary animate-spin" />;
+    if (status === "ok") return <CheckCircle2 className="w-4 h-4 text-success" />;
+    return <XCircle className="w-4 h-4 text-destructive" />;
+  };
+
+  // Mock check statuses for demo
+  const getCheckStatus = () => ({
+    weather: "ok",
+    atmo: "error",
+    telescopes: "error"
+  });
 
   return (
     <div className="h-full p-6 space-y-4">
@@ -36,86 +47,65 @@ export const RunningPlanTab = ({ planData }: RunningPlanTabProps) => {
           <Badge className="bg-status-active">RUNNING</Badge>
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {/* Left: Scheduling Blocks */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Scheduling Blocks</label>
             <ScrollArea className="h-[500px] border rounded-lg p-3">
               {planData.schedulingBlocks.map((sb: any) => (
-                <div 
-                  key={sb.id} 
-                  className={`mb-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedSB === sb.id 
-                      ? 'bg-primary/20 border-2 border-primary' 
-                      : 'bg-secondary/50 border border-border hover:bg-secondary'
-                  }`}
-                  onClick={() => setSelectedSB(sb.id)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">{sb.id}</span>
-                      <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
+                <div key={sb.id} className="mb-4">
+                  <Button
+                    variant="secondary"
+                    className="w-full mb-2"
+                    disabled={sb.status === "running" || sb.status === "succeeded"}
+                  >
+                    <Play className="mr-2 h-4 w-4" /> Start SB
+                  </Button>
+
+                  {/* Central Control Checks */}
+                  <div className="mb-2 p-2 rounded-lg bg-card border border-border">
+                    <div 
+                      className="flex items-center justify-between cursor-pointer"
+                      onClick={() => setExpandedSB(expandedSB === sb.id ? null : sb.id)}
+                    >
+                      <span className="text-sm font-semibold text-primary">Central Control Checks</span>
+                      {expandedSB === sb.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </div>
+                    
+                    {expandedSB === sb.id && (
+                      <div className="mt-2 space-y-1 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span>Weather Condition</span>
+                          {getCheckIcon(getCheckStatus().weather)}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Atmo Condition</span>
+                          {getCheckIcon(getCheckStatus().atmo)}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Available Telescopes</span>
+                          {getCheckIcon(getCheckStatus().telescopes)}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Progress value={sb.progress} className="flex-1 h-2" />
-                    <span className="text-xs font-mono">{sb.progress}%</span>
+
+                  {/* SB Block */}
+                  <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm">{sb.id}</span>
+                        <Badge className={getStatusColor(sb.status)} variant="outline">{sb.status}</Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Progress value={sb.progress} className="flex-1 h-2" />
+                      <span className="text-xs font-mono">{sb.progress}%</span>
+                    </div>
                   </div>
                 </div>
               ))}
             </ScrollArea>
-          </div>
-
-          {/* Middle: SB Metadata */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">SB Metadata</label>
-            <div className="h-[500px] border rounded-lg p-4">
-              {selectedSBData ? (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-primary mb-2">{selectedSBData.id}</h3>
-                    <Badge className={getStatusColor(selectedSBData.status)} variant="outline">
-                      {selectedSBData.status}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-3 text-sm">
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-muted-foreground">Progress:</span>
-                      <span className="font-medium">{selectedSBData.progress}%</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-muted-foreground">Total OBs:</span>
-                      <span className="font-medium">{selectedSBData.observationBlocks.length}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-muted-foreground">Completed OBs:</span>
-                      <span className="font-medium">
-                        {selectedSBData.observationBlocks.filter((ob: any) => ob.status === "succeeded").length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-muted-foreground">Running OBs:</span>
-                      <span className="font-medium">
-                        {selectedSBData.observationBlocks.filter((ob: any) => ob.status === "running").length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-muted-foreground">Priority:</span>
-                      <span className="font-medium">High</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <span className="text-muted-foreground">Target Type:</span>
-                      <span className="font-medium">Galaxy</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  Select a Scheduling Block to view metadata
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Right: Observation Blocks */}
