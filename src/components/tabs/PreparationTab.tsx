@@ -8,6 +8,15 @@ import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Power } from "lucide-react";
 
+type SystemCheckStatus = "idle" | "checking" | "ok" | "warning" | "error";
+
+interface SystemComponent {
+  id: string;
+  name: string;
+  abbreviation: string;
+  status: SystemCheckStatus;
+}
+
 export const PreparationTab = () => {
   const [isPreparing, setIsPreparing] = useState(false);
   const [isSettingOperational, setIsSettingOperational] = useState(false);
@@ -17,6 +26,42 @@ export const PreparationTab = () => {
   const [isOpeningLids, setIsOpeningLids] = useState(false);
   const [lidProgress, setLidProgress] = useState<{ [key: string]: number }>({});
   const [preCalibrationDone, setPreCalibrationDone] = useState(false);
+  const [isCheckingSystem, setIsCheckingSystem] = useState(false);
+  
+  const [systemComponents, setSystemComponents] = useState<SystemComponent[]>([
+    { id: "pms", name: "Power Management System", abbreviation: "PMS", status: "idle" },
+    { id: "sss", name: "Safety and Security System", abbreviation: "SSS", status: "idle" },
+    { id: "ict", name: "ICT System", abbreviation: "ICT", status: "idle" },
+    { id: "ws1", name: "Weather Station 1", abbreviation: "WS-1", status: "idle" },
+    { id: "ws2", name: "Weather Station 2", abbreviation: "WS-2", status: "idle" },
+    { id: "asc", name: "All-Sky Camera", abbreviation: "ASC", status: "idle" },
+    { id: "tds", name: "Time Distribution System", abbreviation: "TDS", status: "idle" },
+    { id: "sqm1", name: "Sky Quality Meter 1", abbreviation: "SQM-1", status: "idle" },
+    { id: "sqm2", name: "Sky Quality Meter 2", abbreviation: "SQM-2", status: "idle" },
+    { id: "sqm3", name: "Sky Quality Meter 3", abbreviation: "SQM-3", status: "idle" },
+    { id: "lidar", name: "LIDAR", abbreviation: "LIDAR", status: "idle" },
+    { id: "uvsipm", name: "UVSipM", abbreviation: "UVSipM", status: "idle" },
+    { id: "sc1", name: "Service Cabinet 1", abbreviation: "SC-1", status: "idle" },
+    { id: "sc2", name: "Service Cabinet 2", abbreviation: "SC-2", status: "idle" },
+    { id: "sc3", name: "Service Cabinet 3", abbreviation: "SC-3", status: "idle" },
+    { id: "sc4", name: "Service Cabinet 4", abbreviation: "SC-4", status: "idle" },
+    { id: "sc5", name: "Service Cabinet 5", abbreviation: "SC-5", status: "idle" },
+    { id: "sc6", name: "Service Cabinet 6", abbreviation: "SC-6", status: "idle" },
+    { id: "sc7", name: "Service Cabinet 7", abbreviation: "SC-7", status: "idle" },
+    { id: "sc8", name: "Service Cabinet 8", abbreviation: "SC-8", status: "idle" },
+    { id: "sc9", name: "Service Cabinet 9", abbreviation: "SC-9", status: "idle" },
+    { id: "a1", name: "Telescope A1", abbreviation: "A1", status: "idle" },
+    { id: "a2", name: "Telescope A2", abbreviation: "A2", status: "idle" },
+    { id: "a3", name: "Telescope A3", abbreviation: "A3", status: "idle" },
+    { id: "a4", name: "Telescope A4", abbreviation: "A4", status: "idle" },
+    { id: "a5", name: "Telescope A5", abbreviation: "A5", status: "idle" },
+    { id: "a6", name: "Telescope A6", abbreviation: "A6", status: "idle" },
+    { id: "a7", name: "Telescope A7", abbreviation: "A7", status: "idle" },
+    { id: "a8", name: "Telescope A8", abbreviation: "A8", status: "idle" },
+    { id: "a9", name: "Telescope A9", abbreviation: "A9", status: "idle" },
+    { id: "startup", name: "Startup System", abbreviation: "Startup", status: "idle" },
+    { id: "scada", name: "SCADA System", abbreviation: "SCADA", status: "idle" },
+  ]);
   
   const [checklist, setChecklist] = useState({
     maSystemCheck: false,
@@ -50,6 +95,63 @@ export const PreparationTab = () => {
   const allChecked = Object.values(checklist).every(Boolean);
   const allTelescopesReady = telescopes.every(t => t.status === "Operational");
   const allSqmsReady = sqms.every(s => s.status === "Operational");
+
+  const handleCheckSystem = () => {
+    setIsCheckingSystem(true);
+    
+    // Simulate checking each component sequentially
+    let index = 0;
+    const checkInterval = setInterval(() => {
+      if (index < systemComponents.length) {
+        // Set current component to "checking"
+        setSystemComponents(prev => prev.map((comp, i) => 
+          i === index ? { ...comp, status: "checking" as SystemCheckStatus } : comp
+        ));
+        
+        // After a short delay, set result (mostly ok, some warnings, rare errors)
+        setTimeout(() => {
+          const rand = Math.random();
+          let status: SystemCheckStatus = "ok";
+          if (rand < 0.1) status = "warning"; // 10% warning
+          if (rand < 0.02) status = "error"; // 2% error
+          
+          setSystemComponents(prev => prev.map((comp, i) => 
+            i === index ? { ...comp, status } : comp
+          ));
+        }, 300);
+        
+        index++;
+      } else {
+        clearInterval(checkInterval);
+        setTimeout(() => {
+          setIsCheckingSystem(false);
+          const hasErrors = systemComponents.some(c => c.status === "error");
+          const hasWarnings = systemComponents.some(c => c.status === "warning");
+          
+          toast({
+            title: hasErrors ? "System Check Complete - Issues Found" : "System Check Complete",
+            description: hasErrors 
+              ? "Some systems have errors. Please check and resolve."
+              : hasWarnings 
+              ? "All critical systems operational. Some warnings detected."
+              : "All systems operational",
+            variant: hasErrors ? "destructive" : "default",
+          });
+        }, 500);
+      }
+    }, 400);
+  };
+
+  const getSystemStatusColor = (status: SystemCheckStatus) => {
+    switch (status) {
+      case "idle": return "bg-muted";
+      case "checking": return "bg-status-active";
+      case "ok": return "bg-success";
+      case "warning": return "bg-status-warning";
+      case "error": return "bg-status-error";
+      default: return "bg-muted";
+    }
+  };
 
   const handleInitLidar = () => {
     // Off -> Standby -> Initialised
@@ -270,6 +372,33 @@ export const PreparationTab = () => {
                 <Power className="h-5 w-5" />
                 Pre-Conditions
               </h3>
+              
+              {/* System Check Button */}
+              <Button 
+                onClick={handleCheckSystem}
+                disabled={isCheckingSystem}
+                className="w-full mb-4"
+              >
+                {isCheckingSystem ? "Checking ASTRI Mini-Array Status..." : "Check ASTRI Mini-Array Status"}
+              </Button>
+
+              {/* System Status Bar */}
+              <div className="mb-4 p-4 rounded-lg bg-secondary/30 border border-border">
+                <div className="text-xs font-medium text-muted-foreground mb-2">System Components Status</div>
+                <div className="flex flex-wrap gap-1">
+                  {systemComponents.map((component) => (
+                    <div
+                      key={component.id}
+                      className={`h-10 px-2 flex items-center justify-center text-[10px] font-mono font-semibold transition-all border border-border/50 ${getSystemStatusColor(component.status)}`}
+                      style={{ minWidth: '60px' }}
+                      title={`${component.name} - ${component.status}`}
+                    >
+                      {component.abbreviation}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="p-4 bg-secondary/30">
                   <div className="flex items-center gap-3">
