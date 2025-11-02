@@ -37,7 +37,7 @@ export const StartupTab = () => {
     { id: "hmi", name: "HMI", state: "Off", x: 580, y: 80, subsystem: "scada" },
 
     // ACS Manager
-    { id: "acs", name: "ACS Mgr", state: "Off", x: 700, y: 340, subsystem: "acs" },
+    { id: "acs", name: "ACS Mgr", state: "Off", x: 350, y: 200, subsystem: "acs" },
 
     // Collectors
     { id: "atmos-col", name: "Atmos Col", state: "Off", x: 620, y: 380, subsystem: "collector" },
