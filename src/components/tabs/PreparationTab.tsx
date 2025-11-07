@@ -427,7 +427,7 @@ export const PreparationTab = () => {
                     <div className="font-medium">LIDAR Status</div>
                     <div className="text-xs text-muted-foreground">Atmosphere Characterisation</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Cycle: Off → Standby → Initialised
+                      Cycle: Off → Initialised → Standby
                     </div>
                   </div>
                   {getStatusBadge(lidarStatus)}
@@ -471,14 +471,6 @@ export const PreparationTab = () => {
                     className="flex-1"
                   >
                     {isSettingOperational ? "Setting Operational..." : "Set OPERATIONAL"}
-                  </Button>
-                  <Button 
-                    onClick={handleOpenLids}
-                    disabled={!allTelescopesReady || isOpeningLids}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    {isOpeningLids ? "Opening LIDs..." : "Open LIDs"}
                   </Button>
                 </div>
 
@@ -565,7 +557,7 @@ export const PreparationTab = () => {
                         <div>
                           <div className="font-medium">SQM-{sqm.id}</div>
                           <div className="text-xs text-muted-foreground">
-                            Cycle: Off → Standby → Initialised → Operational
+                            Cycle: Off → Initialised → Standby → Operational
                           </div>
                         </div>
                         {getStatusBadge(sqm.status)}
