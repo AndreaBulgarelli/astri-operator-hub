@@ -154,15 +154,15 @@ export const PreparationTab = () => {
   };
 
   const handleInitLidar = () => {
-    // Off -> Standby -> Initialised
+    // Off -> Initialised -> Standby
     if (lidarStatus === "Off") {
-      setLidarStatus("Standby");
+      setLidarStatus("Initialised");
       setTimeout(() => {
-        setLidarStatus("Initialised");
+        setLidarStatus("Standby");
         setChecklist(prev => ({ ...prev, lidarInit: true }));
         toast({
           title: "LIDAR Initialized",
-          description: "LIDAR is now Initialised",
+          description: "LIDAR is now in Standby",
         });
       }, 1500);
     }
@@ -227,9 +227,9 @@ export const PreparationTab = () => {
     setSqms(prev => prev.map(s => {
       if (s.id === sqmId) {
         const nextStatus = 
-          s.status === "Off" ? "Standby" :
-          s.status === "Standby" ? "Initialised" :
-          s.status === "Initialised" ? "Operational" : "Operational";
+          s.status === "Off" ? "Initialised" :
+          s.status === "Initialised" ? "Standby" :
+          s.status === "Standby" ? "Operational" : "Operational";
         return { ...s, status: nextStatus };
       }
       return s;
@@ -569,8 +569,8 @@ export const PreparationTab = () => {
                         size="sm"
                       >
                         {sqm.status === "Operational" ? "Operational" : `Advance to ${
-                          sqm.status === "Off" ? "Standby" :
-                          sqm.status === "Standby" ? "Initialised" :
+                          sqm.status === "Off" ? "Initialised" :
+                          sqm.status === "Initialised" ? "Standby" :
                           "Operational"
                         }`}
                       </Button>

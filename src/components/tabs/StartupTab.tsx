@@ -436,12 +436,12 @@ export const StartupTab = () => {
             <span className="text-xs">Off</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Standby") }} />
-            <span className="text-xs">Standby</span>
-          </div>
-          <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Initialised") }} />
             <span className="text-xs">Initialised</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Standby") }} />
+            <span className="text-xs">Standby</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getStateColor("Operational") }} />
