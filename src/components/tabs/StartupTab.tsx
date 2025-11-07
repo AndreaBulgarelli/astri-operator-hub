@@ -5,7 +5,7 @@ import { PlayCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
-type ComponentState = "Off" | "Standby" | "Initialised" | "Operational" | "Degraded" | "Safe" | "Fault" | "Eng";
+type ComponentState = "Off" | "Initialised" | "Standby" | "Operational" | "Degraded" | "Safe" | "Fault" | "Eng";
 
 interface SCADAComponent {
   id: string;
