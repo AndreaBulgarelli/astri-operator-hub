@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Power } from "lucide-react";
+import { Power, Mountain, Camera, Cpu, Disc, Shield, AlertTriangle } from "lucide-react";
 
 type SystemCheckStatus = "idle" | "checking" | "ok" | "warning" | "error";
 
@@ -92,9 +92,16 @@ export const PreparationTab = () => {
     { id: "3", status: "Off" as "Off" | "Standby" | "Initialised" | "Operational" },
   ]);
 
+  const [uvsipm, setUvsipm] = useState([
+    { id: "1", status: "Off" as "Off" | "Standby" | "Initialised" | "Operational" },
+    { id: "2", status: "Off" as "Off" | "Standby" | "Initialised" | "Operational" },
+    { id: "3", status: "Off" as "Off" | "Standby" | "Initialised" | "Operational" },
+  ]);
+
   const allChecked = Object.values(checklist).every(Boolean);
   const allTelescopesReady = telescopes.every(t => t.status === "Operational");
   const allSqmsReady = sqms.every(s => s.status === "Operational");
+  const allUvsipmReady = uvsipm.every(u => u.status === "Operational");
 
   const handleCheckSystem = () => {
     setIsCheckingSystem(true);
@@ -242,6 +249,42 @@ export const PreparationTab = () => {
     }
   };
 
+  const handleInitUvsipm = (uvsipmId: string) => {
+    setUvsipm(prev => prev.map(u => {
+      if (u.id === uvsipmId) {
+        const nextStatus = 
+          u.status === "Off" ? "Initialised" :
+          u.status === "Initialised" ? "Standby" :
+          u.status === "Standby" ? "Operational" : "Operational";
+        return { ...u, status: nextStatus };
+      }
+      return u;
+    }));
+  };
+
+  const handleGoToSafe = () => {
+    setTelescopes(prev => prev.map(t => ({
+      ...t,
+      status: "Safe" as TelescopeStatus,
+      mount: "Safe",
+      camera: "Off",
+      pmc: "Off",
+      m2: "Safe",
+      si3: "Off",
+      cherenkovCamera: "Off",
+      lid: "Closed"
+    })));
+    setOverallStatus("SAFE");
+    setThermalisationProgress({});
+    setLidProgress({});
+    setPreCalibrationDone(false);
+    setChecklist(prev => ({ ...prev, telescopesStandby: false, cameraInit: false, pmcInit: false }));
+    toast({
+      title: "Telescopes Set to Safe",
+      description: "All telescopes returned to SAFE state",
+    });
+  };
+
   const handleInitTelescopes = () => {
     setIsPreparing(true);
     setOverallStatus("STANDBY");
@@ -356,6 +399,25 @@ export const PreparationTab = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Operational":
+        return "text-status-online";
+      case "Standby":
+        return "text-status-standby";
+      case "Initialised":
+        return "text-[hsl(var(--status-initialised))]";
+      case "Safe":
+        return "text-status-active";
+      case "Degraded":
+        return "text-status-warning";
+      case "Off":
+        return "text-muted-foreground";
+      default:
+        return "text-muted-foreground";
+    }
+  };
+
   return (
     <div className="h-full overflow-auto">
       <div className="p-6 space-y-6">
@@ -456,7 +518,7 @@ export const PreparationTab = () => {
             <div className="space-y-3">
               <h3 className="text-lg font-semibold">2. Initialize Telescopes</h3>
               <div className="space-y-4">
-                <div className="flex gap-4">
+                <div className="flex gap-2">
                   <Button 
                     onClick={handleInitTelescopes}
                     disabled={isPreparing || isSettingOperational}
@@ -471,6 +533,14 @@ export const PreparationTab = () => {
                     className="flex-1"
                   >
                     {isSettingOperational ? "Setting Operational..." : "Set OPERATIONAL"}
+                  </Button>
+                  <Button 
+                    onClick={handleGoToSafe}
+                    disabled={isPreparing || isSettingOperational}
+                    variant="destructive"
+                    className="flex-1"
+                  >
+                    Go to Safe
                   </Button>
                 </div>
 
@@ -513,30 +583,30 @@ export const PreparationTab = () => {
                           </div>
                         )}
                         
-                        <div className="space-y-1 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Mount:</span>
-                            <span className="font-mono">{tel.mount}</span>
+                        <div className="flex justify-around items-center pt-2 border-t border-border/50">
+                          <div className="flex flex-col items-center gap-1" title={`Mount: ${tel.mount}`}>
+                            <Mountain className={`h-4 w-4 ${getStatusColor(tel.mount)}`} />
+                            <span className="text-[9px] text-muted-foreground">Mnt</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">PMC:</span>
-                            <span className="font-mono">{tel.pmc}</span>
+                          <div className="flex flex-col items-center gap-1" title={`PMC: ${tel.pmc}`}>
+                            <Camera className={`h-4 w-4 ${getStatusColor(tel.pmc)}`} />
+                            <span className="text-[9px] text-muted-foreground">PMC</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Cherenkov:</span>
-                            <span className="font-mono">{tel.cherenkovCamera}</span>
+                          <div className="flex flex-col items-center gap-1" title={`Cherenkov: ${tel.cherenkovCamera}`}>
+                            <Camera className={`h-4 w-4 ${getStatusColor(tel.cherenkovCamera)}`} />
+                            <span className="text-[9px] text-muted-foreground">Cher</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">SI3:</span>
-                            <span className="font-mono">{tel.si3}</span>
+                          <div className="flex flex-col items-center gap-1" title={`SI3: ${tel.si3}`}>
+                            <Cpu className={`h-4 w-4 ${getStatusColor(tel.si3)}`} />
+                            <span className="text-[9px] text-muted-foreground">SI3</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">M2 AMC:</span>
-                            <span className="font-mono">{tel.m2}</span>
+                          <div className="flex flex-col items-center gap-1" title={`M2: ${tel.m2}`}>
+                            <Disc className={`h-4 w-4 ${getStatusColor(tel.m2)}`} />
+                            <span className="text-[9px] text-muted-foreground">M2</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">LID:</span>
-                            <span className="font-mono">{tel.lid}</span>
+                          <div className="flex flex-col items-center gap-1" title={`LID: ${tel.lid}`}>
+                            <Shield className={`h-4 w-4 ${tel.lid === "Opened" ? "text-status-online" : "text-muted-foreground"}`} />
+                            <span className="text-[9px] text-muted-foreground">LID</span>
                           </div>
                         </div>
                       </Card>
@@ -580,6 +650,40 @@ export const PreparationTab = () => {
               </Card>
             </div>
 
+            {/* UVSiPM */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">4. UVSiPM</h3>
+              <Card className="p-4 bg-secondary/30">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {uvsipm.map((device) => (
+                    <div key={device.id} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">UVSiPM-{device.id}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Cycle: Off → Initialised → Standby → Operational
+                          </div>
+                        </div>
+                        {getStatusBadge(device.status)}
+                      </div>
+                      <Button
+                        onClick={() => handleInitUvsipm(device.id)}
+                        disabled={device.status === "Operational"}
+                        className="w-full"
+                        size="sm"
+                      >
+                        {device.status === "Operational" ? "Operational" : `Advance to ${
+                          device.status === "Off" ? "Initialised" :
+                          device.status === "Initialised" ? "Standby" :
+                          "Operational"
+                        }`}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
             {/* Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4 bg-secondary/30">
@@ -604,6 +708,12 @@ export const PreparationTab = () => {
                 <div className="text-xs text-muted-foreground mb-1">SQM Ready</div>
                 <div className="text-lg font-semibold">
                   {sqms.filter(s => s.status === "Operational").length} / 3
+                </div>
+              </Card>
+              <Card className="p-4 bg-secondary/30">
+                <div className="text-xs text-muted-foreground mb-1">UVSiPM Ready</div>
+                <div className="text-lg font-semibold">
+                  {uvsipm.filter(u => u.status === "Operational").length} / 3
                 </div>
               </Card>
             </div>
