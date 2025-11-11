@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useState, useEffect } from "react";
-import { Maximize2, ExternalLink } from "lucide-react";
+import { Maximize2, Minimize2 } from "lucide-react";
 
 // Mock pointing data generator for each telescope
 const generatePointingData = (telescopeId: number, timeOffset: number = 0) => {
@@ -48,43 +48,20 @@ export const PointingPanel = () => {
   }));
 
   const handleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  const handleDetached = () => {
-    const newWindow = window.open('', 'Pointing Panel', 'width=1000,height=800');
-    if (newWindow) {
-      newWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Pointing Panel</title>
-            <style>
-              body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: system-ui; }
-              .content { max-width: 1200px; margin: 0 auto; }
-              h2 { color: #8b5cf6; margin-bottom: 20px; }
-            </style>
-          </head>
-          <body>
-            <div class="content">
-              <h2>Pointing Analysis</h2>
-              <p>Real-time pointing data for Telescope ${selectedTelescope} displayed in detached window.</p>
-              <p>Monitoring RA and Dec pointing accuracy.</p>
-            </div>
-          </body>
-        </html>
-      `);
+    const element = document.getElementById('pointing-panel');
+    if (element) {
+      if (!document.fullscreenElement) {
+        element.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
     }
   };
 
   return (
-    <Card className="control-panel p-6">
+    <Card id="pointing-panel" className="control-panel p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-primary">Pointing Analysis</h3>
         <div className="flex items-center gap-2">
@@ -94,17 +71,8 @@ export const PointingPanel = () => {
             onClick={handleFullscreen}
             className="gap-2"
           >
-            <Maximize2 className="w-4 h-4" />
-            Fullscreen
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDetached}
-            className="gap-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Detached
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? 'Exit' : 'Fullscreen'}
           </Button>
           <label className="text-sm font-medium ml-4">Telescope:</label>
           <Select value={selectedTelescope} onValueChange={setSelectedTelescope}>

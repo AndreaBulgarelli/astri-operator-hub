@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useState, useEffect } from "react";
-import { Maximize2, ExternalLink } from "lucide-react";
+import { Maximize2, Minimize2 } from "lucide-react";
 
 // Mock data for temporal charts
 const generateMockData = (points: number = 20, baseValues?: number[]) => {
@@ -45,65 +45,31 @@ export const DataCapturePanel = () => {
   }, []);
 
   const handleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  const handleDetached = () => {
-    const newWindow = window.open('', 'Monitoring Panel', 'width=1000,height=800');
-    if (newWindow) {
-      newWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Monitoring Panel</title>
-            <style>
-              body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: system-ui; }
-              .content { max-width: 1200px; margin: 0 auto; }
-              h2 { color: #8b5cf6; margin-bottom: 20px; }
-            </style>
-          </head>
-          <body>
-            <div class="content">
-              <h2>Data Monitoring</h2>
-              <p>Real-time data monitoring displayed in detached window.</p>
-              <p>Monitoring event rates and data rates for all telescopes.</p>
-            </div>
-          </body>
-        </html>
-      `);
+    const element = document.getElementById('monitoring-panel');
+    if (element) {
+      if (!document.fullscreenElement) {
+        element.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
     }
   };
 
   return (
-    <Card className="control-panel p-6">
+    <Card id="monitoring-panel" className="control-panel p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-primary">Monitoring - Temporal Charts</h3>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleFullscreen}
-            className="gap-2"
-          >
-            <Maximize2 className="w-4 h-4" />
-            Fullscreen
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDetached}
-            className="gap-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Detached
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleFullscreen}
+          className="gap-2"
+        >
+          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+        </Button>
       </div>
       
       <Tabs defaultValue="events" className="w-full">

@@ -1,9 +1,9 @@
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { useState, useEffect } from "react";
-import { Maximize2, ExternalLink } from "lucide-react";
+import { Maximize2, Minimize2 } from "lucide-react";
 
 const generateTelescopeData = (baseValue: number, timeOffset: number, telescopeId: number) => {
   return Array.from({ length: 10 }, (_, i) => ({
@@ -41,65 +41,31 @@ export const ArraySummaryPanel = () => {
   }, [timeOffset]);
 
   const handleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  const handleDetached = () => {
-    const newWindow = window.open('', 'Array Summary', 'width=1200,height=800');
-    if (newWindow) {
-      newWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Array Summary</title>
-            <style>
-              body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: system-ui; }
-              .content { max-width: 1400px; margin: 0 auto; }
-              h2 { color: #8b5cf6; margin-bottom: 20px; }
-            </style>
-          </head>
-          <body>
-            <div class="content">
-              <h2>Array Summary</h2>
-              <p>Real-time telescope array status displayed in detached window.</p>
-              <p>Showing data for all 9 telescopes in the array.</p>
-            </div>
-          </body>
-        </html>
-      `);
+    const element = document.getElementById('array-summary-panel');
+    if (element) {
+      if (!document.fullscreenElement) {
+        element.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
     }
   };
 
   return (
-    <Card className="control-panel p-6">
+    <Card id="array-summary-panel" className="control-panel p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-primary">Array Summary</h3>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleFullscreen}
-            className="gap-2"
-          >
-            <Maximize2 className="w-4 h-4" />
-            Fullscreen
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDetached}
-            className="gap-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Detached
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleFullscreen}
+          className="gap-2"
+        >
+          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+        </Button>
       </div>
       <div className="grid grid-cols-3 gap-4">
         {telescopeData.map((tel) => (
