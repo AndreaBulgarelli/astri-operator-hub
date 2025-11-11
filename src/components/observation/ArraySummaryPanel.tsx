@@ -72,7 +72,7 @@ export const ArraySummaryPanel = () => {
           <div key={tel.id} className="p-4 rounded-lg bg-secondary/50 border border-border space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-semibold">A{tel.id + 1}</span>
-              <Badge className="bg-telescope-ready text-xs">Ready</Badge>
+              <Badge className="bg-telescope-ready text-xs">Operational</Badge>
             </div>
             <div className="text-xs text-muted-foreground">Events: {tel.events}</div>
             
