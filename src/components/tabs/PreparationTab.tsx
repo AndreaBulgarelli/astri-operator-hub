@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Power, Telescope, Grid3x3, Cpu, Disc, Shield, AlertTriangle } from "lucide-react";
+import { Power, Telescope, Camera, Grid3x3, Cpu, Disc, Shield, AlertTriangle } from "lucide-react";
 
 type SystemCheckStatus = "idle" | "checking" | "ok" | "warning" | "error";
 
@@ -602,7 +602,7 @@ export const PreparationTab = () => {
                             </span>
                           </div>
                           <div className="flex flex-col items-center gap-0.5" title={`PMC: ${tel.pmc}`}>
-                            <Grid3x3 className={`h-4 w-4 ${getStatusColor(tel.pmc)}`} />
+                            <Camera className={`h-4 w-4 ${getStatusColor(tel.pmc)}`} />
                             <span className="text-[8px] text-muted-foreground">PMC</span>
                             <span className={`text-[7px] font-semibold ${getStatusColor(tel.pmc)}`}>
                               {getStatusAbbreviation(tel.pmc)}
