@@ -8,6 +8,7 @@ import { OOQSPanel } from "@/components/observation/OOQSPanel";
 import { DataCapturePanel } from "@/components/observation/DataCapturePanel";
 import { PointingPanel } from "@/components/observation/PointingPanel";
 import { ArraySummaryPanel } from "@/components/observation/ArraySummaryPanel";
+import { WeatherPanel } from "@/components/observation/WeatherPanel";
 import { RunningPlanTab } from "./RunningPlanTab";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -463,8 +464,9 @@ export const ObservationTab = ({
           <TabsTrigger value="observing-plan">Observing Plan</TabsTrigger>
           <TabsTrigger value="ooqs">OOQS</TabsTrigger>
           <TabsTrigger value="summary">Array Summary</TabsTrigger>
-          <TabsTrigger value="datacapture">Data Capture</TabsTrigger>
+          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           <TabsTrigger value="pointing">Pointing</TabsTrigger>
+          <TabsTrigger value="weather">Weather</TabsTrigger>
         </TabsList>
 
         <TabsContent value="observing-plan" className="mt-4">
@@ -708,12 +710,16 @@ export const ObservationTab = ({
           <ArraySummaryPanel />
         </TabsContent>
 
-        <TabsContent value="datacapture" className="mt-4">
+        <TabsContent value="monitoring" className="mt-4">
           <DataCapturePanel />
         </TabsContent>
 
         <TabsContent value="pointing" className="mt-4">
           <PointingPanel />
+        </TabsContent>
+
+        <TabsContent value="weather" className="mt-4">
+          <WeatherPanel />
         </TabsContent>
       </Tabs>
     </div>

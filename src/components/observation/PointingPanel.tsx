@@ -1,7 +1,9 @@
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useState, useEffect } from "react";
+import { Maximize2, ExternalLink } from "lucide-react";
 
 // Mock pointing data generator for each telescope
 const generatePointingData = (telescopeId: number, timeOffset: number = 0) => {
@@ -22,6 +24,7 @@ export const PointingPanel = () => {
   const [selectedTelescope, setSelectedTelescope] = useState("1");
   const [pointingData, setPointingData] = useState(generatePointingData(1));
   const [timeOffset, setTimeOffset] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,12 +47,66 @@ export const PointingPanel = () => {
     decError: ((d.decActual - d.decPlanned) * 3600).toFixed(2), // arcsec
   }));
 
+  const handleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const handleDetached = () => {
+    const newWindow = window.open('', 'Pointing Panel', 'width=1000,height=800');
+    if (newWindow) {
+      newWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Pointing Panel</title>
+            <style>
+              body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: system-ui; }
+              .content { max-width: 1200px; margin: 0 auto; }
+              h2 { color: #8b5cf6; margin-bottom: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="content">
+              <h2>Pointing Analysis</h2>
+              <p>Real-time pointing data for Telescope ${selectedTelescope} displayed in detached window.</p>
+              <p>Monitoring RA and Dec pointing accuracy.</p>
+            </div>
+          </body>
+        </html>
+      `);
+    }
+  };
+
   return (
     <Card className="control-panel p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-primary">Pointing Analysis</h3>
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">Telescope:</label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFullscreen}
+            className="gap-2"
+          >
+            <Maximize2 className="w-4 h-4" />
+            Fullscreen
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDetached}
+            className="gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Detached
+          </Button>
+          <label className="text-sm font-medium ml-4">Telescope:</label>
           <Select value={selectedTelescope} onValueChange={setSelectedTelescope}>
             <SelectTrigger className="w-24">
               <SelectValue />
