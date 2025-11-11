@@ -127,12 +127,12 @@ export const HierarchicalView = ({ onSelectSystem, selectedSystem }: Hierarchica
               <span>Off</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-status-standby" />
-              <span>Standby</span>
-            </div>
-            <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-status-initialised" />
               <span>Initialised</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-status-standby" />
+              <span>Standby</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-status-online" />
