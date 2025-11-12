@@ -3,13 +3,78 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { Maximize2 } from "lucide-react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { CameraGrid } from "@/components/observation/CameraGrid";
 
 export const ArrayOOQSTab = () => {
   const [viewMode, setViewMode] = useState<"variance-hg" | "variance-lg" | "scientific" | "pdm">("variance-hg");
   const [selectedCamera, setSelectedCamera] = useState<number | null>(null);
   const [fullscreenCamera, setFullscreenCamera] = useState<number | null>(null);
+  const [isTabFullscreen, setIsTabFullscreen] = useState(false);
+
+  if (isTabFullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background p-6 overflow-auto">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsTabFullscreen(false)}
+          className="absolute top-2 right-2 opacity-50 hover:opacity-100"
+        >
+          <Minimize2 className="h-4 w-4 mr-2" />
+          Exit Fullscreen
+        </Button>
+        <div className="pt-12">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-primary">
+                On-line Observation Quick-look System (OOQS)
+              </h3>
+              <RadioGroup value={viewMode} onValueChange={(value: any) => setViewMode(value)} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="variance-hg" id="variance-hg-full" />
+                  <Label htmlFor="variance-hg-full" className="text-xs cursor-pointer">Variance HG</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="variance-lg" id="variance-lg-full" />
+                  <Label htmlFor="variance-lg-full" className="text-xs cursor-pointer">Variance LG</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="scientific" id="scientific-full" />
+                  <Label htmlFor="scientific-full" className="text-xs cursor-pointer">Scientific</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="pdm" id="pdm-full" />
+                  <Label htmlFor="pdm-full" className="text-xs cursor-pointer">PDM</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              {Array.from({ length: 9 }, (_, i) => (
+                <div key={i} className="relative group">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFullscreenCamera(i + 1)}
+                    className="absolute top-2 right-2 z-10 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Maximize2 className="h-3 w-3" />
+                  </Button>
+                  <CameraGrid
+                    cameraId={i + 1}
+                    viewMode={viewMode}
+                    isSelected={selectedCamera === i + 1}
+                    onSelect={() => setSelectedCamera(i + 1)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (fullscreenCamera !== null) {
     return (
@@ -20,6 +85,7 @@ export const ArrayOOQSTab = () => {
           onClick={() => setFullscreenCamera(null)}
           className="absolute top-2 right-2 opacity-50 hover:opacity-100"
         >
+          <Minimize2 className="h-4 w-4 mr-2" />
           Exit Fullscreen
         </Button>
         <div className="h-full flex items-center justify-center">
@@ -44,7 +110,8 @@ export const ArrayOOQSTab = () => {
             <h3 className="text-lg font-semibold text-primary">
               On-line Observation Quick-look System (OOQS)
             </h3>
-            <RadioGroup value={viewMode} onValueChange={(value: any) => setViewMode(value)} className="flex gap-4">
+            <div className="flex items-center gap-4">
+              <RadioGroup value={viewMode} onValueChange={(value: any) => setViewMode(value)} className="flex gap-4">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="variance-hg" id="variance-hg" />
                 <Label htmlFor="variance-hg" className="text-xs cursor-pointer">Variance HG</Label>
@@ -62,6 +129,15 @@ export const ArrayOOQSTab = () => {
                 <Label htmlFor="pdm" className="text-xs cursor-pointer">PDM</Label>
               </div>
             </RadioGroup>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsTabFullscreen(true)}
+                className="h-8 w-8 p-0"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">

@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Telescope, Camera, Grid3x3, Cpu, Disc, Shield, Maximize2 } from "lucide-react";
+import { Telescope, Camera, Grid3x3, Cpu, Disc, Shield, Maximize2, Minimize2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 type TelescopeStatus = "Safe" | "Standby" | "Operational" | "Fault";
@@ -29,6 +29,7 @@ export const ArrayControlTab = () => {
   const [preCalibrationDone, setPreCalibrationDone] = useState(false);
   const [timeOffset, setTimeOffset] = useState(0);
   const [fullscreenTelescope, setFullscreenTelescope] = useState<string | null>(null);
+  const [isTabFullscreen, setIsTabFullscreen] = useState(false);
   
   const [telescopes, setTelescopes] = useState([
     { id: "1", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(960, 0, 0), events: 1000 },
@@ -266,6 +267,182 @@ export const ArrayControlTab = () => {
     }
   };
 
+  if (isTabFullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background p-6 overflow-auto">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsTabFullscreen(false)}
+          className="absolute top-2 right-2 opacity-50 hover:opacity-100"
+        >
+          <Minimize2 className="h-4 w-4 mr-2" />
+          Exit Fullscreen
+        </Button>
+        <div className="pt-12 space-y-6">
+          <h3 className="text-lg font-semibold text-primary">Array Control</h3>
+          
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleInitTelescopes}
+                disabled={isPreparing || isSettingOperational}
+                className="flex-1"
+              >
+                {isPreparing ? "Putting in Standby..." : "Put STANDBY"}
+              </Button>
+              <Button 
+                onClick={handleSetOperational}
+                disabled={telescopes.every(t => t.status === "Safe") || isSettingOperational}
+                variant="outline"
+                className="flex-1"
+              >
+                {isSettingOperational ? "Setting Operational..." : "Set OPERATIONAL"}
+              </Button>
+              <Button 
+                onClick={handleGoToSafe}
+                disabled={isPreparing || isSettingOperational}
+                variant="destructive"
+                className="flex-1"
+              >
+                Go to Safe
+              </Button>
+            </div>
+
+            {allTelescopesReady && !isOpeningLids && telescopes.every(t => t.lid === "Closed") && (
+              <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg">
+                <Checkbox 
+                  checked={preCalibrationDone}
+                  onCheckedChange={(checked) => setPreCalibrationDone(checked as boolean)}
+                />
+                <label className="text-sm font-medium cursor-pointer">
+                  Pre-calibration procedure done
+                </label>
+              </div>
+            )}
+
+            <div className="grid grid-cols-3 gap-4">
+              {telescopes.map((tel) => (
+                <Card key={tel.id} className="p-4 bg-background/50 space-y-3 relative group">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFullscreenTelescope(tel.id)}
+                    className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  >
+                    <Maximize2 className="h-3 w-3" />
+                  </Button>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold">ASTRI-{tel.id}</span>
+                    {getStatusBadge(tel.status)}
+                  </div>
+                  
+                  {isSettingOperational && thermalisationProgress[tel.id] !== undefined && thermalisationProgress[tel.id] < 100 && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Camera thermalisation</div>
+                      <Progress value={thermalisationProgress[tel.id]} className="h-2" />
+                      <div className="text-xs text-right mt-0.5">{Math.round(thermalisationProgress[tel.id])}%</div>
+                    </div>
+                  )}
+
+                  {isOpeningLids && lidProgress[tel.id] !== undefined && lidProgress[tel.id] < 100 && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Opening LID</div>
+                      <Progress value={lidProgress[tel.id]} className="h-2" />
+                      <div className="text-xs text-right mt-0.5">{Math.round(lidProgress[tel.id])}%</div>
+                    </div>
+                  )}
+
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Events:</span>
+                      <span>{tel.events}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Data Rate (MB/s)</div>
+                      <ResponsiveContainer width="100%" height={60}>
+                        <LineChart data={tel.data}>
+                          <XAxis dataKey="time" hide />
+                          <YAxis hide domain={[900, 1100]} />
+                          <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Pointing Error (arcsec)</div>
+                      <ResponsiveContainer width="100%" height={60}>
+                        <LineChart data={tel.data}>
+                          <XAxis dataKey="time" hide />
+                          <YAxis hide domain={[-2, 2]} />
+                          <Line type="monotone" dataKey="raError" stroke="hsl(var(--chart-1))" strokeWidth={1.5} dot={false} />
+                          <Line type="monotone" dataKey="decError" stroke="hsl(var(--chart-2))" strokeWidth={1.5} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-6 gap-2 pt-3 border-t">
+                    <div className="flex flex-col items-center gap-1">
+                      <Telescope className={`h-5 w-5 ${getStatusColor(tel.mount)}`} />
+                      <span className={`text-[10px] font-semibold ${getStatusColor(tel.mount)}`}>
+                        {getStatusAbbreviation(tel.mount)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <Camera className={`h-5 w-5 ${getStatusColor(tel.pmc)}`} />
+                      <span className={`text-[10px] font-semibold ${getStatusColor(tel.pmc)}`}>
+                        {getStatusAbbreviation(tel.pmc)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <Grid3x3 className={`h-5 w-5 ${getStatusColor(tel.cherenkovCamera)}`} />
+                      <span className={`text-[10px] font-semibold ${getStatusColor(tel.cherenkovCamera)}`}>
+                        {getStatusAbbreviation(tel.cherenkovCamera)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <Cpu className={`h-5 w-5 ${getStatusColor(tel.si3)}`} />
+                      <span className={`text-[10px] font-semibold ${getStatusColor(tel.si3)}`}>
+                        {getStatusAbbreviation(tel.si3)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <Disc className={`h-5 w-5 ${getStatusColor(tel.m2)}`} />
+                      <span className={`text-[10px] font-semibold ${getStatusColor(tel.m2)}`}>
+                        {getStatusAbbreviation(tel.m2)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1">
+                      <Shield className={`h-5 w-5 ${tel.lid === "Opened" ? "text-status-online" : "text-muted-foreground"}`} />
+                      <span className={`text-[10px] font-semibold ${tel.lid === "Opened" ? "text-status-online" : "text-muted-foreground"}`}>
+                        {tel.lid === "Opened" ? "Open" : "Clos"}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {allTelescopesReady && (
+              <Button 
+                onClick={handleOpenLids}
+                disabled={isOpeningLids || telescopes.every(t => t.lid === "Opened")}
+                className="w-full"
+              >
+                {isOpeningLids ? "Opening LIDs..." : telescopes.every(t => t.lid === "Opened") ? "LIDs Opened" : "Open All LIDs"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (fullscreenTelescope) {
     const tel = telescopes.find(t => t.id === fullscreenTelescope)!;
     return (
@@ -276,6 +453,7 @@ export const ArrayControlTab = () => {
           onClick={() => setFullscreenTelescope(null)}
           className="absolute top-2 right-2 opacity-50 hover:opacity-100"
         >
+          <Minimize2 className="h-4 w-4 mr-2" />
           Exit Fullscreen
         </Button>
         <Card className="p-6 space-y-6 max-w-4xl mx-auto">
@@ -377,7 +555,17 @@ export const ArrayControlTab = () => {
   return (
     <div className="p-6 space-y-6">
       <Card className="control-panel p-6">
-        <h2 className="text-xl font-semibold mb-2 text-primary">Array Control</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-semibold text-primary">Array Control</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsTabFullscreen(true)}
+            className="h-8 w-8 p-0"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+        </div>
         <p className="text-sm text-muted-foreground mb-6">
           Initialize and control telescope array operations
         </p>
