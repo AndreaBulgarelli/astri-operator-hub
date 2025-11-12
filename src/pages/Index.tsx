@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { SystemMonitoring } from "@/components/tabs/SystemMonitoring";
 import { StartupTab } from "@/components/tabs/StartupTab";
 import { PreparationTab } from "@/components/tabs/PreparationTab";
+import { ArrayTab } from "@/components/tabs/ArrayTab";
 import { ObservationTab } from "@/components/tabs/ObservationTab";
 import { EndTab } from "@/components/tabs/EndTab";
 import { UtilityTab } from "@/components/tabs/UtilityTab";
@@ -110,6 +111,7 @@ const Index = () => {
                   <TabsTrigger value="monitoring">System Monitoring</TabsTrigger>
                   <TabsTrigger value="startup">Startup</TabsTrigger>
                   <TabsTrigger value="preparation">Preparation</TabsTrigger>
+                  <TabsTrigger value="array">Array</TabsTrigger>
                   <TabsTrigger value="observation">Observation</TabsTrigger>
                   <TabsTrigger value="end">End</TabsTrigger>
                   <TabsTrigger value="utility">Utility</TabsTrigger>
@@ -126,6 +128,10 @@ const Index = () => {
 
                   <TabsContent value="preparation" className="h-full m-0">
                     <PreparationTab />
+                  </TabsContent>
+
+                  <TabsContent value="array" className="h-full m-0">
+                    <ArrayTab />
                   </TabsContent>
 
                   <TabsContent value="observation" className="h-full m-0">

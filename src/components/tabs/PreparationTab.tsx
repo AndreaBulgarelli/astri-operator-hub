@@ -524,124 +524,46 @@ export const PreparationTab = () => {
               </Card>
             </div>
 
-            {/* Telescopes */}
+            {/* Telescopes Checklist */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold">2. Initialize Telescopes</h3>
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleInitTelescopes}
-                    disabled={isPreparing || isSettingOperational}
-                    className="flex-1"
-                  >
-                    {isPreparing ? "Putting in Standby..." : "Put STANDBY"}
-                  </Button>
-                  <Button 
-                    onClick={handleSetOperational}
-                    disabled={!checklist.telescopesStandby || isSettingOperational}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    {isSettingOperational ? "Setting Operational..." : "Set OPERATIONAL"}
-                  </Button>
-                  <Button 
-                    onClick={handleGoToSafe}
-                    disabled={isPreparing || isSettingOperational}
-                    variant="destructive"
-                    className="flex-1"
-                  >
-                    Go to Safe
-                  </Button>
-                </div>
-
-                {allTelescopesReady && !isOpeningLids && telescopes.every(t => t.lid === "Closed") && (
-                  <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg">
+              <Card className="p-4 bg-secondary/30">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
                     <Checkbox 
-                      checked={preCalibrationDone}
-                      onCheckedChange={(checked) => setPreCalibrationDone(checked as boolean)}
+                      checked={checklist.telescopesStandby}
+                      onCheckedChange={(checked) => 
+                        setChecklist(prev => ({ ...prev, telescopesStandby: checked as boolean }))
+                      }
                     />
                     <label className="text-sm font-medium cursor-pointer">
-                      Pre-calibration procedure done
+                      Put Telescopes in Standby
                     </label>
                   </div>
-                )}
-
-                <Card className="p-4 bg-secondary/30">
-                  <div className="grid grid-cols-3 gap-2">
-                    {telescopes.map((tel) => (
-                      <Card key={tel.id} className="p-3 bg-background/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-sm">ASTRI-{tel.id}</span>
-                          {getStatusBadge(tel.status)}
-                        </div>
-                        
-                        {/* Camera thermalisation progress */}
-                        {isSettingOperational && thermalisationProgress[tel.id] !== undefined && thermalisationProgress[tel.id] < 100 && (
-                          <div className="mb-2">
-                            <div className="text-xs text-muted-foreground mb-1">Camera thermalisation</div>
-                            <Progress value={thermalisationProgress[tel.id]} className="h-2" />
-                            <div className="text-xs text-right mt-0.5">{Math.round(thermalisationProgress[tel.id])}%</div>
-                          </div>
-                        )}
-
-                        {/* LID opening progress */}
-                        {isOpeningLids && lidProgress[tel.id] !== undefined && lidProgress[tel.id] < 100 && (
-                          <div className="mb-2">
-                            <div className="text-xs text-muted-foreground mb-1">Opening LID</div>
-                            <Progress value={lidProgress[tel.id]} className="h-2" />
-                            <div className="text-xs text-right mt-0.5">{Math.round(lidProgress[tel.id])}%</div>
-                          </div>
-                        )}
-                        
-                        <div className="flex justify-around items-center pt-2 border-t border-border/50">
-                          <div className="flex flex-col items-center gap-0.5" title={`Mount: ${tel.mount}`}>
-                            <Telescope className={`h-4 w-4 ${getStatusColor(tel.mount)}`} />
-                            <span className="text-[8px] text-muted-foreground">Mnt</span>
-                            <span className={`text-[7px] font-semibold ${getStatusColor(tel.mount)}`}>
-                              {getStatusAbbreviation(tel.mount)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center gap-0.5" title={`PMC: ${tel.pmc}`}>
-                            <Camera className={`h-4 w-4 ${getStatusColor(tel.pmc)}`} />
-                            <span className="text-[8px] text-muted-foreground">PMC</span>
-                            <span className={`text-[7px] font-semibold ${getStatusColor(tel.pmc)}`}>
-                              {getStatusAbbreviation(tel.pmc)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center gap-0.5" title={`Cherenkov: ${tel.cherenkovCamera}`}>
-                            <Grid3x3 className={`h-4 w-4 ${getStatusColor(tel.cherenkovCamera)}`} />
-                            <span className="text-[8px] text-muted-foreground">Cher</span>
-                            <span className={`text-[7px] font-semibold ${getStatusColor(tel.cherenkovCamera)}`}>
-                              {getStatusAbbreviation(tel.cherenkovCamera)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center gap-0.5" title={`SI3: ${tel.si3}`}>
-                            <Cpu className={`h-4 w-4 ${getStatusColor(tel.si3)}`} />
-                            <span className="text-[8px] text-muted-foreground">SI3</span>
-                            <span className={`text-[7px] font-semibold ${getStatusColor(tel.si3)}`}>
-                              {getStatusAbbreviation(tel.si3)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center gap-0.5" title={`M2: ${tel.m2}`}>
-                            <Disc className={`h-4 w-4 ${getStatusColor(tel.m2)}`} />
-                            <span className="text-[8px] text-muted-foreground">M2</span>
-                            <span className={`text-[7px] font-semibold ${getStatusColor(tel.m2)}`}>
-                              {getStatusAbbreviation(tel.m2)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col items-center gap-0.5" title={`LID: ${tel.lid}`}>
-                            <Shield className={`h-4 w-4 ${tel.lid === "Opened" ? "text-status-online" : "text-muted-foreground"}`} />
-                            <span className="text-[8px] text-muted-foreground">LID</span>
-                            <span className={`text-[7px] font-semibold ${tel.lid === "Opened" ? "text-status-online" : "text-muted-foreground"}`}>
-                              {tel.lid === "Opened" ? "Open" : "Clos"}
-                            </span>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      checked={checklist.cameraInit}
+                      onCheckedChange={(checked) => 
+                        setChecklist(prev => ({ ...prev, cameraInit: checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm font-medium cursor-pointer">
+                      Put Telescopes in Operational
+                    </label>
                   </div>
-                </Card>
-              </div>
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      checked={checklist.pmcInit}
+                      onCheckedChange={(checked) => 
+                        setChecklist(prev => ({ ...prev, pmcInit: checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm font-medium cursor-pointer">
+                      Camera calibration procedure
+                    </label>
+                  </div>
+                </div>
+              </Card>
             </div>
 
             {/* Sky Quality Meter */}
