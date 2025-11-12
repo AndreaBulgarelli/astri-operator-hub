@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { OOQSPanel } from "@/components/observation/OOQSPanel";
 import { DataCapturePanel } from "@/components/observation/DataCapturePanel";
 import { PointingPanel } from "@/components/observation/PointingPanel";
 import { WeatherPanel } from "@/components/observation/WeatherPanel";
@@ -461,7 +460,6 @@ export const ObservationTab = ({
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
         <TabsList className="bg-secondary">
           <TabsTrigger value="observing-plan">Observing Plan</TabsTrigger>
-          <TabsTrigger value="ooqs">OOQS</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           <TabsTrigger value="pointing">Pointing</TabsTrigger>
           <TabsTrigger value="weather">Weather</TabsTrigger>
@@ -700,9 +698,6 @@ export const ObservationTab = ({
           </Card>
         </TabsContent>
 
-        <TabsContent value="ooqs" className="mt-4">
-          <OOQSPanel />
-        </TabsContent>
 
 
         <TabsContent value="monitoring" className="mt-4">

@@ -1,0 +1,63 @@
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Maximize2 } from "lucide-react";
+
+export const ArrayWebcamsTab = () => {
+  const [fullscreenTelescope, setFullscreenTelescope] = useState<number | null>(null);
+
+  if (fullscreenTelescope !== null) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background p-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setFullscreenTelescope(null)}
+          className="absolute top-2 right-2 opacity-50 hover:opacity-100"
+        >
+          Exit Fullscreen
+        </Button>
+        <div className="h-full flex items-center justify-center">
+          <Card className="p-6 max-w-4xl w-full">
+            <h3 className="text-xl font-semibold mb-4">ASTRI-{fullscreenTelescope} Webcam</h3>
+            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+              <p className="text-muted-foreground">Webcam feed will appear here</p>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <Card className="control-panel p-6">
+        <h3 className="text-lg font-semibold text-primary mb-6">
+          Telescope Webcams
+        </h3>
+        
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 9 }, (_, i) => (
+            <Card key={i} className="p-3 bg-background/50 relative group">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFullscreenTelescope(i + 1)}
+                className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                <Maximize2 className="h-3 w-3" />
+              </Button>
+              
+              <div className="space-y-2">
+                <div className="font-semibold text-sm">ASTRI-{i + 1}</div>
+                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                  <p className="text-xs text-muted-foreground">No feed</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+};
