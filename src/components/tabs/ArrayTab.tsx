@@ -3,11 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Telescope, Camera, Grid3x3, Cpu, Disc, Shield } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 type TelescopeStatus = "Safe" | "Standby" | "Operational" | "Fault";
+
+const generateTelescopeData = (baseValue: number, timeOffset: number, telescopeId: number) => {
+  return Array.from({ length: 10 }, (_, i) => ({
+    time: i,
+    value: baseValue + Math.sin((timeOffset + i) * 0.3) * 30 + Math.random() * 20,
+    raError: (Math.sin((timeOffset + i) * 0.4 + telescopeId) * 0.5 + Math.random() * 0.3).toFixed(2),
+    decError: (Math.cos((timeOffset + i) * 0.35 + telescopeId) * 0.5 + Math.random() * 0.3).toFixed(2),
+  }));
+};
 
 export const ArrayTab = () => {
   const [isPreparing, setIsPreparing] = useState(false);
@@ -17,23 +27,40 @@ export const ArrayTab = () => {
   const [isOpeningLids, setIsOpeningLids] = useState(false);
   const [lidProgress, setLidProgress] = useState<{ [key: string]: number }>({});
   const [preCalibrationDone, setPreCalibrationDone] = useState(false);
+  const [timeOffset, setTimeOffset] = useState(0);
   
   const [telescopes, setTelescopes] = useState([
-    { id: "1", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
-    { id: "2", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
-    { id: "3", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
-    { id: "4", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
-    { id: "5", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
-    { id: "6", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
-    { id: "7", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
-    { id: "8", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
-    { id: "9", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed" },
+    { id: "1", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(960, 0, 0), events: 1000 },
+    { id: "2", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(970, 0, 1), events: 1100 },
+    { id: "3", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(980, 0, 2), events: 1200 },
+    { id: "4", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(990, 0, 3), events: 1300 },
+    { id: "5", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(1000, 0, 4), events: 1400 },
+    { id: "6", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(1010, 0, 5), events: 1500 },
+    { id: "7", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(1020, 0, 6), events: 1600 },
+    { id: "8", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(1030, 0, 7), events: 1700 },
+    { id: "9", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(1040, 0, 8), events: 1800 },
   ]);
 
   const allTelescopesReady = telescopes.every(t => t.status === "Operational");
 
+  // Update telescope data periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeOffset(prev => prev + 1);
+      setTelescopes(prev =>
+        prev.map((tel, i) => ({
+          ...tel,
+          data: generateTelescopeData(960 + i * 10, timeOffset, i),
+          events: 1000 + i * 100 + Math.floor(Math.random() * 50),
+        }))
+      );
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [timeOffset]);
+
   const handleGoToSafe = () => {
-    setTelescopes(prev => prev.map(t => ({
+    setTelescopes(prev => prev.map((t, i) => ({
       ...t,
       status: "Safe" as TelescopeStatus,
       mount: "Safe",
@@ -42,7 +69,9 @@ export const ArrayTab = () => {
       m2: "Safe",
       si3: "Off",
       cherenkovCamera: "Off",
-      lid: "Closed"
+      lid: "Closed",
+      data: generateTelescopeData(960 + i * 10, 0, i),
+      events: 1000 + i * 100,
     })));
     setOverallStatus("SAFE");
     setThermalisationProgress({});
@@ -295,15 +324,15 @@ export const ArrayTab = () => {
             <Card className="p-4 bg-secondary/30">
               <div className="grid grid-cols-3 gap-2">
                 {telescopes.map((tel) => (
-                  <Card key={tel.id} className="p-3 bg-background/50">
-                    <div className="flex items-center justify-between mb-2">
+                  <Card key={tel.id} className="p-3 bg-background/50 space-y-3">
+                    <div className="flex items-center justify-between">
                       <span className="font-semibold text-sm">ASTRI-{tel.id}</span>
                       {getStatusBadge(tel.status)}
                     </div>
                     
                     {/* Camera thermalisation progress */}
                     {isSettingOperational && thermalisationProgress[tel.id] !== undefined && thermalisationProgress[tel.id] < 100 && (
-                      <div className="mb-2">
+                      <div>
                         <div className="text-xs text-muted-foreground mb-1">Camera thermalisation</div>
                         <Progress value={thermalisationProgress[tel.id]} className="h-2" />
                         <div className="text-xs text-right mt-0.5">{Math.round(thermalisationProgress[tel.id])}%</div>
@@ -312,12 +341,40 @@ export const ArrayTab = () => {
 
                     {/* LID opening progress */}
                     {isOpeningLids && lidProgress[tel.id] !== undefined && lidProgress[tel.id] < 100 && (
-                      <div className="mb-2">
+                      <div>
                         <div className="text-xs text-muted-foreground mb-1">Opening LID</div>
                         <Progress value={lidProgress[tel.id]} className="h-2" />
                         <div className="text-xs text-right mt-0.5">{Math.round(lidProgress[tel.id])}%</div>
                       </div>
                     )}
+
+                    {/* Events counter */}
+                    <div className="text-xs text-muted-foreground">Events: {tel.events}</div>
+                    
+                    {/* Data Rate Chart */}
+                    <div>
+                      <ResponsiveContainer width="100%" height={60}>
+                        <LineChart data={tel.data}>
+                          <XAxis dataKey="time" tick={{ fontSize: 9 }} height={15} />
+                          <YAxis domain={[900, 1100]} width={30} tick={{ fontSize: 9 }} />
+                          <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={1.5} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                      <div className="text-[9px] text-center text-muted-foreground">Data Rate (MB/s)</div>
+                    </div>
+
+                    {/* Pointing Error Chart */}
+                    <div>
+                      <ResponsiveContainer width="100%" height={60}>
+                        <LineChart data={tel.data}>
+                          <XAxis dataKey="time" tick={{ fontSize: 9 }} height={15} />
+                          <YAxis domain={[-1, 1]} width={30} tick={{ fontSize: 9 }} />
+                          <Line type="monotone" dataKey="raError" stroke="#ef4444" strokeWidth={1.5} dot={false} name="RA" />
+                          <Line type="monotone" dataKey="decError" stroke="#f59e0b" strokeWidth={1.5} dot={false} name="DEC" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                      <div className="text-[9px] text-center text-muted-foreground">Pointing Error (arcsec)</div>
+                    </div>
                     
                     <div className="flex justify-around items-center pt-2 border-t border-border/50">
                       <div className="flex flex-col items-center gap-0.5" title={`Mount: ${tel.mount}`}>

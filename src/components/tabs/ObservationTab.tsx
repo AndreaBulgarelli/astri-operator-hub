@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { OOQSPanel } from "@/components/observation/OOQSPanel";
 import { DataCapturePanel } from "@/components/observation/DataCapturePanel";
 import { PointingPanel } from "@/components/observation/PointingPanel";
-import { ArraySummaryPanel } from "@/components/observation/ArraySummaryPanel";
 import { WeatherPanel } from "@/components/observation/WeatherPanel";
 import { RunningPlanTab } from "./RunningPlanTab";
 import { useState, useEffect } from "react";
@@ -463,7 +462,6 @@ export const ObservationTab = ({
         <TabsList className="bg-secondary">
           <TabsTrigger value="observing-plan">Observing Plan</TabsTrigger>
           <TabsTrigger value="ooqs">OOQS</TabsTrigger>
-          <TabsTrigger value="summary">Array Summary</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           <TabsTrigger value="pointing">Pointing</TabsTrigger>
           <TabsTrigger value="weather">Weather</TabsTrigger>
@@ -706,9 +704,6 @@ export const ObservationTab = ({
           <OOQSPanel />
         </TabsContent>
 
-        <TabsContent value="summary" className="mt-4">
-          <ArraySummaryPanel />
-        </TabsContent>
 
         <TabsContent value="monitoring" className="mt-4">
           <DataCapturePanel />
