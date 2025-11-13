@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Maximize2, Minimize2, AlertTriangle, RotateCcw, Telescope, Camera, Grid3x3, Cpu, Disc, Shield } from "lucide-react";
+import { Maximize2, Minimize2, AlertTriangle, RotateCcw, Telescope, Camera, Grid3x3, Cpu, Disc, Shield, Target } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { CameraGrid } from "@/components/observation/CameraGrid";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,6 +25,17 @@ const generateTelescopeData = (baseValue: number, timeOffset: number, telescopeI
   });
 };
 
+const generatePMCData = (points: number = 20) => {
+  const now = Date.now();
+  return Array.from({ length: points }, (_, i) => ({
+    time: new Date(now - (points - i) * 60000).toLocaleTimeString(),
+    raError: (Math.random() - 0.5) * 2,
+    decError: (Math.random() - 0.5) * 2,
+    zenithTrackErr: (Math.random() - 0.5) * 1.5,
+    azimuthTrackErr: (Math.random() - 0.5) * 1.5,
+  }));
+};
+
 const initialTelescopes = [
   { id: "1", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(960, 0, 0), events: 1000 },
   { id: "2", status: "Safe" as TelescopeStatus, mount: "Safe", camera: "Off", pmc: "Off", m2: "Safe", si3: "Off", cherenkovCamera: "Off", lid: "Closed", data: generateTelescopeData(970, 0, 1), events: 1100 },
@@ -44,6 +55,7 @@ export const ArrayTelescopeTab = () => {
   const [fullscreenSection, setFullscreenSection] = useState<string | null>(null);
   const [isTabFullscreen, setIsTabFullscreen] = useState(false);
   const [selectedOOQSCamera, setSelectedOOQSCamera] = useState<number | null>(null);
+  const [pmcData, setPmcData] = useState(generatePMCData());
 
   const telescope = telescopes.find(t => t.id === selectedTelescope)!;
 
@@ -57,6 +69,7 @@ export const ArrayTelescopeTab = () => {
           events: 1000 + i * 100 + Math.floor(Math.random() * 50),
         }))
       );
+      setPmcData(generatePMCData());
     }, 2000);
 
     return () => clearInterval(interval);
@@ -196,12 +209,75 @@ export const ArrayTelescopeTab = () => {
           </div>
         );
       case "pmc":
+        const latestPMCData = pmcData[pmcData.length - 1];
         return (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-primary">PMC - Telescope A{selectedTelescope}</h3>
-            <Card className="control-panel p-4">
-              <div className="aspect-video bg-muted rounded flex items-center justify-center text-muted-foreground">
-                PMC Image - Telescope A{selectedTelescope}
+            <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              PMC - ASTRI-{selectedTelescope}
+            </h3>
+            <Card className="control-panel p-6">
+              <div className="grid grid-cols-[400px_1fr] gap-6 mb-6">
+                {/* PMC Image */}
+                <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-3 h-3 bg-white rounded-full mx-auto mb-2"></div>
+                    <p className="text-xs text-muted-foreground">PMC Image Feed</p>
+                  </div>
+                </div>
+
+                {/* Data boxes */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-secondary/30 p-4 rounded border border-border/50">
+                    <div className="text-sm text-muted-foreground">RA Error</div>
+                    <div className="text-2xl font-semibold text-foreground">{latestPMCData.raError.toFixed(2)}°</div>
+                  </div>
+                  <div className="bg-secondary/30 p-4 rounded border border-border/50">
+                    <div className="text-sm text-muted-foreground">Dec Error</div>
+                    <div className="text-2xl font-semibold text-foreground">{latestPMCData.decError.toFixed(2)}°</div>
+                  </div>
+                  <div className="bg-secondary/30 p-4 rounded border border-border/50">
+                    <div className="text-sm text-muted-foreground">Zenith Track Err</div>
+                    <div className="text-2xl font-semibold text-foreground">{latestPMCData.zenithTrackErr.toFixed(2)}°</div>
+                  </div>
+                  <div className="bg-secondary/30 p-4 rounded border border-border/50">
+                    <div className="text-sm text-muted-foreground">Azimuth Track Err</div>
+                    <div className="text-2xl font-semibold text-foreground">{latestPMCData.azimuthTrackErr.toFixed(2)}°</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Charts */}
+              <div className="space-y-6">
+                <div>
+                  <div className="text-sm text-muted-foreground mb-2">RA & Dec Pointing Errors (°)</div>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={pmcData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                      <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                      <Legend />
+                      <Line type="monotone" dataKey="raError" stroke="#3b82f6" strokeWidth={2} name="RA Error" dot={false} />
+                      <Line type="monotone" dataKey="decError" stroke="#ef4444" strokeWidth={2} name="Dec Error" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div>
+                  <div className="text-sm text-muted-foreground mb-2">Tracking Errors (°)</div>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={pmcData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                      <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                      <Legend />
+                      <Line type="monotone" dataKey="zenithTrackErr" stroke="#10b981" strokeWidth={2} name="Zenith Track Err" dot={false} />
+                      <Line type="monotone" dataKey="azimuthTrackErr" stroke="#f59e0b" strokeWidth={2} name="Azimuth Track Err" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </Card>
           </div>
@@ -337,62 +413,6 @@ export const ArrayTelescopeTab = () => {
           </div>
         </Card>
 
-        {/* Pointing Analysis */}
-        <Card className="control-panel p-6">
-          <div className="space-y-6">
-            <h4 className="text-sm font-semibold text-primary">Pointing Analysis</h4>
-            
-            <div>
-              <div className="text-sm text-muted-foreground mb-2">RA - Planned vs Actual (deg)</div>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={telescope.data}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="time" className="text-xs" />
-                  <YAxis domain={['dataMin - 0.01', 'dataMax + 0.01']} className="text-xs" />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                  <Legend />
-                  <Line type="monotone" dataKey="raPlanned" stroke="#8b5cf6" strokeWidth={2} name="RA Planned" strokeDasharray="5 5" />
-                  <Line type="monotone" dataKey="raActual" stroke="#ec4899" strokeWidth={2} name="RA Actual" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div>
-              <div className="text-sm text-muted-foreground mb-2">Dec - Planned vs Actual (deg)</div>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={telescope.data}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="time" className="text-xs" />
-                  <YAxis domain={['dataMin - 0.01', 'dataMax + 0.01']} className="text-xs" />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                  <Legend />
-                  <Line type="monotone" dataKey="decPlanned" stroke="#8b5cf6" strokeWidth={2} name="Dec Planned" strokeDasharray="5 5" />
-                  <Line type="monotone" dataKey="decActual" stroke="#ec4899" strokeWidth={2} name="Dec Actual" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div>
-              <div className="text-sm text-muted-foreground mb-2">Pointing Error (arcsec)</div>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={telescope.data.map(d => ({
-                  time: d.time,
-                  raError: ((d.raActual - d.raPlanned) * 3600).toFixed(2),
-                  decError: ((d.decActual - d.decPlanned) * 3600).toFixed(2),
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="time" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                  <Legend />
-                  <Line type="monotone" dataKey="raError" stroke="#ef4444" strokeWidth={2} name="RA Error (arcsec)" />
-                  <Line type="monotone" dataKey="decError" stroke="#f59e0b" strokeWidth={2} name="Dec Error (arcsec)" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </Card>
-
         {/* OOQS Section */}
         <Card className="control-panel p-6">
           <div className="space-y-4">
@@ -426,11 +446,70 @@ export const ArrayTelescopeTab = () => {
           </div>
         </Card>
 
+        {/* Pointing Analysis */}
+        <Card className="control-panel p-6">
+          <div className="space-y-6">
+            <h4 className="text-sm font-semibold text-primary">Pointing Analysis</h4>
+            
+            <div>
+              <div className="text-sm text-muted-foreground mb-2">RA - Planned vs Actual (deg)</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={telescope.data}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                  <YAxis domain={['dataMin - 0.01', 'dataMax + 0.01']} className="text-xs" stroke="hsl(var(--foreground))" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="raPlanned" stroke="#8b5cf6" strokeWidth={2} name="RA Planned" strokeDasharray="5 5" dot={false} />
+                  <Line type="monotone" dataKey="raActual" stroke="#ec4899" strokeWidth={2} name="RA Actual" dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div>
+              <div className="text-sm text-muted-foreground mb-2">Dec - Planned vs Actual (deg)</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={telescope.data}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                  <YAxis domain={['dataMin - 0.01', 'dataMax + 0.01']} className="text-xs" stroke="hsl(var(--foreground))" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="decPlanned" stroke="#8b5cf6" strokeWidth={2} name="Dec Planned" strokeDasharray="5 5" dot={false} />
+                  <Line type="monotone" dataKey="decActual" stroke="#ec4899" strokeWidth={2} name="Dec Actual" dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div>
+              <div className="text-sm text-muted-foreground mb-2">Pointing Error (arcsec)</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={telescope.data.map(d => ({
+                  time: d.time,
+                  raError: (d.raActual - d.raPlanned) * 3600,
+                  decError: (d.decActual - d.decPlanned) * 3600,
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                  <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="raError" stroke="#ef4444" strokeWidth={2} name="RA Error (arcsec)" dot={false} />
+                  <Line type="monotone" dataKey="decError" stroke="#f59e0b" strokeWidth={2} name="Dec Error (arcsec)" dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </Card>
+
         {/* PMC Section */}
         <Card className="control-panel p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-primary">PMC</h4>
+              <h4 className="text-sm font-semibold text-primary flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                PMC
+              </h4>
               <Button
                 variant="ghost"
                 size="sm"
@@ -440,8 +519,68 @@ export const ArrayTelescopeTab = () => {
                 <Maximize2 className="h-3 w-3" />
               </Button>
             </div>
-            <div className="aspect-video bg-muted rounded flex items-center justify-center text-muted-foreground">
-              PMC Image - Telescope A{selectedTelescope}
+
+            <div className="grid grid-cols-[300px_1fr] gap-4 mb-4">
+              {/* PMC Image */}
+              <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-2 h-2 bg-white rounded-full mx-auto mb-1"></div>
+                  <p className="text-[8px] text-muted-foreground">PMC Feed</p>
+                </div>
+              </div>
+
+              {/* Data boxes */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-secondary/30 p-3 rounded border border-border/50">
+                  <div className="text-xs text-muted-foreground">RA Error</div>
+                  <div className="text-xl font-semibold text-foreground">{pmcData[pmcData.length - 1].raError.toFixed(2)}°</div>
+                </div>
+                <div className="bg-secondary/30 p-3 rounded border border-border/50">
+                  <div className="text-xs text-muted-foreground">Dec Error</div>
+                  <div className="text-xl font-semibold text-foreground">{pmcData[pmcData.length - 1].decError.toFixed(2)}°</div>
+                </div>
+                <div className="bg-secondary/30 p-3 rounded border border-border/50">
+                  <div className="text-xs text-muted-foreground">Zenith Track Err</div>
+                  <div className="text-xl font-semibold text-foreground">{pmcData[pmcData.length - 1].zenithTrackErr.toFixed(2)}°</div>
+                </div>
+                <div className="bg-secondary/30 p-3 rounded border border-border/50">
+                  <div className="text-xs text-muted-foreground">Azimuth Track Err</div>
+                  <div className="text-xl font-semibold text-foreground">{pmcData[pmcData.length - 1].azimuthTrackErr.toFixed(2)}°</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Charts */}
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm text-muted-foreground mb-2">RA & Dec Pointing Errors (°)</div>
+                <ResponsiveContainer width="100%" height={150}>
+                  <LineChart data={pmcData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                    <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                    <Legend />
+                    <Line type="monotone" dataKey="raError" stroke="#3b82f6" strokeWidth={2} name="RA Error" dot={false} />
+                    <Line type="monotone" dataKey="decError" stroke="#ef4444" strokeWidth={2} name="Dec Error" dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div>
+                <div className="text-sm text-muted-foreground mb-2">Tracking Errors (°)</div>
+                <ResponsiveContainer width="100%" height={150}>
+                  <LineChart data={pmcData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                    <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                    <Legend />
+                    <Line type="monotone" dataKey="zenithTrackErr" stroke="#10b981" strokeWidth={2} name="Zenith Track Err" dot={false} />
+                    <Line type="monotone" dataKey="azimuthTrackErr" stroke="#f59e0b" strokeWidth={2} name="Azimuth Track Err" dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </Card>
