@@ -1,7 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataCapturePanel } from "@/components/observation/DataCapturePanel";
 import { WeatherPanel } from "@/components/observation/WeatherPanel";
-import { EMSCPanel } from "@/components/monitoring/EMSCPanel";
 import { ASCPanel } from "@/components/monitoring/ASCPanel";
 import { SQMPanel } from "@/components/monitoring/SQMPanel";
 import { LIDARPanel } from "@/components/monitoring/LIDARPanel";
@@ -14,7 +13,6 @@ export const MonitoringTab = () => {
         <TabsList className="mx-6 mt-6">
           <TabsTrigger value="data-capture">Data Capture</TabsTrigger>
           <TabsTrigger value="weather">Weather</TabsTrigger>
-          <TabsTrigger value="emsc">EMSC</TabsTrigger>
           <TabsTrigger value="asc">All Sky Camera</TabsTrigger>
           <TabsTrigger value="sqm">SQM</TabsTrigger>
           <TabsTrigger value="lidar">LIDAR</TabsTrigger>
@@ -27,10 +25,6 @@ export const MonitoringTab = () => {
 
         <TabsContent value="weather" className="flex-1 overflow-auto p-6">
           <WeatherPanel />
-        </TabsContent>
-
-        <TabsContent value="emsc" className="flex-1 overflow-auto p-6">
-          <EMSCPanel />
         </TabsContent>
 
         <TabsContent value="asc" className="flex-1 overflow-auto p-6">
