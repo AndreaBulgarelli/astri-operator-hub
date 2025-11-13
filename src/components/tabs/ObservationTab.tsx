@@ -33,7 +33,6 @@ export const ObservationTab = ({
   const [selectedOB, setSelectedOB] = useState<string>("");
   const [expandedSB, setExpandedSB] = useState<string | null>(null);
   const [runningPlans, setRunningPlans] = useState<RunningPlan[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("observing-plan");
   const [activePlanTab, setActivePlanTab] = useState<string>("main");
   
   // Check statuses per SB
@@ -454,13 +453,7 @@ export const ObservationTab = ({
 
   return (
     <div className="h-full p-6 space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-        <TabsList className="bg-secondary">
-          <TabsTrigger value="observing-plan">Observing Plan</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="observing-plan" className="mt-4">
-          <Card className="control-panel p-6">
+      <Card className="control-panel p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-primary">Observation Control</h2>
@@ -689,12 +682,7 @@ export const ObservationTab = ({
                 ) : null;
               })}
             </Tabs>
-          </Card>
-        </TabsContent>
-
-
-
-      </Tabs>
+      </Card>
     </div>
   );
 };
