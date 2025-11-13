@@ -7,7 +7,7 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import { CameraGrid } from "./CameraGrid";
 
 export const OOQSPanel = () => {
-  const [viewMode, setViewMode] = useState<"variance-hg" | "variance-lg" | "scientific" | "pdm">("variance-hg");
+  const [viewMode, setViewMode] = useState<"var-hg" | "var-lg" | "sci-hg" | "sci-lg" | "cal-hg" | "cal-lg" | "pdm-rate">("var-hg");
   const [selectedCamera, setSelectedCamera] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -42,22 +42,34 @@ export const OOQSPanel = () => {
               {isFullscreen ? 'Exit' : 'Fullscreen'}
             </Button>
           </div>
-          <RadioGroup value={viewMode} onValueChange={(value: any) => setViewMode(value)} className="flex gap-4">
+          <RadioGroup value={viewMode} onValueChange={(value: any) => setViewMode(value)} className="flex gap-3">
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="variance-hg" id="variance-hg" />
-              <Label htmlFor="variance-hg" className="text-xs cursor-pointer">Variance HG</Label>
+              <RadioGroupItem value="var-hg" id="var-hg" />
+              <Label htmlFor="var-hg" className="text-xs cursor-pointer">VAR HG</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="variance-lg" id="variance-lg" />
-              <Label htmlFor="variance-lg" className="text-xs cursor-pointer">Variance LG</Label>
+              <RadioGroupItem value="var-lg" id="var-lg" />
+              <Label htmlFor="var-lg" className="text-xs cursor-pointer">VAR LG</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="scientific" id="scientific" />
-              <Label htmlFor="scientific" className="text-xs cursor-pointer">Scientific</Label>
+              <RadioGroupItem value="sci-hg" id="sci-hg" />
+              <Label htmlFor="sci-hg" className="text-xs cursor-pointer">SCI HG</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="pdm" id="pdm" />
-              <Label htmlFor="pdm" className="text-xs cursor-pointer">PDM</Label>
+              <RadioGroupItem value="sci-lg" id="sci-lg" />
+              <Label htmlFor="sci-lg" className="text-xs cursor-pointer">SCI LG</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="cal-hg" id="cal-hg" />
+              <Label htmlFor="cal-hg" className="text-xs cursor-pointer">CAL HG</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="cal-lg" id="cal-lg" />
+              <Label htmlFor="cal-lg" className="text-xs cursor-pointer">CAL LG</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="pdm-rate" id="pdm-rate" />
+              <Label htmlFor="pdm-rate" className="text-xs cursor-pointer">PDM Rate</Label>
             </div>
           </RadioGroup>
         </div>
