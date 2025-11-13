@@ -65,63 +65,24 @@ export const WeatherPanel = ({ showControls = true }: { showControls?: boolean }
   const latestEmscData = emscData[emscData.length - 1];
 
   return (
-    <div className="space-y-6">
-      <Card id="weather-panel" className="control-panel p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-primary">Weather Monitoring</h3>
-          {showControls && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleFullscreen}
-              className="gap-2"
-            >
-              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-              {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            </Button>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <div className="text-sm text-muted-foreground mb-2">Temperature (°C) & Humidity (%)</div>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={weatherData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="time" className="text-xs" />
-                <YAxis className="text-xs" />
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                <Legend />
-                <Line type="monotone" dataKey="temperature" stroke="#ef4444" strokeWidth={2} name="Temperature (°C)" />
-                <Line type="monotone" dataKey="humidity" stroke="#3b82f6" strokeWidth={2} name="Humidity (%)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div>
-            <div className="text-sm text-muted-foreground mb-2">Wind Speed (km/h) & Pressure (hPa)</div>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={weatherData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="time" className="text-xs" />
-                <YAxis className="text-xs" />
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                <Legend />
-                <Line type="monotone" dataKey="windSpeed" stroke="#10b981" strokeWidth={2} name="Wind Speed (km/h)" />
-                <Line type="monotone" dataKey="pressure" stroke="#f59e0b" strokeWidth={2} name="Pressure (hPa)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="control-panel p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <CloudRain className="h-5 w-5 text-primary" />
-            EMSC Weather Station
-          </h3>
-        </div>
+    <Card id="weather-panel" className="control-panel p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <CloudRain className="h-5 w-5 text-primary" />
+          EMSC Weather Station
+        </h3>
+        {showControls && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFullscreen}
+            className="gap-2"
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          </Button>
+        )}
+      </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-secondary/30 p-3 rounded border border-border/50">
@@ -150,53 +111,80 @@ export const WeatherPanel = ({ showControls = true }: { showControls?: boolean }
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <div className="text-sm text-muted-foreground mb-2">Temperature & Dew Point (°C)</div>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={emscData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-                <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                <Legend />
-                <Line type="monotone" dataKey="extTmp" stroke="#ef4444" strokeWidth={2} name="Temperature" dot={false} />
-                <Line type="monotone" dataKey="dewPoint" stroke="#3b82f6" strokeWidth={2} name="Dew Point" dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div>
-            <div className="text-sm text-muted-foreground mb-2">Wind Speed & Average (km/h)</div>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={emscData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-                <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                <Legend />
-                <Line type="monotone" dataKey="windSpd" stroke="#10b981" strokeWidth={2} name="Wind Speed" dot={false} />
-                <Line type="monotone" dataKey="wnd10Avg" stroke="#8b5cf6" strokeWidth={2} name="10min Avg" dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div>
-            <div className="text-sm text-muted-foreground mb-2">Rain Rate & Daily Total (mm)</div>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={emscData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-                <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                <Legend />
-                <Line type="monotone" dataKey="rainRate" stroke="#06b6d4" strokeWidth={2} name="Rain Rate" dot={false} />
-                <Line type="monotone" dataKey="rainDaily" stroke="#f59e0b" strokeWidth={2} name="Daily Total" dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+      <div className="space-y-6">
+        <div>
+          <div className="text-sm text-muted-foreground mb-2">Temperature & Dew Point (°C)</div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={emscData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+              <Legend />
+              <Line type="monotone" dataKey="extTmp" stroke="#ef4444" strokeWidth={2} name="Temperature" dot={false} />
+              <Line type="monotone" dataKey="dewPoint" stroke="#3b82f6" strokeWidth={2} name="Dew Point" dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
-      </Card>
-    </div>
+
+        <div>
+          <div className="text-sm text-muted-foreground mb-2">Humidity (%)</div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={emscData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+              <Legend />
+              <Line type="monotone" dataKey="extUmdy" stroke="#3b82f6" strokeWidth={2} name="Humidity" dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div>
+          <div className="text-sm text-muted-foreground mb-2">Pressure (hPa)</div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={emscData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+              <Legend />
+              <Line type="monotone" dataKey="baromtr" stroke="#f59e0b" strokeWidth={2} name="Pressure" dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div>
+          <div className="text-sm text-muted-foreground mb-2">Wind Speed & Average (km/h)</div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={emscData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+              <Legend />
+              <Line type="monotone" dataKey="windSpd" stroke="#10b981" strokeWidth={2} name="Wind Speed" dot={false} />
+              <Line type="monotone" dataKey="wnd10Avg" stroke="#8b5cf6" strokeWidth={2} name="10min Avg" dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div>
+          <div className="text-sm text-muted-foreground mb-2">Rain Rate & Daily Total (mm)</div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={emscData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+              <Legend />
+              <Line type="monotone" dataKey="rainRate" stroke="#06b6d4" strokeWidth={2} name="Rain Rate" dot={false} />
+              <Line type="monotone" dataKey="rainDaily" stroke="#f59e0b" strokeWidth={2} name="Daily Total" dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </Card>
   );
 };
