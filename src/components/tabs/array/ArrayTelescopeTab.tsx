@@ -1,10 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Maximize2, Minimize2, AlertTriangle, RotateCcw } from "lucide-react";
+import { Maximize2, Minimize2, AlertTriangle, RotateCcw, Telescope, Camera, Grid3x3, Cpu, Disc, Shield } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { CameraGrid } from "@/components/observation/CameraGrid";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -71,19 +70,61 @@ export const ArrayTelescopeTab = () => {
     });
   };
 
-  const getStatusColor = (status: TelescopeStatus) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "Operational": return "text-green-500";
-      case "Standby": return "text-yellow-500";
-      case "Safe": return "text-blue-500";
-      case "Fault": return "text-red-500";
+      case "Operational":
+        return <Badge className="bg-status-online">Operational</Badge>;
+      case "Standby":
+        return <Badge className="bg-status-standby">Standby</Badge>;
+      case "Initialised":
+        return <Badge className="bg-[hsl(var(--status-initialised))] text-white">Initialised</Badge>;
+      case "Safe":
+        return <Badge className="bg-status-active">Safe</Badge>;
+      case "Degraded":
+        return <Badge className="bg-status-warning">Degraded</Badge>;
+      case "Fault":
+        return <Badge className="bg-status-error">Fault</Badge>;
+      case "Off":
+        return <Badge className="bg-status-offline">Off</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const getComponentBadgeVariant = (state: string) => {
-    if (state === "On" || state === "Operational" || state === "Open") return "default";
-    if (state === "Off" || state === "Safe" || state === "Closed") return "secondary";
-    return "outline";
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Operational":
+        return "text-status-online";
+      case "Standby":
+        return "text-status-standby";
+      case "Initialised":
+        return "text-[hsl(var(--status-initialised))]";
+      case "Safe":
+        return "text-status-active";
+      case "Degraded":
+        return "text-status-warning";
+      case "Off":
+        return "text-muted-foreground";
+      case "Fault":
+        return "text-status-error";
+      default:
+        return "text-muted-foreground";
+    }
+  };
+
+  const getStatusAbbreviation = (status: string) => {
+    switch (status) {
+      case "Operational": return "Op";
+      case "Standby": return "StBy";
+      case "Initialised": return "Ini";
+      case "Safe": return "Safe";
+      case "Degraded": return "Deg";
+      case "Off": return "Off";
+      case "Fault": return "Faul";
+      case "Opened": return "Open";
+      case "Closed": return "Clos";
+      default: return status.substring(0, 4);
+    }
   };
 
   if (isTabFullscreen) {
@@ -209,36 +250,70 @@ export const ArrayTelescopeTab = () => {
         <Card className="control-panel p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-primary">Status & Control</h4>
+              <div className="flex items-center gap-3">
+                <h4 className="text-lg font-semibold">ASTRI-{selectedTelescope}</h4>
+                {getStatusBadge(telescope.status)}
+              </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="text-xs text-muted-foreground">Overall Status</div>
-                <Badge className={getStatusColor(telescope.status)}>{telescope.status}</Badge>
-              </div>
-              <div className="space-y-2">
-                <div className="text-xs text-muted-foreground">Events</div>
-                <div className="text-sm font-mono">{telescope.events}</div>
+            <div className="text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Events:</span>
+                <span className="font-mono">{telescope.events}</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
-              <Badge variant={getComponentBadgeVariant(telescope.mount)} className="text-xs">Mount: {telescope.mount}</Badge>
-              <Badge variant={getComponentBadgeVariant(telescope.camera)} className="text-xs">Camera: {telescope.camera}</Badge>
-              <Badge variant={getComponentBadgeVariant(telescope.pmc)} className="text-xs">PMC: {telescope.pmc}</Badge>
-              <Badge variant={getComponentBadgeVariant(telescope.m2)} className="text-xs">M2: {telescope.m2}</Badge>
-              <Badge variant={getComponentBadgeVariant(telescope.si3)} className="text-xs">Si3: {telescope.si3}</Badge>
-              <Badge variant={getComponentBadgeVariant(telescope.cherenkovCamera)} className="text-xs">Čerenkov: {telescope.cherenkovCamera}</Badge>
-              <Badge variant={getComponentBadgeVariant(telescope.lid)} className="text-xs">Lid: {telescope.lid}</Badge>
+            <div className="grid grid-cols-6 gap-3 pt-3 border-t">
+              <div className="flex flex-col items-center gap-1">
+                <Telescope className={`h-6 w-6 ${getStatusColor(telescope.mount)}`} />
+                <span className={`text-xs font-semibold ${getStatusColor(telescope.mount)}`}>
+                  {getStatusAbbreviation(telescope.mount)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">Mount</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <Camera className={`h-6 w-6 ${getStatusColor(telescope.pmc)}`} />
+                <span className={`text-xs font-semibold ${getStatusColor(telescope.pmc)}`}>
+                  {getStatusAbbreviation(telescope.pmc)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">PMC</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <Grid3x3 className={`h-6 w-6 ${getStatusColor(telescope.cherenkovCamera)}`} />
+                <span className={`text-xs font-semibold ${getStatusColor(telescope.cherenkovCamera)}`}>
+                  {getStatusAbbreviation(telescope.cherenkovCamera)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">Čerenkov</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <Cpu className={`h-6 w-6 ${getStatusColor(telescope.si3)}`} />
+                <span className={`text-xs font-semibold ${getStatusColor(telescope.si3)}`}>
+                  {getStatusAbbreviation(telescope.si3)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">Si3</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <Disc className={`h-6 w-6 ${getStatusColor(telescope.m2)}`} />
+                <span className={`text-xs font-semibold ${getStatusColor(telescope.m2)}`}>
+                  {getStatusAbbreviation(telescope.m2)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">M2</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <Shield className={`h-6 w-6 ${telescope.lid === "Opened" ? "text-status-online" : "text-muted-foreground"}`} />
+                <span className={`text-xs font-semibold ${telescope.lid === "Opened" ? "text-status-online" : "text-muted-foreground"}`}>
+                  {getStatusAbbreviation(telescope.lid)}
+                </span>
+                <span className="text-[10px] text-muted-foreground">LID</span>
+              </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-4 border-t">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleResetAlarm}
-                className="gap-2"
+                className="gap-2 flex-1"
               >
                 <AlertTriangle className="h-4 w-4" />
                 Reset Alarm
@@ -247,7 +322,7 @@ export const ArrayTelescopeTab = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleResetTelescope}
-                className="gap-2"
+                className="gap-2 flex-1"
               >
                 <RotateCcw className="h-4 w-4" />
                 Reset Telescope
@@ -257,13 +332,21 @@ export const ArrayTelescopeTab = () => {
         </Card>
 
         {/* Data Rate Chart */}
-        <Card className="control-panel p-4">
+        <Card className="control-panel p-6">
           <div className="space-y-2">
-            <div className="text-sm font-semibold text-muted-foreground">Data Rate</div>
-            <ResponsiveContainer width="100%" height={100}>
+            <div className="text-sm font-semibold text-muted-foreground mb-2">Data Rate (MB/s)</div>
+            <ResponsiveContainer width="100%" height={120}>
               <LineChart data={telescope.data}>
-                <XAxis dataKey="time" hide />
-                <YAxis hide domain={[800, 1200]} />
+                <XAxis 
+                  dataKey="time" 
+                  tick={{ fontSize: 10 }}
+                  stroke="hsl(var(--muted-foreground))"
+                />
+                <YAxis 
+                  domain={[900, 1100]}
+                  tick={{ fontSize: 10 }}
+                  stroke="hsl(var(--muted-foreground))"
+                />
                 <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
@@ -271,14 +354,22 @@ export const ArrayTelescopeTab = () => {
         </Card>
 
         {/* Pointing Error Chart */}
-        <Card className="control-panel p-4">
+        <Card className="control-panel p-6">
           <div className="space-y-2">
-            <div className="text-sm font-semibold text-muted-foreground">Pointing Error</div>
-            <ResponsiveContainer width="100%" height={100}>
+            <div className="text-sm font-semibold text-muted-foreground mb-2">Pointing Error (arcsec)</div>
+            <ResponsiveContainer width="100%" height={120}>
               <LineChart data={telescope.data}>
-                <XAxis dataKey="time" hide />
-                <YAxis hide domain={[-1, 1]} />
-                <Line type="monotone" dataKey="raError" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                <XAxis 
+                  dataKey="time"
+                  tick={{ fontSize: 10 }}
+                  stroke="hsl(var(--muted-foreground))"
+                />
+                <YAxis 
+                  domain={[-2, 2]}
+                  tick={{ fontSize: 10 }}
+                  stroke="hsl(var(--muted-foreground))"
+                />
+                <Line type="monotone" dataKey="raError" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="decError" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
