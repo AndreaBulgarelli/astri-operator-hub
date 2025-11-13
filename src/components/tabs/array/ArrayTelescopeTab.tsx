@@ -4,19 +4,25 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Maximize2, Minimize2, AlertTriangle, RotateCcw, Telescope, Camera, Grid3x3, Cpu, Disc, Shield } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { CameraGrid } from "@/components/observation/CameraGrid";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type TelescopeStatus = "Safe" | "Standby" | "Operational" | "Fault";
 
 const generateTelescopeData = (baseValue: number, timeOffset: number, telescopeId: number) => {
-  return Array.from({ length: 10 }, (_, i) => ({
-    time: i,
-    value: baseValue + Math.sin((timeOffset + i) * 0.3) * 30 + Math.random() * 20,
-    raError: (Math.sin((timeOffset + i) * 0.4 + telescopeId) * 0.5 + Math.random() * 0.3).toFixed(2),
-    decError: (Math.cos((timeOffset + i) * 0.35 + telescopeId) * 0.5 + Math.random() * 0.3).toFixed(2),
-  }));
+  return Array.from({ length: 20 }, (_, i) => {
+    const baseOffset = telescopeId * 0.001;
+    const totalTime = timeOffset + i;
+    return {
+      time: new Date(Date.now() - (20 - i) * 60000).toLocaleTimeString(),
+      value: baseValue + Math.sin((timeOffset + i) * 0.3) * 30 + Math.random() * 20,
+      raPlanned: 83.63 + Math.sin(totalTime * 0.05) * 0.01,
+      raActual: 83.63 + Math.sin(totalTime * 0.05) * 0.01 + (Math.random() - 0.5) * 0.0005 + baseOffset,
+      decPlanned: 22.01 + Math.cos(totalTime * 0.05) * 0.01,
+      decActual: 22.01 + Math.cos(totalTime * 0.05) * 0.01 + (Math.random() - 0.5) * 0.0005 + baseOffset,
+    };
+  });
 };
 
 const initialTelescopes = [
@@ -331,48 +337,59 @@ export const ArrayTelescopeTab = () => {
           </div>
         </Card>
 
-        {/* Data Rate Chart */}
+        {/* Pointing Analysis */}
         <Card className="control-panel p-6">
-          <div className="space-y-2">
-            <div className="text-sm font-semibold text-muted-foreground mb-2">Data Rate (MB/s)</div>
-            <ResponsiveContainer width="100%" height={120}>
-              <LineChart data={telescope.data}>
-                <XAxis 
-                  dataKey="time" 
-                  tick={{ fontSize: 10 }}
-                  stroke="hsl(var(--muted-foreground))"
-                />
-                <YAxis 
-                  domain={[900, 1100]}
-                  tick={{ fontSize: 10 }}
-                  stroke="hsl(var(--muted-foreground))"
-                />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+          <div className="space-y-6">
+            <h4 className="text-sm font-semibold text-primary">Pointing Analysis</h4>
+            
+            <div>
+              <div className="text-sm text-muted-foreground mb-2">RA - Planned vs Actual (deg)</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={telescope.data}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="time" className="text-xs" />
+                  <YAxis domain={['dataMin - 0.01', 'dataMax + 0.01']} className="text-xs" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="raPlanned" stroke="#8b5cf6" strokeWidth={2} name="RA Planned" strokeDasharray="5 5" />
+                  <Line type="monotone" dataKey="raActual" stroke="#ec4899" strokeWidth={2} name="RA Actual" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
 
-        {/* Pointing Error Chart */}
-        <Card className="control-panel p-6">
-          <div className="space-y-2">
-            <div className="text-sm font-semibold text-muted-foreground mb-2">Pointing Error (arcsec)</div>
-            <ResponsiveContainer width="100%" height={120}>
-              <LineChart data={telescope.data}>
-                <XAxis 
-                  dataKey="time"
-                  tick={{ fontSize: 10 }}
-                  stroke="hsl(var(--muted-foreground))"
-                />
-                <YAxis 
-                  domain={[-2, 2]}
-                  tick={{ fontSize: 10 }}
-                  stroke="hsl(var(--muted-foreground))"
-                />
-                <Line type="monotone" dataKey="raError" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="decError" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+            <div>
+              <div className="text-sm text-muted-foreground mb-2">Dec - Planned vs Actual (deg)</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={telescope.data}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="time" className="text-xs" />
+                  <YAxis domain={['dataMin - 0.01', 'dataMax + 0.01']} className="text-xs" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="decPlanned" stroke="#8b5cf6" strokeWidth={2} name="Dec Planned" strokeDasharray="5 5" />
+                  <Line type="monotone" dataKey="decActual" stroke="#ec4899" strokeWidth={2} name="Dec Actual" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div>
+              <div className="text-sm text-muted-foreground mb-2">Pointing Error (arcsec)</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={telescope.data.map(d => ({
+                  time: d.time,
+                  raError: ((d.raActual - d.raPlanned) * 3600).toFixed(2),
+                  decError: ((d.decActual - d.decPlanned) * 3600).toFixed(2),
+                }))}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="time" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="raError" stroke="#ef4444" strokeWidth={2} name="RA Error (arcsec)" />
+                  <Line type="monotone" dataKey="decError" stroke="#f59e0b" strokeWidth={2} name="Dec Error (arcsec)" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </Card>
 
