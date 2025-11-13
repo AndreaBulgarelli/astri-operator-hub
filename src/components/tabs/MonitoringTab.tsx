@@ -6,7 +6,6 @@ import { ASCPanel } from "@/components/monitoring/ASCPanel";
 import { SQMPanel } from "@/components/monitoring/SQMPanel";
 import { LIDARPanel } from "@/components/monitoring/LIDARPanel";
 import { UVSiPMPanel } from "@/components/monitoring/UVSiPMPanel";
-import { PMCMonitoringPanel } from "@/components/monitoring/PMCMonitoringPanel";
 
 export const MonitoringTab = () => {
   return (
@@ -19,7 +18,6 @@ export const MonitoringTab = () => {
           <TabsTrigger value="asc">All Sky Camera</TabsTrigger>
           <TabsTrigger value="sqm">SQM</TabsTrigger>
           <TabsTrigger value="lidar">LIDAR</TabsTrigger>
-          <TabsTrigger value="pmc">PMC</TabsTrigger>
           <TabsTrigger value="uvsipm">UVSiPM (NSB)</TabsTrigger>
         </TabsList>
 
@@ -45,10 +43,6 @@ export const MonitoringTab = () => {
 
         <TabsContent value="lidar" className="flex-1 overflow-auto p-6">
           <LIDARPanel />
-        </TabsContent>
-
-        <TabsContent value="pmc" className="flex-1 overflow-auto p-6">
-          <PMCMonitoringPanel />
         </TabsContent>
 
         <TabsContent value="uvsipm" className="flex-1 overflow-auto p-6">
