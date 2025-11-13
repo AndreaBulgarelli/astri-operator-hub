@@ -6,6 +6,7 @@ import { StartupTab } from "@/components/tabs/StartupTab";
 import { PreparationTab } from "@/components/tabs/PreparationTab";
 import { ArrayTab } from "@/components/tabs/ArrayTab";
 import { ObservationTab } from "@/components/tabs/ObservationTab";
+import { MonitoringTab } from "@/components/tabs/MonitoringTab";
 import { EndTab } from "@/components/tabs/EndTab";
 import { UtilityTab } from "@/components/tabs/UtilityTab";
 import { AlarmPanel } from "@/components/monitoring/AlarmPanel";
@@ -113,6 +114,7 @@ const Index = () => {
                   <TabsTrigger value="preparation">Preparation</TabsTrigger>
                   <TabsTrigger value="array">Array</TabsTrigger>
                   <TabsTrigger value="observation">Observation</TabsTrigger>
+                  <TabsTrigger value="site-monitoring">Monitoring</TabsTrigger>
                   <TabsTrigger value="end">End</TabsTrigger>
                   <TabsTrigger value="utility">Utility</TabsTrigger>
                 </TabsList>
@@ -157,6 +159,10 @@ const Index = () => {
                         });
                       }}
                     />
+                  </TabsContent>
+
+                  <TabsContent value="site-monitoring" className="h-full m-0">
+                    <MonitoringTab />
                   </TabsContent>
 
                   <TabsContent value="end" className="h-full m-0">
