@@ -2,7 +2,20 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useState, useEffect } from "react";
-import { Maximize2, Minimize2, CloudRain } from "lucide-react";
+import { Maximize2, Minimize2, CloudRain, Download } from "lucide-react";
+
+type TimeRange = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+
+const getPointsForRange = (range: TimeRange): number => {
+  switch (range) {
+    case '1m': return 20;
+    case '5m': return 100;
+    case '15m': return 300;
+    case '1h': return 120;
+    case '4h': return 480;
+    case '1d': return 288;
+  }
+};
 
 const generateWeatherData = (points: number = 20, baseValues?: number[]) => {
   const now = Date.now();
@@ -32,22 +45,24 @@ const generateEMSCData = (points: number = 20) => {
 };
 
 export const WeatherPanel = ({ showControls = true }: { showControls?: boolean }) => {
-  const [weatherData, setWeatherData] = useState(generateWeatherData());
-  const [emscData, setEmscData] = useState(generateEMSCData());
+  const [timeRange, setTimeRange] = useState<TimeRange>('1m');
+  const [weatherData, setWeatherData] = useState(() => generateWeatherData(getPointsForRange('1m')));
+  const [emscData, setEmscData] = useState(() => generateEMSCData(getPointsForRange('1m')));
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
+    const points = getPointsForRange(timeRange);
     const interval = setInterval(() => {
       setWeatherData(prev => {
         const lastPoint = prev[prev.length - 1];
         const baseValues = [lastPoint.temperature, lastPoint.humidity, lastPoint.windSpeed, lastPoint.pressure];
-        return generateWeatherData(20, baseValues);
+        return generateWeatherData(points, baseValues);
       });
-      setEmscData(generateEMSCData());
+      setEmscData(generateEMSCData(points));
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [timeRange]);
 
   const handleFullscreen = () => {
     const element = document.getElementById('weather-panel');
@@ -63,6 +78,31 @@ export const WeatherPanel = ({ showControls = true }: { showControls?: boolean }
   };
 
   const latestEmscData = emscData[emscData.length - 1];
+
+  const handleDownloadChart = (chartId: string) => {
+    const svgElement = document.querySelector(`#${chartId} .recharts-wrapper svg`);
+    if (svgElement) {
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx?.drawImage(img, 0, 0);
+        const pngFile = canvas.toDataURL("image/png");
+        const downloadLink = document.createElement("a");
+        downloadLink.download = `${chartId}.png`;
+        downloadLink.href = pngFile;
+        downloadLink.click();
+      };
+      
+      img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+    }
+  };
+
+  const timeRanges: TimeRange[] = ['1m', '5m', '15m', '1h', '4h', '1d'];
 
   return (
     <Card id="weather-panel" className="control-panel p-6">
@@ -113,76 +153,161 @@ export const WeatherPanel = ({ showControls = true }: { showControls?: boolean }
 
       <div className="space-y-6">
         <div>
-          <div className="text-sm text-muted-foreground mb-2">Temperature & Dew Point (°C)</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={emscData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-              <Legend />
-              <Line type="monotone" dataKey="extTmp" stroke="#ef4444" strokeWidth={2} name="Temperature" dot={false} />
-              <Line type="monotone" dataKey="dewPoint" stroke="#3b82f6" strokeWidth={2} name="Dew Point" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-muted-foreground">Temperature & Dew Point (°C)</div>
+            <div className="flex gap-2">
+              <div className="flex gap-1">
+                {timeRanges.map((range) => (
+                  <Button
+                    key={range}
+                    variant={timeRange === range ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setTimeRange(range)}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {range}
+                  </Button>
+                ))}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDownloadChart('weather-chart-1')}
+                className="h-6 w-6 p-0"
+              >
+                <Download className="h-3 w-3" />
+              </Button>
+              {showControls && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleFullscreen}
+                  className="h-6 w-6 p-0"
+                >
+                  <Maximize2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          </div>
+          <div id="weather-chart-1">
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={emscData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                <Legend />
+                <Line type="monotone" dataKey="extTmp" stroke="#ef4444" strokeWidth={2} name="Temperature" dot={false} />
+                <Line type="monotone" dataKey="dewPoint" stroke="#3b82f6" strokeWidth={2} name="Dew Point" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div>
-          <div className="text-sm text-muted-foreground mb-2">Humidity (%)</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={emscData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-              <Legend />
-              <Line type="monotone" dataKey="extUmdy" stroke="#3b82f6" strokeWidth={2} name="Humidity" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-muted-foreground">Humidity (%)</div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownloadChart('weather-chart-2')}
+              className="h-6 w-6 p-0"
+            >
+              <Download className="h-3 w-3" />
+            </Button>
+          </div>
+          <div id="weather-chart-2">
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={emscData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                <Legend />
+                <Line type="monotone" dataKey="extUmdy" stroke="#3b82f6" strokeWidth={2} name="Humidity" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div>
-          <div className="text-sm text-muted-foreground mb-2">Pressure (hPa)</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={emscData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-              <Legend />
-              <Line type="monotone" dataKey="baromtr" stroke="#f59e0b" strokeWidth={2} name="Pressure" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-muted-foreground">Pressure (hPa)</div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownloadChart('weather-chart-3')}
+              className="h-6 w-6 p-0"
+            >
+              <Download className="h-3 w-3" />
+            </Button>
+          </div>
+          <div id="weather-chart-3">
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={emscData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                <Legend />
+                <Line type="monotone" dataKey="baromtr" stroke="#f59e0b" strokeWidth={2} name="Pressure" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div>
-          <div className="text-sm text-muted-foreground mb-2">Wind Speed & Average (km/h)</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={emscData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-              <Legend />
-              <Line type="monotone" dataKey="windSpd" stroke="#10b981" strokeWidth={2} name="Wind Speed" dot={false} />
-              <Line type="monotone" dataKey="wnd10Avg" stroke="#8b5cf6" strokeWidth={2} name="10min Avg" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-muted-foreground">Wind Speed & Average (km/h)</div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownloadChart('weather-chart-4')}
+              className="h-6 w-6 p-0"
+            >
+              <Download className="h-3 w-3" />
+            </Button>
+          </div>
+          <div id="weather-chart-4">
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={emscData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                <Legend />
+                <Line type="monotone" dataKey="windSpd" stroke="#10b981" strokeWidth={2} name="Wind Speed" dot={false} />
+                <Line type="monotone" dataKey="wnd10Avg" stroke="#06b6d4" strokeWidth={2} name="10m Avg" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div>
-          <div className="text-sm text-muted-foreground mb-2">Rain Rate & Daily Total (mm)</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={emscData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-              <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-              <Legend />
-              <Line type="monotone" dataKey="rainRate" stroke="#06b6d4" strokeWidth={2} name="Rain Rate" dot={false} />
-              <Line type="monotone" dataKey="rainDaily" stroke="#f59e0b" strokeWidth={2} name="Daily Total" dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-muted-foreground">Rain Rate (mm/h) & Daily (mm)</div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownloadChart('weather-chart-5')}
+              className="h-6 w-6 p-0"
+            >
+              <Download className="h-3 w-3" />
+            </Button>
+          </div>
+          <div id="weather-chart-5">
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={emscData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                <Legend />
+                <Line type="monotone" dataKey="rainRate" stroke="#8b5cf6" strokeWidth={2} name="Rain Rate" dot={false} />
+                <Line type="monotone" dataKey="rainDaily" stroke="#ec4899" strokeWidth={2} name="Daily Rain" dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </Card>
