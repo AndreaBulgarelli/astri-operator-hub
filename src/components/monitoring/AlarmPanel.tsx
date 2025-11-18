@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, Info, XCircle, Bell, CheckCircle } from "lucide-react";
+import { AlertTriangle, Info, XCircle, Bell, CheckCircle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -17,7 +17,8 @@ const alarms = [
     alarmState: "Active",
     systemState: "Warning",
     priority: "High",
-    actionRequired: "Check cooling system and verify camera temperature sensors. Contact technical support if temperature continues to rise."
+    actionRequired: "Check cooling system and verify camera temperature sensors. Contact technical support if temperature continues to rise.",
+    helpUrl: "https://docs.example.com/camera-temperature"
   },
   { 
     id: 2, 
@@ -29,7 +30,8 @@ const alarms = [
     alarmState: "Active",
     systemState: "Normal",
     priority: "Low",
-    actionRequired: "Monitor wind conditions. Consider closing dome if wind speed exceeds safety threshold."
+    actionRequired: "Monitor wind conditions. Consider closing dome if wind speed exceeds safety threshold.",
+    helpUrl: "https://docs.example.com/weather-alerts"
   },
   { 
     id: 3, 
@@ -41,7 +43,8 @@ const alarms = [
     alarmState: "Shelved",
     systemState: "Warning",
     priority: "Medium",
-    actionRequired: "Inspect power connections and check UPS status. Review power logs for anomalies."
+    actionRequired: "Inspect power connections and check UPS status. Review power logs for anomalies.",
+    helpUrl: "https://docs.example.com/power-issues"
   },
 ];
 
@@ -93,6 +96,15 @@ export const AlarmPanel = () => {
                       <Badge variant={getPriorityColor(alarm.priority) as any} className="text-[10px]">
                         {alarm.priority}
                       </Badge>
+                      <a 
+                        href={alarm.helpUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
                     </div>
                     <p className="text-sm">{alarm.message}</p>
                     <div className="flex items-center gap-3 text-xs">
@@ -129,6 +141,19 @@ export const AlarmPanel = () => {
                     >
                       <CheckCircle className="h-3 w-3" />
                       Ack
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="h-8 text-xs gap-1"
+                      disabled={alarm.shelved}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle clear action
+                      }}
+                    >
+                      <XCircle className="h-3 w-3" />
+                      Clear
                     </Button>
                   </div>
                 </div>
