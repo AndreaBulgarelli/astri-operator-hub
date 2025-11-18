@@ -116,11 +116,11 @@ export const AlarmPanel = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-1.5">
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="h-8 text-xs"
+                      className="h-7 text-xs px-2 w-20"
                       disabled={alarm.shelved}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -132,7 +132,7 @@ export const AlarmPanel = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="h-8 text-xs gap-1"
+                      className="h-7 text-xs gap-1 px-2 w-20"
                       disabled={alarm.shelved}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -145,7 +145,7 @@ export const AlarmPanel = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      className="h-8 text-xs gap-1"
+                      className="h-7 text-xs gap-1 px-2 w-20"
                       disabled={alarm.shelved}
                       onClick={(e) => {
                         e.stopPropagation();
