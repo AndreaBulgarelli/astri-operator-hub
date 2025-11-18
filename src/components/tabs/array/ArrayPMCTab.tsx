@@ -1,8 +1,21 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { Maximize2, Minimize2, Target } from "lucide-react";
+import { Maximize2, Minimize2, Target, Download } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+type TimeRange = '1m' | '5m' | '15m' | '1h' | '4h' | '1d';
+
+const getPointsForRange = (range: TimeRange): number => {
+  switch (range) {
+    case '1m': return 20;
+    case '5m': return 100;
+    case '15m': return 300;
+    case '1h': return 120;
+    case '4h': return 480;
+    case '1d': return 288;
+  }
+};
 
 const generatePMCData = (points: number = 20) => {
   const now = Date.now();
@@ -16,19 +29,21 @@ const generatePMCData = (points: number = 20) => {
 };
 
 export const ArrayPMCTab = () => {
+  const [timeRange, setTimeRange] = useState<TimeRange>('1m');
   const [fullscreenTelescope, setFullscreenTelescope] = useState<number | null>(null);
   const [isTabFullscreen, setIsTabFullscreen] = useState(false);
   const [pmcData, setPmcData] = useState(() => 
-    Array.from({ length: 9 }, () => generatePMCData())
+    Array.from({ length: 9 }, () => generatePMCData(getPointsForRange('1m')))
   );
 
   useEffect(() => {
+    const points = getPointsForRange(timeRange);
     const interval = setInterval(() => {
-      setPmcData(Array.from({ length: 9 }, () => generatePMCData()));
+      setPmcData(Array.from({ length: 9 }, () => generatePMCData(points)));
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [timeRange]);
 
   if (isTabFullscreen) {
     return (
@@ -78,6 +93,31 @@ export const ArrayPMCTab = () => {
   if (fullscreenTelescope !== null) {
     const telescopeIndex = fullscreenTelescope - 1;
     const latestData = pmcData[telescopeIndex][pmcData[telescopeIndex].length - 1];
+
+    const handleDownloadChart = (chartId: string) => {
+      const svgElement = document.querySelector(`#${chartId} .recharts-wrapper svg`);
+      if (svgElement) {
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+          const pngFile = canvas.toDataURL("image/png");
+          const downloadLink = document.createElement("a");
+          downloadLink.download = `${chartId}.png`;
+          downloadLink.href = pngFile;
+          downloadLink.click();
+        };
+        
+        img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+      }
+    };
+
+    const timeRanges: TimeRange[] = ['1m', '5m', '15m', '1h', '4h', '1d'];
     
     return (
       <div className="fixed inset-0 z-50 bg-background p-6 overflow-auto">
@@ -130,33 +170,72 @@ export const ArrayPMCTab = () => {
             {/* Charts */}
             <div className="space-y-6">
               <div>
-                <div className="text-sm text-muted-foreground mb-2">RA & Dec Pointing Errors (°)</div>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={pmcData[telescopeIndex]}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-                    <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                    <Legend />
-                    <Line type="monotone" dataKey="raError" stroke="#3b82f6" strokeWidth={2} name="RA Error" dot={false} />
-                    <Line type="monotone" dataKey="decError" stroke="#ef4444" strokeWidth={2} name="Dec Error" dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm text-muted-foreground">RA & Dec Pointing Errors (°)</div>
+                  <div className="flex gap-2">
+                    <div className="flex gap-1">
+                      {timeRanges.map((range) => (
+                        <Button
+                          key={range}
+                          variant={timeRange === range ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setTimeRange(range)}
+                          className="h-6 px-2 text-xs"
+                        >
+                          {range}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDownloadChart('pmc-chart-1')}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Download className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                <div id="pmc-chart-1">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={pmcData[telescopeIndex]}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                      <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                      <Legend />
+                      <Line type="monotone" dataKey="raError" stroke="#3b82f6" strokeWidth={2} name="RA Error" dot={false} />
+                      <Line type="monotone" dataKey="decError" stroke="#ef4444" strokeWidth={2} name="Dec Error" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
 
               <div>
-                <div className="text-sm text-muted-foreground mb-2">Tracking Errors (°)</div>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={pmcData[telescopeIndex]}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-                    <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                    <Legend />
-                    <Line type="monotone" dataKey="zenithTrackErr" stroke="#10b981" strokeWidth={2} name="Zenith Track Err" dot={false} />
-                    <Line type="monotone" dataKey="azimuthTrackErr" stroke="#f59e0b" strokeWidth={2} name="Azimuth Track Err" dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm text-muted-foreground">Tracking Errors (°)</div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDownloadChart('pmc-chart-2')}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Download className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div id="pmc-chart-2">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={pmcData[telescopeIndex]}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
+                      <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                      <Legend />
+                      <Line type="monotone" dataKey="zenithTrackErr" stroke="#10b981" strokeWidth={2} name="Zenith Track Err" dot={false} />
+                      <Line type="monotone" dataKey="azimuthTrackErr" stroke="#f59e0b" strokeWidth={2} name="Azimuth Track Err" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </Card>
@@ -235,33 +314,110 @@ export const ArrayPMCTab = () => {
                 {/* Charts */}
                 <div className="space-y-4">
                   <div>
-                    <div className="text-sm text-muted-foreground mb-2">RA & Dec Pointing Errors (°)</div>
-                    <ResponsiveContainer width="100%" height={150}>
-                      <LineChart data={pmcData[i]}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-                        <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                        <Legend />
-                        <Line type="monotone" dataKey="raError" stroke="#3b82f6" strokeWidth={2} name="RA Error" dot={false} />
-                        <Line type="monotone" dataKey="decError" stroke="#ef4444" strokeWidth={2} name="Dec Error" dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs text-muted-foreground">RA & Dec Pointing Errors (°)</div>
+                      <div className="flex gap-2">
+                        <div className="flex gap-1">
+                          {['1m', '5m', '15m', '1h', '4h', '1d'].map((range) => (
+                            <Button
+                              key={range}
+                              variant={timeRange === range ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setTimeRange(range as TimeRange)}
+                              className="h-5 px-1.5 text-[10px]"
+                            >
+                              {range}
+                            </Button>
+                          ))}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const svgElement = document.querySelector(`#pmc-chart-${i}-1 .recharts-wrapper svg`);
+                            if (svgElement) {
+                              const svgData = new XMLSerializer().serializeToString(svgElement);
+                              const canvas = document.createElement("canvas");
+                              const ctx = canvas.getContext("2d");
+                              const img = new Image();
+                              img.onload = () => {
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                ctx?.drawImage(img, 0, 0);
+                                const pngFile = canvas.toDataURL("image/png");
+                                const downloadLink = document.createElement("a");
+                                downloadLink.download = `pmc-chart-${i}-1.png`;
+                                downloadLink.href = pngFile;
+                                downloadLink.click();
+                              };
+                              img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+                            }
+                          }}
+                          className="h-5 w-5 p-0"
+                        >
+                          <Download className="h-2.5 w-2.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div id={`pmc-chart-${i}-1`} className="h-[150px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={pmcData[i]}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="time" className="text-[8px]" stroke="hsl(var(--foreground))" />
+                          <YAxis className="text-[8px]" stroke="hsl(var(--foreground))" />
+                          <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                          <Legend wrapperStyle={{ fontSize: '10px' }} />
+                          <Line type="monotone" dataKey="raError" stroke="#3b82f6" strokeWidth={1.5} name="RA" dot={false} />
+                          <Line type="monotone" dataKey="decError" stroke="#ef4444" strokeWidth={1.5} name="Dec" dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
 
                   <div>
-                    <div className="text-sm text-muted-foreground mb-2">Tracking Errors (°)</div>
-                    <ResponsiveContainer width="100%" height={150}>
-                      <LineChart data={pmcData[i]}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="time" className="text-xs" stroke="hsl(var(--foreground))" />
-                        <YAxis className="text-xs" stroke="hsl(var(--foreground))" />
-                        <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                        <Legend />
-                        <Line type="monotone" dataKey="zenithTrackErr" stroke="#10b981" strokeWidth={2} name="Zenith Track Err" dot={false} />
-                        <Line type="monotone" dataKey="azimuthTrackErr" stroke="#f59e0b" strokeWidth={2} name="Azimuth Track Err" dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs text-muted-foreground">Tracking Errors (°)</div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const svgElement = document.querySelector(`#pmc-chart-${i}-2 .recharts-wrapper svg`);
+                          if (svgElement) {
+                            const svgData = new XMLSerializer().serializeToString(svgElement);
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+                            const img = new Image();
+                            img.onload = () => {
+                              canvas.width = img.width;
+                              canvas.height = img.height;
+                              ctx?.drawImage(img, 0, 0);
+                              const pngFile = canvas.toDataURL("image/png");
+                              const downloadLink = document.createElement("a");
+                              downloadLink.download = `pmc-chart-${i}-2.png`;
+                              downloadLink.href = pngFile;
+                              downloadLink.click();
+                            };
+                            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+                          }
+                        }}
+                        className="h-5 w-5 p-0"
+                      >
+                        <Download className="h-2.5 w-2.5" />
+                      </Button>
+                    </div>
+                    <div id={`pmc-chart-${i}-2`} className="h-[150px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={pmcData[i]}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="time" className="text-[8px]" stroke="hsl(var(--foreground))" />
+                          <YAxis className="text-[8px]" stroke="hsl(var(--foreground))" />
+                          <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                          <Legend wrapperStyle={{ fontSize: '10px' }} />
+                          <Line type="monotone" dataKey="zenithTrackErr" stroke="#10b981" strokeWidth={1.5} name="Zenith" dot={false} />
+                          <Line type="monotone" dataKey="azimuthTrackErr" stroke="#f59e0b" strokeWidth={1.5} name="Azimuth" dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
               </Card>
