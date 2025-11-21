@@ -53,14 +53,9 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
     fetch(`${OPAPI_BASE_URL}/shelve/${alarm.alarmId}`).
     then(response => {
       if (!response.ok) {
-        throw new Error("Failed to shelve alarm");
+        throw new Error(`Failed to shelve alarm: ${response.statusText}`);
       }
       alarm.shelved = true;
-      // setAlarms((prevAlarms) => 
-      //   prevAlarms.map(a => 
-      //     a.alarmId === alarm.alarmId ? {...a, shelved: true} : a
-      //   )
-      // );
     }).
     catch(err => {
       console.error("Error shelving alarm:", err);
