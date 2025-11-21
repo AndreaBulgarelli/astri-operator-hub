@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Header } from "@/components/layout/Header";
 import { SystemMonitoring } from "@/components/tabs/SystemMonitoring";
@@ -12,15 +12,35 @@ import { EventLog } from "@/components/monitoring/EventLog";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Card } from "@/components/ui/card";
 import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } from "lucide-react";
+import { AlarmEvent, setWS } from "@/lib/alarm-utilities";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
   const [currentPlanData, setCurrentPlanData] = useState<any[]>([]);
+  const [alarms, setAlarms] = useState<AlarmEvent[]>([]);
+
+  useEffect(() => {
+    const ws = setWS(updateAlarms);
+  }, []);
+
+  const updateAlarms = (newAlarms: AlarmEvent[]) => {
+    console.log("New alarms received in AlarmPanel:", newAlarms);
+    setAlarms((prevAlarms) => {
+      const combined = [...newAlarms, ...prevAlarms];
+      const unique = combined.filter((alarm, index, self) =>
+        index === self.findIndex(a => 
+          a.alarmId === alarm.alarmId && 
+          a.sourceTimestamp === alarm.sourceTimestamp
+        )
+      );
+      return unique;
+    });
+  };
 
   const metrics = [
     { icon: Telescope, value: 9 , label: "6 Operational, 1 Safe, 1 Fault", color: "text-status-online" },
     { icon: Box, value: 0, label: "Running Obs. Blocks", color: "text-status-active" },
-    { icon: AlertTriangle, value: 2, label: "Unack. Alarms", color: "text-status-error" },
+    { icon: AlertTriangle, value: alarms.filter(a => !a.shelved).length, label: "Unack. Alarms", color: "text-status-error" },
     { icon: CircleCheck, value: "92%", label: "Data Quality", color: "text-status-online" },
     { icon: Activity, value: "1.2 GB/s", label: "Data Rate", color: "text-status-active" },
     { icon: CloudSun, value: "Good", label: "Environmental Condition", color: "text-status-online" },
@@ -87,7 +107,7 @@ const Index = () => {
             <ResizablePanelGroup direction="vertical" className="h-full">
               <ResizablePanel defaultSize={50} minSize={30}>
                 <div className="h-full pr-2 pb-2">
-                  <AlarmPanel />
+                  <AlarmPanel alarms={alarms} setAlarms={setAlarms} />
                 </div>
               </ResizablePanel>
 

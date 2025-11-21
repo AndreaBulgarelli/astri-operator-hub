@@ -1,17 +1,50 @@
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle, Info, XCircle, Bell } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AlarmEvent, setWS } from "@/lib/alarm-utilities";
 
-const alarms = [
-  { id: 1, type: "warning", system: "A4", message: "Camera temperature above nominal", time: "10:32:45", shelved: false },
-  { id: 2, type: "info", system: "WS1", message: "Wind speed increasing", time: "10:28:12", shelved: false },
-  { id: 3, type: "warning", system: "PMS", message: "Power fluctuation detected", time: "10:15:03", shelved: true },
-];
+export const AlarmPanel = ({alarms, setAlarms}: {alarms: AlarmEvent[], setAlarms: React.Dispatch<React.SetStateAction<AlarmEvent[]>>}) => {
+  
+  const [selectedAlarm, setSelectedAlarm] = useState<AlarmEvent | null>(null);
 
-export const AlarmPanel = () => {
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case "VERY_HIGH":
+        return "destructive";
+      case "HIGH":
+        return "destructive";
+      case "MEDIUM":
+        return "default";
+      case "LOW":
+        return "secondary";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getStateColor = (state?: string) => {
+    switch (state) {
+      case "NEW":
+        return "destructive";
+      case "ACTIVE":
+        return "default";
+      case "ACKNOWLEDGED":
+        return "secondary";
+      case "CLEARED":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
+
+  const formatTimestamp = (ts?: number) => {
+    if (!ts) return "N/A";
+    return new Date(ts).toLocaleString();
+  };
+
   return (
     <Card className="control-panel p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
@@ -24,36 +57,46 @@ export const AlarmPanel = () => {
 
       <ScrollArea className="flex-1">
         <div className="space-y-2">
-          {alarms.map((alarm) => (
+          {alarms.map((alarm, index) => (
             <div
-              key={alarm.id}
-              className={cn(
-                "p-3 rounded-lg border transition-all",
-                alarm.shelved ? "bg-secondary/30 border-border/50 opacity-60" : "bg-secondary/50 border-border",
-                alarm.type === "warning" && !alarm.shelved && "border-l-4 border-l-warning"
-              )}
+              key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
+              onClick={() => setSelectedAlarm(alarm)}
+              className={`w-full text-left px-2 py-2 rounded hover:bg-muted ${
+                selectedAlarm?.alarmId === alarm.alarmId &&
+                selectedAlarm?.sourceTimestamp === alarm.sourceTimestamp
+                  ? "bg-muted"
+                  : ""
+              }`}
             >
-              <div className="flex items-start gap-3">
-                {alarm.type === "warning" ? (
-                  <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
-                ) : (
-                  <Info className="h-4 w-4 text-primary mt-0.5" />
-                )}
-                <div className="flex-1 space-y-1">
+              <div className="flex items-start gap-2">
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px]">{alarm.system}</Badge>
-                    <span className="text-xs text-muted-foreground font-mono">{alarm.time}</span>
+                    <Badge variant={getPriorityColor(alarm.alarmPriority)}>
+                      {alarm.alarmPriority || "UNKNOWN"}
+                    </Badge>
+                    <Badge variant={getStateColor(alarm.alarmSystemState)}>
+                      {alarm.alarmSystemState || "UNKNOWN"}
+                    </Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 text-xs ml-auto"
+                      disabled={alarm.shelved}
+                    >
+                      {alarm.shelved ? "Shelved" : "Shelve"}
+                    </Button>
                   </div>
-                  <p className="text-sm">{alarm.message}</p>
+                  <div className="text-sm font-medium truncate">
+                    {alarm.problemDescription || alarm.alarmId || "Unknown Alarm"}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {alarm.faultFamily}:{alarm.faultMember}:{alarm.faultCode}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {formatTimestamp(alarm.sourceTimestamp)}
+                  </div>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="h-8 text-xs"
-                  disabled={alarm.shelved}
-                >
-                  {alarm.shelved ? "Shelved" : "Shelve"}
-                </Button>
+                
               </div>
             </div>
           ))}

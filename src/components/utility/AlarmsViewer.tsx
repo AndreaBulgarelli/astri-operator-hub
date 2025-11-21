@@ -4,26 +4,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
-
-type AlarmEvent = {
-  sourceTimestamp?: number;
-  alarmId?: string;
-  faultFamily?: string;
-  faultMember?: string;
-  faultCode?: number;
-  acsAlarmState?: string;
-  alarmSystemState?: string;
-  alarmPriority?: string;
-  problemDescription?: string;
-  cause?: string | null;
-  consequence?: string | null;
-  actionRequired?: string | null;
-  helpUrl?: string | null;
-  sourceName?: string;
-  systemName?: string | null;
-  _topic?: string;
-  [key: string]: any;
-};
+import { toast } from "@/hooks/use-toast";
+import { AlarmEvent } from "@/lib/alarm-utilities";
 
 const WS_URL = (import.meta as any).env?.VITE_WEBHOOK_WS_URL || "ws://localhost:8089/ws";
 
@@ -39,6 +21,7 @@ export const AlarmsViewer = () => {
 
     const connect = () => {
       try {
+        console.log("Connecting to WebSocket:", WS_URL);
         ws = new WebSocket(WS_URL);
         
         ws.onopen = () => {
@@ -59,6 +42,7 @@ export const AlarmsViewer = () => {
             
             if (alarmMessages.length > 0) {
               setAlarms(prev => {
+                // show pop-up notitication
                 // Add new alarms, keeping most recent first, limit to 100
                 const combined = [...alarmMessages, ...prev];
                 // Remove duplicates based on alarmId + timestamp
