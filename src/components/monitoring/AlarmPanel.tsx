@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle, Info, XCircle, Bell } from "lucide-react";
 import { AlarmEvent, setWS } from "@/lib/alarm-utilities";
 
-export const AlarmPanel = ({alarms, setAlarms}: {alarms: AlarmEvent[], setAlarms: React.Dispatch<React.SetStateAction<AlarmEvent[]>>}) => {
+export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[], setAlarms: React.Dispatch<React.SetStateAction<AlarmEvent[]>>, connected: boolean}) => {
   
   const [selectedAlarm, setSelectedAlarm] = useState<AlarmEvent | null>(null);
 
@@ -53,6 +53,13 @@ export const AlarmPanel = ({alarms, setAlarms}: {alarms: AlarmEvent[], setAlarms
           Active Alarms
         </h3>
         <Badge variant="outline" className="text-xs">{alarms.filter(a => !a.shelved).length} Active</Badge>
+      </div>
+
+      <div className="col-span-12 flex gap-2 items-center">
+        <div className={`h-2 w-2 rounded-full ${connected ? "bg-green-500" : "bg-red-500"}`} />
+        <span className="text-xs text-muted-foreground">
+          {connected ? "Connected" : "Disconnected"} to webSocket
+        </span>
       </div>
 
       <ScrollArea className="flex-1">

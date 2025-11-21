@@ -26,13 +26,18 @@ export type AlarmEvent = {
     [key: string]: any;
 };
 
-export function setWS(onMessage?: (alarmMessages: AlarmEvent[]) => void) {
+export function setWS(onMessage?: (alarmMessages: AlarmEvent[]) => void, 
+                        onConnected?: (state: boolean) => void,
+                        onError?: (err) => void, 
+                        onClose?: () => void,) {
     try {
         console.log("Connecting to WebSocket:", WS_URL);
         ws = new WebSocket(WS_URL);
         
         ws.onopen = () => {
             console.log("WebSocket connected");
+            onConnected && onConnected(true);
+            onError && onError(null);
         };
 
         ws.onmessage = (event) => {
@@ -48,7 +53,7 @@ export function setWS(onMessage?: (alarmMessages: AlarmEvent[]) => void) {
                 );
             
                 if (alarmMessages.length > 0 && onMessage) {
-                    onMessage(alarmMessages);
+                    onMessage && onMessage(alarmMessages);
                     toast({
                         title: `Alarm${alarmMessages.length !== 1 ? "s" : ""} received`,
                         description: `Alarm received: ${alarmMessages.length} new alarm(s)`,
@@ -61,14 +66,34 @@ export function setWS(onMessage?: (alarmMessages: AlarmEvent[]) => void) {
 
         ws.onerror = (err) => {
             console.error("WebSocket error:", err);
+            onError && onError(err);
         };
 
         ws.onclose = () => {
             console.log("WebSocket closed");
+            onClose && onClose();
+            // Reconnect after 3 seconds
+            reconnectTimeout = setTimeout(() => setWS(onMessage, onConnected, onError, onClose), 3000);
         };
 
         return ws;
     } catch (err) {
         console.error("Failed to connect to WebSocket:", err);
+        onError && onError(err);
+        onConnected && onConnected(false);
+        reconnectTimeout = setTimeout(() => setWS(onMessage, onConnected, onError, onClose), 3000);
     }
 };
+
+// export async function shelveAlarm(alarm: AlarmEvent) {
+//     try {
+//       const [opsRes, sbsRes] = await Promise.all([
+//         fetch(`${BASE}/api/op`),
+//         fetch(`${BASE}/api/sb`),
+//       ]);
+//     } catch (e: any) {
+//       setError(e?.message || "Network error");
+//     } finally {
+//       setLoading(false);
+//     }
+//   }

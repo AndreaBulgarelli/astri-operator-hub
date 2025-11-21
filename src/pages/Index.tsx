@@ -13,16 +13,26 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { Card } from "@/components/ui/card";
 import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } from "lucide-react";
 import { AlarmEvent, setWS } from "@/lib/alarm-utilities";
+import { set } from "date-fns";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
   const [currentPlanData, setCurrentPlanData] = useState<any[]>([]);
   const [alarms, setAlarms] = useState<AlarmEvent[]>([]);
-
+  const [connected, setConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   useEffect(() => {
-    const ws = setWS(updateAlarms);
+    const ws = setWS(updateAlarms, onConnected, onError, onClose);
+    if (!ws) {
+      setError("Failed to connect to WebSocket");
+      setConnected(false);
+    } else {
+      setError(null);
+      setConnected(true);
+    }
   }, []);
-
+  
   const updateAlarms = (newAlarms: AlarmEvent[]) => {
     console.log("New alarms received in AlarmPanel:", newAlarms);
     setAlarms((prevAlarms) => {
@@ -35,6 +45,22 @@ const Index = () => {
       );
       return unique;
     });
+  };
+
+  const onError = (err) => {
+    if (!err) return;
+    console.error("WebSocket error in Index page:", err);
+    setError("WebSocket connection error");
+  };
+  const onClose = () => {
+    console.log("WebSocket closed in Index page");
+    setConnected(false);
+  };
+  const onConnected = (state: boolean) => {
+    setConnected(state);
+    if (state) {
+      setError(null);
+    }
   };
 
   const metrics = [
@@ -107,7 +133,7 @@ const Index = () => {
             <ResizablePanelGroup direction="vertical" className="h-full">
               <ResizablePanel defaultSize={50} minSize={30}>
                 <div className="h-full pr-2 pb-2">
-                  <AlarmPanel alarms={alarms} setAlarms={setAlarms} />
+                  <AlarmPanel alarms={alarms} setAlarms={setAlarms} connected={connected} />
                 </div>
               </ResizablePanel>
 
