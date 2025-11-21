@@ -12,7 +12,7 @@ import { EventLog } from "@/components/monitoring/EventLog";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Card } from "@/components/ui/card";
 import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } from "lucide-react";
-import { AlarmEvent, setWS } from "@/lib/alarm-utilities";
+import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
 import { set } from "date-fns";
 
 const Index = () => {
@@ -34,7 +34,6 @@ const Index = () => {
   }, []);
   
   const updateAlarms = (newAlarms: AlarmEvent[]) => {
-    console.log("New alarms received in AlarmPanel:", newAlarms);
     setAlarms((prevAlarms) => {
       const combined = [...newAlarms, ...prevAlarms];
       const unique = combined.filter((alarm, index, self) =>

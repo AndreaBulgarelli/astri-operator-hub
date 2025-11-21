@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { AlarmEvent } from "@/lib/alarm-utilities";
+import { AlarmEvent } from "@/lib/ws-alarms-utilities";
 
 const WS_URL = (import.meta as any).env?.VITE_WEBHOOK_WS_URL || "ws://localhost:8089/ws";
 

@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle, Info, XCircle, Bell } from "lucide-react";
-import { AlarmEvent, setWS } from "@/lib/alarm-utilities";
+import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
+
+const OPAPI_BASE_URL = (import.meta as any).env?.VITE_OPAPI_BASE_URL || "http://localhost:5050";
 
 export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[], setAlarms: React.Dispatch<React.SetStateAction<AlarmEvent[]>>, connected: boolean}) => {
   
@@ -44,6 +46,26 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
     if (!ts) return "N/A";
     return new Date(ts).toLocaleString();
   };
+
+  const shelveAlarm = (alarm: AlarmEvent) => {
+    // Mark the alarm as shelved locally
+    console.log("Shelving alarm:", alarm);
+    fetch(`${OPAPI_BASE_URL}/shelve/${alarm.alarmId}`).
+    then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to shelve alarm");
+      }
+      alarm.shelved = true;
+      // setAlarms((prevAlarms) => 
+      //   prevAlarms.map(a => 
+      //     a.alarmId === alarm.alarmId ? {...a, shelved: true} : a
+      //   )
+      // );
+    }).
+    catch(err => {
+      console.error("Error shelving alarm:", err);
+    });
+  }
 
   return (
     <Card className="control-panel p-6 h-full flex flex-col">
@@ -88,6 +110,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                       variant="ghost" 
                       size="sm"
                       className="h-8 text-xs ml-auto"
+                      onClick={() => shelveAlarm(alarm)}
                       disabled={alarm.shelved}
                     >
                       {alarm.shelved ? "Shelved" : "Shelve"}
