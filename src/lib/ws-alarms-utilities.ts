@@ -1,10 +1,8 @@
 import { toast } from "@/hooks/use-toast";
-import { set } from "date-fns";
 
 const WS_URL = (import.meta as any).env?.VITE_WEBHOOK_WS_URL || "ws://localhost:8089/ws";
 let ws: WebSocket | null = null;
 let reconnectTimeout: NodeJS.Timeout;
-
 
 export type AlarmEvent = {
     sourceTimestamp?: number;
@@ -42,7 +40,6 @@ export function setWS(onMessage?: (alarmMessages: AlarmEvent[]) => void,
 
         ws.onmessage = (event) => {
             try {
-                console.log("WebSocket message received");
                 const data = JSON.parse(event.data);
                 const messages = Array.isArray(data) ? data : [data];
                 
@@ -84,16 +81,3 @@ export function setWS(onMessage?: (alarmMessages: AlarmEvent[]) => void,
         reconnectTimeout = setTimeout(() => setWS(onMessage, onConnected, onError, onClose), 3000);
     }
 };
-
-// export async function shelveAlarm(alarm: AlarmEvent) {
-//     try {
-//       const [opsRes, sbsRes] = await Promise.all([
-//         fetch(`${BASE}/api/op`),
-//         fetch(`${BASE}/api/sb`),
-//       ]);
-//     } catch (e: any) {
-//       setError(e?.message || "Network error");
-//     } finally {
-//       setLoading(false);
-//     }
-//   }
