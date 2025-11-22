@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle, Info, XCircle, Bell } from "lucide-react";
 import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
+import { set } from "date-fns";
 
 const OPAPI_BASE_URL = (import.meta as any).env?.VITE_OPAPI_BASE_URL || "http://localhost:5050";
 
@@ -55,7 +56,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
       if (!response.ok) {
         throw new Error(`Failed to shelve alarm: ${response.statusText}`);
       }
-      alarm.shelved = true;
+      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, shelved: true } : a));
     }).
     catch(err => {
       console.error("Error shelving alarm:", err);
