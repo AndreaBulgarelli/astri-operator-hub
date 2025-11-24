@@ -65,7 +65,7 @@ const Index = () => {
   const metrics = [
     { icon: Telescope, value: 9 , label: "6 Operational, 1 Safe, 1 Fault", color: "text-status-online" },
     { icon: Box, value: 0, label: "Running Obs. Blocks", color: "text-status-active" },
-    { icon: AlertTriangle, value: alarms.filter(a => !a.shelved).length, label: "Unack. Alarms", color: "text-status-error" },
+    { icon: AlertTriangle, value: alarms.filter(a => !a.acknowledged).length, label: "Unack. Alarms", color: "text-status-error" },
     { icon: CircleCheck, value: "92%", label: "Data Quality", color: "text-status-online" },
     { icon: Activity, value: "1.2 GB/s", label: "Data Rate", color: "text-status-active" },
     { icon: CloudSun, value: "Good", label: "Environmental Condition", color: "text-status-online" },

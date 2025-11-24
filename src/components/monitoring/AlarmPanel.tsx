@@ -28,6 +28,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
     }
   };
 
+  // TODO is the state SHELVED necessary?
   const getStateColor = (state?: string) => {
     switch (state) {
       case "NEW":
@@ -38,6 +39,8 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
         return "secondary";
       case "CLEARED":
         return "outline";
+      case "SHELVED":
+        return "muted";
       default:
         return "outline";
     }
@@ -61,7 +64,22 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
     catch(err => {
       console.error("Error shelving alarm:", err);
     });
-  }
+  };
+
+  const acknowledgeAlarm = (alarm: AlarmEvent) => {
+    // Mark the alarm as acknowledged locally
+    console.log("Acknowledging alarm:", alarm);
+    fetch(`${OPAPI_BASE_URL}/ack/${alarm.alarmId}`).
+    then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to acknowledge alarm: ${response.statusText}`);
+      }
+      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, acknowledged: true, alarmSystemState: "ACKNOWLEDGED" } : a));
+    }).
+    catch(err => {
+      console.error("Error acknowledging alarm:", err);
+    });
+  };
 
   return (
     <Card className="control-panel p-6 h-full flex flex-col">
@@ -102,15 +120,26 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                     <Badge variant={getStateColor(alarm.alarmSystemState)}>
                       {alarm.alarmSystemState || "UNKNOWN"}
                     </Badge>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="h-8 text-xs ml-auto"
-                      onClick={() => shelveAlarm(alarm)}
-                      disabled={alarm.shelved}
-                    >
-                      {alarm.shelved ? "Shelved" : "Shelve"}
-                    </Button>
+                    <div className="ml-auto">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => acknowledgeAlarm(alarm)}
+                        disabled={alarm.acknowledged}
+                      >
+                        {alarm.acknowledged ? "Acknowledged" : "Acknowledge"}
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => shelveAlarm(alarm)}
+                        disabled={alarm.shelved}
+                      >
+                        {alarm.shelved ? "Shelved" : "Shelve"}
+                      </Button>
+                    </div>
                   </div>
                   <div className="text-sm font-medium truncate">
                     {alarm.problemDescription || alarm.alarmId || "Unknown Alarm"}
