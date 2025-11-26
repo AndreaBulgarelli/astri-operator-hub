@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { Power } from "lucide-react";
+import { Power, Telescope, Camera, Grid3x3, Cpu, Disc, Shield, AlertTriangle } from "lucide-react";
 
 type SystemCheckStatus = "idle" | "checking" | "ok" | "warning" | "error";
 
@@ -92,9 +92,14 @@ export const PreparationTab = () => {
     { id: "3", status: "Off" as "Off" | "Standby" | "Initialised" | "Operational" },
   ]);
 
+  const [uvsipm, setUvsipm] = useState({
+    status: "Off" as "Off" | "Standby" | "Initialised" | "Operational"
+  });
+
   const allChecked = Object.values(checklist).every(Boolean);
   const allTelescopesReady = telescopes.every(t => t.status === "Operational");
   const allSqmsReady = sqms.every(s => s.status === "Operational");
+  const allUvsipmReady = uvsipm.status === "Operational";
 
   const handleCheckSystem = () => {
     setIsCheckingSystem(true);
@@ -242,6 +247,39 @@ export const PreparationTab = () => {
     }
   };
 
+  const handleInitUvsipm = () => {
+    setUvsipm(prev => {
+      const nextStatus = 
+        prev.status === "Off" ? "Initialised" :
+        prev.status === "Initialised" ? "Standby" :
+        prev.status === "Standby" ? "Operational" : "Operational";
+      return { ...prev, status: nextStatus };
+    });
+  };
+
+  const handleGoToSafe = () => {
+    setTelescopes(prev => prev.map(t => ({
+      ...t,
+      status: "Safe" as TelescopeStatus,
+      mount: "Safe",
+      camera: "Off",
+      pmc: "Off",
+      m2: "Safe",
+      si3: "Off",
+      cherenkovCamera: "Off",
+      lid: "Closed"
+    })));
+    setOverallStatus("SAFE");
+    setThermalisationProgress({});
+    setLidProgress({});
+    setPreCalibrationDone(false);
+    setChecklist(prev => ({ ...prev, telescopesStandby: false, cameraInit: false, pmcInit: false }));
+    toast({
+      title: "Telescopes Set to Safe",
+      description: "All telescopes returned to SAFE state",
+    });
+  };
+
   const handleInitTelescopes = () => {
     setIsPreparing(true);
     setOverallStatus("STANDBY");
@@ -356,6 +394,40 @@ export const PreparationTab = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Operational":
+        return "text-status-online";
+      case "Standby":
+        return "text-status-standby";
+      case "Initialised":
+        return "text-[hsl(var(--status-initialised))]";
+      case "Safe":
+        return "text-status-active";
+      case "Degraded":
+        return "text-status-warning";
+      case "Off":
+        return "text-muted-foreground";
+      case "Fault":
+        return "text-status-error";
+      default:
+        return "text-muted-foreground";
+    }
+  };
+
+  const getStatusAbbreviation = (status: string) => {
+    switch (status) {
+      case "Operational": return "Op";
+      case "Standby": return "StBy";
+      case "Initialised": return "Ini";
+      case "Safe": return "Safe";
+      case "Degraded": return "Deg";
+      case "Off": return "Off";
+      case "Fault": return "Faul";
+      default: return status.substring(0, 4);
+    }
+  };
+
   return (
     <div className="h-full overflow-auto">
       <div className="p-6 space-y-6">
@@ -452,98 +524,46 @@ export const PreparationTab = () => {
               </Card>
             </div>
 
-            {/* Telescopes */}
+            {/* Telescopes Checklist */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold">2. Initialize Telescopes</h3>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <Button 
-                    onClick={handleInitTelescopes}
-                    disabled={isPreparing || isSettingOperational}
-                    className="flex-1"
-                  >
-                    {isPreparing ? "Putting in Standby..." : "Put STANDBY"}
-                  </Button>
-                  <Button 
-                    onClick={handleSetOperational}
-                    disabled={!checklist.telescopesStandby || isSettingOperational}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    {isSettingOperational ? "Setting Operational..." : "Set OPERATIONAL"}
-                  </Button>
-                </div>
-
-                {allTelescopesReady && !isOpeningLids && telescopes.every(t => t.lid === "Closed") && (
-                  <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg">
+              <Card className="p-4 bg-secondary/30">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
                     <Checkbox 
-                      checked={preCalibrationDone}
-                      onCheckedChange={(checked) => setPreCalibrationDone(checked as boolean)}
+                      checked={checklist.telescopesStandby}
+                      onCheckedChange={(checked) => 
+                        setChecklist(prev => ({ ...prev, telescopesStandby: checked as boolean }))
+                      }
                     />
                     <label className="text-sm font-medium cursor-pointer">
-                      Pre-calibration procedure done
+                      Put Telescopes in Standby
                     </label>
                   </div>
-                )}
-
-                <Card className="p-4 bg-secondary/30">
-                  <div className="grid grid-cols-3 gap-2">
-                    {telescopes.map((tel) => (
-                      <Card key={tel.id} className="p-3 bg-background/50">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-sm">ASTRI-{tel.id}</span>
-                          {getStatusBadge(tel.status)}
-                        </div>
-                        
-                        {/* Camera thermalisation progress */}
-                        {isSettingOperational && thermalisationProgress[tel.id] !== undefined && thermalisationProgress[tel.id] < 100 && (
-                          <div className="mb-2">
-                            <div className="text-xs text-muted-foreground mb-1">Camera thermalisation</div>
-                            <Progress value={thermalisationProgress[tel.id]} className="h-2" />
-                            <div className="text-xs text-right mt-0.5">{Math.round(thermalisationProgress[tel.id])}%</div>
-                          </div>
-                        )}
-
-                        {/* LID opening progress */}
-                        {isOpeningLids && lidProgress[tel.id] !== undefined && lidProgress[tel.id] < 100 && (
-                          <div className="mb-2">
-                            <div className="text-xs text-muted-foreground mb-1">Opening LID</div>
-                            <Progress value={lidProgress[tel.id]} className="h-2" />
-                            <div className="text-xs text-right mt-0.5">{Math.round(lidProgress[tel.id])}%</div>
-                          </div>
-                        )}
-                        
-                        <div className="space-y-1 text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Mount:</span>
-                            <span className="font-mono">{tel.mount}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">PMC:</span>
-                            <span className="font-mono">{tel.pmc}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Cherenkov:</span>
-                            <span className="font-mono">{tel.cherenkovCamera}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">SI3:</span>
-                            <span className="font-mono">{tel.si3}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">M2 AMC:</span>
-                            <span className="font-mono">{tel.m2}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">LID:</span>
-                            <span className="font-mono">{tel.lid}</span>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      checked={checklist.cameraInit}
+                      onCheckedChange={(checked) => 
+                        setChecklist(prev => ({ ...prev, cameraInit: checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm font-medium cursor-pointer">
+                      Put Telescopes in Operational
+                    </label>
                   </div>
-                </Card>
-              </div>
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      checked={checklist.pmcInit}
+                      onCheckedChange={(checked) => 
+                        setChecklist(prev => ({ ...prev, pmcInit: checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm font-medium cursor-pointer">
+                      Camera calibration procedure
+                    </label>
+                  </div>
+                </div>
+              </Card>
             </div>
 
             {/* Sky Quality Meter */}
@@ -580,6 +600,35 @@ export const PreparationTab = () => {
               </Card>
             </div>
 
+            {/* UVSiPM */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">4. UVSiPM</h3>
+              <Card className="p-4 bg-secondary/30">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">UVSiPM</div>
+                      <div className="text-xs text-muted-foreground">
+                        Cycle: Off → Initialised → Standby → Operational
+                      </div>
+                    </div>
+                    {getStatusBadge(uvsipm.status)}
+                  </div>
+                  <Button
+                    onClick={handleInitUvsipm}
+                    disabled={uvsipm.status === "Operational"}
+                    className="w-full"
+                  >
+                    {uvsipm.status === "Operational" ? "Operational" : `Advance to ${
+                      uvsipm.status === "Off" ? "Initialised" :
+                      uvsipm.status === "Initialised" ? "Standby" :
+                      "Operational"
+                    }`}
+                  </Button>
+                </div>
+              </Card>
+            </div>
+
             {/* Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4 bg-secondary/30">
@@ -604,6 +653,12 @@ export const PreparationTab = () => {
                 <div className="text-xs text-muted-foreground mb-1">SQM Ready</div>
                 <div className="text-lg font-semibold">
                   {sqms.filter(s => s.status === "Operational").length} / 3
+                </div>
+              </Card>
+              <Card className="p-4 bg-secondary/30">
+                <div className="text-xs text-muted-foreground mb-1">UVSiPM</div>
+                <div className="text-lg font-semibold">
+                  {uvsipm.status}
                 </div>
               </Card>
             </div>

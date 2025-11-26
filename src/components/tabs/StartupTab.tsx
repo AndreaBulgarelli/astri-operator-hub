@@ -28,25 +28,24 @@ export const StartupTab = () => {
     { id: "mysql", name: "MySQL", state: "Off", x: 80, y: 320, subsystem: "kubernetes" },
 
     // Core SCADA Systems
-    { id: "ccs", name: "CCS", state: "Off", x: 500, y: 300, subsystem: "core" },
-    { id: "rm", name: "RM", state: "Off", x: 500, y: 200, subsystem: "core" },
-    { id: "scc", name: "SCC", state: "Off", x: 350, y: 300, subsystem: "scada" },
+    { id: "ccs", name: "CCS", state: "Off", x: 320, y: 300, subsystem: "core" },
+    { id: "rm", name: "RM", state: "Off", x: 320, y: 200, subsystem: "core" },
     { id: "monitoring", name: "MON", state: "Off", x: 280, y: 80, subsystem: "scada" },
     { id: "logging", name: "LOG", state: "Off", x: 380, y: 80, subsystem: "scada" },
     { id: "alarm", name: "ALARM", state: "Off", x: 480, y: 80, subsystem: "scada" },
     { id: "hmi", name: "HMI", state: "Off", x: 580, y: 80, subsystem: "scada" },
 
     // ACS Manager
-    { id: "acs", name: "ACS Mgr", state: "Off", x: 350, y: 200, subsystem: "acs" },
+    { id: "acs", name: "ACS Mgr", state: "Off", x: 180, y: 80, subsystem: "acs" },
 
     // Collectors
-    { id: "atmos-col", name: "Atmos Col", state: "Off", x: 620, y: 380, subsystem: "collector" },
-    { id: "array-col", name: "Array Col", state: "Off", x: 700, y: 420, subsystem: "collector" },
-    { id: "tsc-col", name: "TSC Col", state: "Off", x: 700, y: 500, subsystem: "collector" },
-    { id: "ems-col", name: "EMS Col", state: "Off", x: 620, y: 540, subsystem: "collector" },
-    { id: "ict-col", name: "ICT Col", state: "Off", x: 540, y: 580, subsystem: "collector" },
-    { id: "power-col", name: "Power Col", state: "Off", x: 460, y: 580, subsystem: "collector" },
-    { id: "safety-col", name: "Safety Col", state: "Off", x: 380, y: 540, subsystem: "collector" },
+    { id: "atmos-col", name: "Atmos Col", state: "Off", x: 480, y: 300, subsystem: "collector" },
+    { id: "tsc-col", name: "TSC Col", state: "Off", x: 560, y: 300, subsystem: "collector" },
+    { id: "ems-col", name: "EMS Col", state: "Off", x: 640, y: 300, subsystem: "collector" },
+    { id: "ict-col", name: "ICT Col", state: "Off", x: 480, y: 200, subsystem: "collector" },
+    { id: "power-col", name: "Power Col", state: "Off", x: 560, y: 200, subsystem: "collector" },
+    { id: "safety-col", name: "Safety Col", state: "Off", x: 640, y: 200, subsystem: "collector" },
+    { id: "array-col", name: "Array Col", state: "Off", x: 720, y: 200, subsystem: "collector" },
 
     // TCS components (9 telescopes)
     { id: "tcs-1", name: "TCS-1", state: "Off", x: 80, y: 400, subsystem: "tcs" },
@@ -84,7 +83,7 @@ export const StartupTab = () => {
 
   const startupSteps = [
     { name: "Kubernetes Services", subsystems: ["kafka", "scdb", "cassandra", "mysql"] },
-    { name: "Central Control", subsystems: ["ccs", "rm", "scc"] },
+    { name: "Central Control", subsystems: ["ccs", "rm"] },
     { name: "SCADA Systems", subsystems: ["monitoring", "logging", "alarm", "hmi"] },
     {
       name: "Telescope Control Systems",
@@ -260,23 +259,6 @@ export const StartupTab = () => {
 
         <div className="bg-secondary/30 rounded-lg p-4 overflow-auto">
           <svg width="800" height="720" className="mx-auto">
-            {/* SCC to CCS */}
-            {(() => {
-              const ccs = components.find((c) => c.id === "ccs");
-              const scc = components.find((c) => c.id === "scc");
-              if (!ccs || !scc) return null;
-              return (
-                <line
-                  x1={scc.x}
-                  y1={scc.y}
-                  x2={ccs.x}
-                  y2={ccs.y}
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="2"
-                  opacity="0.6"
-                />
-              );
-            })()}
 
             {/* CCS to RM */}
             {(() => {

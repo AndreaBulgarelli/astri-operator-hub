@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 interface CameraGridProps {
   cameraId: number;
-  viewMode: "variance-hg" | "variance-lg" | "scientific" | "pdm";
+  viewMode: "var-hg" | "var-lg" | "sci-hg" | "sci-lg" | "cal-hg" | "cal-lg" | "pdm-rate";
   isSelected: boolean;
   onSelect: () => void;
 }
@@ -57,7 +57,7 @@ export const CameraGrid = ({ cameraId, viewMode, isSelected, onSelect }: CameraG
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="text-xs">A{cameraId}</Badge>
           <span className="text-xs text-muted-foreground">
-            {viewMode === "variance-hg" ? "HG" : viewMode === "variance-lg" ? "LG" : viewMode.toUpperCase()}
+            {viewMode.toUpperCase().replace("-", " ")}
           </span>
         </div>
 

@@ -184,7 +184,7 @@ export const OpSbBrowser = () => {
           <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
         </Button>
         <div className="text-xs text-muted-foreground ml-auto">
-          OPAPI: <code>{BASE}</code>
+          Observing Plan API: <code>{BASE}</code>
         </div>
       </div>
 

@@ -4,10 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { OOQSPanel } from "@/components/observation/OOQSPanel";
-import { DataCapturePanel } from "@/components/observation/DataCapturePanel";
-import { PointingPanel } from "@/components/observation/PointingPanel";
-import { ArraySummaryPanel } from "@/components/observation/ArraySummaryPanel";
 import { RunningPlanTab } from "./RunningPlanTab";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -37,7 +33,6 @@ export const ObservationTab = ({
   const [selectedOB, setSelectedOB] = useState<string>("");
   const [expandedSB, setExpandedSB] = useState<string | null>(null);
   const [runningPlans, setRunningPlans] = useState<RunningPlan[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("observing-plan");
   const [activePlanTab, setActivePlanTab] = useState<string>("main");
   
   // Check statuses per SB
@@ -458,17 +453,7 @@ export const ObservationTab = ({
 
   return (
     <div className="h-full p-6 space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-        <TabsList className="bg-secondary">
-          <TabsTrigger value="observing-plan">Observing Plan</TabsTrigger>
-          <TabsTrigger value="ooqs">OOQS</TabsTrigger>
-          <TabsTrigger value="summary">Array Summary</TabsTrigger>
-          <TabsTrigger value="datacapture">Data Capture</TabsTrigger>
-          <TabsTrigger value="pointing">Pointing</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="observing-plan" className="mt-4">
-          <Card className="control-panel p-6">
+      <Card className="control-panel p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-primary">Observation Control</h2>
@@ -697,25 +682,7 @@ export const ObservationTab = ({
                 ) : null;
               })}
             </Tabs>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="ooqs" className="mt-4">
-          <OOQSPanel />
-        </TabsContent>
-
-        <TabsContent value="summary" className="mt-4">
-          <ArraySummaryPanel />
-        </TabsContent>
-
-        <TabsContent value="datacapture" className="mt-4">
-          <DataCapturePanel />
-        </TabsContent>
-
-        <TabsContent value="pointing" className="mt-4">
-          <PointingPanel />
-        </TabsContent>
-      </Tabs>
+      </Card>
     </div>
   );
 };

@@ -52,9 +52,9 @@ export const MonitoringPointsViewer = () => {
             
             console.log(`[MonitoringPointsViewer] Received ${messages.length} message(s) from WebSocket`);
             
-            // Filter only monitoring point messages (from monitoring topic, not alarm-channel)
+            // Filter only monitoring point messages (from monCollector topic, not alarm-channel)
             const monitoringMessages = messages.filter((msg: MonitoringPoint) => {
-              const isMonitoring = (msg._topic === "monitoring" || (!msg._topic && msg.assembly && msg.name && msg.timestamp !== undefined));
+              const isMonitoring = (msg._topic === "monCollector" || (!msg._topic && msg.assembly && msg.name && msg.timestamp !== undefined));
               const isNotAlarm = !msg.alarmId;
               if (!isMonitoring) {
                 console.log(`[MonitoringPointsViewer] Filtered out message (not monitoring):`, msg._topic, msg.assembly, msg.name);

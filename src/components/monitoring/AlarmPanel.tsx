@@ -95,7 +95,6 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
       console.error("Error acknowledging alarm:", err);
     });
   };
-
   return (
     <Card className="control-panel p-3 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
@@ -190,9 +189,16 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                       <X fontSize="small" className="inline mr-1" />
                       Clear
                     </button>
+
                   </div>
                 </div>
-              </div>
+              </div> 
+              {selectedAlarm === alarm.id && (
+                <div className="ml-10 p-3 rounded-lg bg-accent/50 border border-border">
+                  <h4 className="text-xs font-semibold text-foreground mb-2">Action Required</h4>
+                  <p className="text-xs text-muted-foreground">{alarm.actionRequired}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
