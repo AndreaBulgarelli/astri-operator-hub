@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, Info, XCircle, Bell } from "lucide-react";
+import { AlertTriangle, Info, XCircle, Bell, ArchiveIcon, CheckCircleIcon, X } from "lucide-react";
 import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
 import { set } from "date-fns";
 
@@ -25,6 +25,21 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
         return "secondary";
       default:
         return "secondary";
+    }
+  };
+
+  const getPriorityColorSideLine = (priority: string) => {
+    switch (priority) {
+      case 'VERY_HIGH':
+        return 'bg-red-500';
+      case 'HIGH':
+        return 'bg-red-400';
+      case 'MEDIUM':
+        return 'bg-yellow-400';
+      case 'LOW':
+        return 'bg-gray-400';
+      default:
+        return 'bg-gray-400';
     }
   };
 
@@ -82,7 +97,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
   };
 
   return (
-    <Card className="control-panel p-6 h-full flex flex-col">
+    <Card className="control-panel p-3 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Bell className="h-5 w-5 text-primary" />
@@ -102,15 +117,16 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
         <div className="space-y-2">
           {alarms.map((alarm, index) => (
             <div
-              key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
-              onClick={() => setSelectedAlarm(alarm)}
-              className={`w-full text-left px-2 py-2 rounded hover:bg-muted ${
-                selectedAlarm?.alarmId === alarm.alarmId &&
-                selectedAlarm?.sourceTimestamp === alarm.sourceTimestamp
-                  ? "bg-muted"
-                  : ""
-              }`}
+            key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
+            onClick={() => setSelectedAlarm(alarm)}
+            className={`relative w-full text-left px-2 py-2 rounded hover:bg-muted ${
+              selectedAlarm?.alarmId === alarm.alarmId &&
+              selectedAlarm?.sourceTimestamp === alarm.sourceTimestamp
+              ? "bg-muted"
+              : ""
+            }`}
             >
+              <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${getPriorityColorSideLine(alarm.alarmPriority)}`} />
               <div className="flex items-start gap-2">
                 <div className="flex flex-col gap-1 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -120,7 +136,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                     <Badge variant={getStateColor(alarm.alarmSystemState)}>
                       {alarm.alarmSystemState || "UNKNOWN"}
                     </Badge>
-                    <div className="ml-auto">
+                    {/* <div className="ml-auto">
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -139,7 +155,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                       >
                         {alarm.shelved ? "Shelved" : "Shelve"}
                       </Button>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="text-sm font-medium truncate">
                     {alarm.problemDescription || alarm.alarmId || "Unknown Alarm"}
@@ -150,8 +166,32 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                   <div className="text-[10px] text-muted-foreground">
                     {formatTimestamp(alarm.sourceTimestamp)}
                   </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => shelveAlarm(alarm)}
+                      className="flex-1 px-3 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                      disabled={alarm.shelved}
+                    >
+                      <ArchiveIcon fontSize="small" className="inline mr-1" />
+                      {alarm.shelved ? "Shelved" : "Shelve"}
+                    </button>
+                    <button
+                      onClick={() => acknowledgeAlarm(alarm)}
+                      className="flex-1 px-3 py-1.5 text-xs font-medium bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                      disabled={alarm.acknowledged}
+                    >
+                      <CheckCircleIcon fontSize="small" className="inline mr-1" />
+                      {alarm.acknowledged ? "Acknowledged" : "Acknowledge"}
+                    </button>
+                    <button
+                      // onClick={() => handleClear(alarm.alarmId)}
+                      className="flex-1 px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                    >
+                      <X fontSize="small" className="inline mr-1" />
+                      Clear
+                    </button>
+                  </div>
                 </div>
-                
               </div>
             </div>
           ))}
