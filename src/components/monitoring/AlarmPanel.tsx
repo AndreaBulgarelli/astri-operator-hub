@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, Info, XCircle, Bell, ArchiveIcon, CheckCircleIcon, X } from "lucide-react";
+import { Bell, ArchiveIcon, CheckCircleIcon, X, Menu } from "lucide-react";
 import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
-import { set } from "date-fns";
 
 const OPAPI_BASE_URL = (import.meta as any).env?.VITE_OPAPI_BASE_URL || "http://localhost:5050";
 
 export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[], setAlarms: React.Dispatch<React.SetStateAction<AlarmEvent[]>>, connected: boolean}) => {
   
   const [selectedAlarm, setSelectedAlarm] = useState<AlarmEvent | null>(null);
+  const [stateFilters, setStateFilters] = useState(new Set());
 
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
@@ -59,6 +60,24 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
       default:
         return "outline";
     }
+  };
+
+  const alarmStates = [
+    'shelved',
+    'acknowledged',
+    'cleared',
+  ];
+
+  const updateAlarmsToView = (checked: boolean, state: string) => {
+    console.log("Showing alarms with states before update:", stateFilters);
+    const newStates = new Set(stateFilters);
+    if (checked) {
+      newStates.add(state);
+    } else {
+      newStates.delete(state);
+    }
+    setStateFilters(newStates);
+    console.log("Showing alarms with states after update:", stateFilters, newStates);
   };
 
   const formatTimestamp = (ts?: number) => {
@@ -126,76 +145,113 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
         <span className="text-xs text-muted-foreground">
           {connected ? "Connected" : "Disconnected"} to webSocket
         </span>
+        <div className="ml-auto">
+          {/* checkboxes for alarm states filter inside a dropdown menu */}
+          <DropdownMenuPrimitive.Root>
+            <DropdownMenuPrimitive.Trigger>
+              <Badge variant="secondary" className="text-sm"><Menu /> Menu</Badge>
+            </DropdownMenuPrimitive.Trigger>
+            <DropdownMenuPrimitive.Portal>
+              <DropdownMenuPrimitive.Content
+                className="bg-popover text-popover-foreground z-50 min-w-[220px] rounded-md border border-popover-foreground/10 p-1 shadow-lg"
+                sideOffset={5}
+                >
+                 { alarmStates.map((state, index) => (
+                      <div className="flex items-center p-2 bg-secondary/30 rounded-lg" key={index}>
+                        <div className="form-check ms-1" >
+                          <Checkbox
+                            id={`checkbox-${state}`}
+                            defaultChecked={false}
+                            onCheckedChange={(checked) => updateAlarmsToView(!!checked, state)}
+                          />
+                          <label className="ml-2 text-sm font-medium cursor-pointer">
+                            {state.charAt(0).toUpperCase() + state.slice(1)}
+                          </label>
+                        </div>
+                      </div>
+                  ))} 
+                  </DropdownMenuPrimitive.Content>
+            </DropdownMenuPrimitive.Portal>
+          </DropdownMenuPrimitive.Root>
+        </div>
       </div>
+
 
       <ScrollArea className="flex-1">
         <div className="space-y-2">
           {alarms.map((alarm, index) => (
-            <div
-            key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
-            onClick={() => setSelectedAlarm(alarm)}
-            className={`relative w-full text-left px-2 py-2 rounded hover:bg-muted ${
-              selectedAlarm?.alarmId === alarm.alarmId &&
-              selectedAlarm?.sourceTimestamp === alarm.sourceTimestamp
-              ? "bg-muted"
-              : ""
-            }`}
-            >
-              <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${getPriorityColorSideLine(alarm.alarmPriority)}`} />
-              <div className="flex items-start gap-2">
-                <div className="flex flex-col gap-1 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={getPriorityColor(alarm.alarmPriority)}>
-                      {alarm.alarmPriority || "UNKNOWN"}
-                    </Badge>
-                    <Badge variant={getStateColor(alarm.alarmSystemState)}>
-                      {alarm.alarmSystemState || "UNKNOWN"}
-                    </Badge>
-                  </div>
-                  <div className="text-sm font-medium truncate">
-                    {alarm.problemDescription || alarm.alarmId || "Unknown Alarm"}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">
-                    {alarm.faultFamily}:{alarm.faultMember}:{alarm.faultCode}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">
-                    {formatTimestamp(alarm.sourceTimestamp)}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => shelveAlarm(alarm)}
-                      className="flex-1 px-3 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                      disabled={alarm.shelved}
-                    >
-                      <ArchiveIcon fontSize="small" className="inline mr-1" />
-                      {alarm.shelved ? "Shelved" : "Shelve"}
-                    </button>
-                    <button
-                      onClick={() => acknowledgeAlarm(alarm)}
-                      className="flex-1 px-3 py-1.5 text-xs font-medium bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                      disabled={alarm.acknowledged}
-                    >
-                      <CheckCircleIcon fontSize="small" className="inline mr-1" />
-                      {alarm.acknowledged ? "Acknowledged" : "Acknowledge"}
-                    </button>
-                    <button
-                      onClick={() => clearAlarm(alarm)}
-                      className="flex-1 px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                    >
-                      <X fontSize="small" className="inline mr-1" />
-                      Clear
-                    </button>
+            // Filter alarms based on stateFilters
+            (stateFilters.size === 0 || 
+              (alarm.shelved && stateFilters.has('shelved')) ||
+              (alarm.acknowledged && stateFilters.has('acknowledged')) ||
+              (alarm.cleared && stateFilters.has('cleared'))
+            ) && (
+              <div
+              key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
+              onClick={() => setSelectedAlarm(alarm)}
+              className={`relative w-full text-left px-2 py-2 rounded hover:bg-muted ${
+                selectedAlarm?.alarmId === alarm.alarmId &&
+                selectedAlarm?.sourceTimestamp === alarm.sourceTimestamp
+                ? "bg-muted"
+                : ""
+              }`}
+              >
+                <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${getPriorityColorSideLine(alarm.alarmPriority)}`} />
+                <div className="flex items-start gap-2">
+                  <div className="flex flex-col gap-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getPriorityColor(alarm.alarmPriority)}>
+                        {alarm.alarmPriority || "UNKNOWN"}
+                      </Badge>
+                      <Badge variant={getStateColor(alarm.alarmSystemState)}>
+                        {alarm.alarmSystemState || "UNKNOWN"}
+                      </Badge>
+                    </div>
+                    <div className="text-sm font-medium truncate">
+                      {alarm.problemDescription || alarm.alarmId || "Unknown Alarm"}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {alarm.faultFamily}:{alarm.faultMember}:{alarm.faultCode}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {formatTimestamp(alarm.sourceTimestamp)}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => shelveAlarm(alarm)}
+                        className="flex-1 px-3 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                        disabled={alarm.shelved}
+                      >
+                        <ArchiveIcon fontSize="small" className="inline mr-1" />
+                        {alarm.shelved ? "Shelved" : "Shelve"}
+                      </button>
+                      <button
+                        onClick={() => acknowledgeAlarm(alarm)}
+                        className="flex-1 px-3 py-1.5 text-xs font-medium bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        disabled={alarm.acknowledged}
+                      >
+                        <CheckCircleIcon fontSize="small" className="inline mr-1" />
+                        {alarm.acknowledged ? "Acknowledged" : "Acknowledge"}
+                      </button>
+                      <button
+                        onClick={() => clearAlarm(alarm)}
+                        className="flex-1 px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                      >
+                        <X fontSize="small" className="inline mr-1" />
+                        Clear
+                      </button>
 
+                    </div>
                   </div>
-                </div>
-              </div> 
-              {selectedAlarm === alarm.id && (
-                <div className="ml-10 p-3 rounded-lg bg-accent/50 border border-border">
-                  <h4 className="text-xs font-semibold text-foreground mb-2">Action Required</h4>
-                  <p className="text-xs text-muted-foreground">{alarm.actionRequired}</p>
-                </div>
-              )}
-            </div>
+                </div> 
+                {selectedAlarm === alarm.id && (
+                  <div className="ml-10 p-3 rounded-lg bg-accent/50 border border-border">
+                    <h4 className="text-xs font-semibold text-foreground mb-2">Action Required</h4>
+                    <p className="text-xs text-muted-foreground">{alarm.actionRequired}</p>
+                  </div>
+                )}
+              </div>
+            )
           ))}
         </div>
       </ScrollArea>
