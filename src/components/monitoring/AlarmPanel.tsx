@@ -55,8 +55,6 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
         return "secondary";
       case "CLEARED":
         return "outline";
-      case "SHELVED":
-        return "muted";
       default:
         return "outline";
     }
@@ -194,12 +192,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
               <div
               key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
               onClick={() => setSelectedAlarm(alarm)}
-              className={`relative w-full text-left px-2 py-2 rounded hover:bg-muted ${
-                selectedAlarm?.alarmId === alarm.alarmId &&
-                selectedAlarm?.sourceTimestamp === alarm.sourceTimestamp
-                ? "bg-muted"
-                : ""
-              }`}
+              className={`relative w-full text-left px-2 py-2 rounded hover:bg-muted ${selectedAlarm?.alarmId === alarm.alarmId ? "bg-muted" : ""}`}
               >
                 <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${getPriorityColorSideLine(alarm.alarmPriority)}`} />
                 <div className="flex items-start gap-2">
@@ -211,6 +204,9 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                       <Badge variant={getStateColor(alarm.alarmSystemState)}>
                         {alarm.alarmSystemState || "UNKNOWN"}
                       </Badge>
+                      {alarm.shelved &&
+                        <Badge variant="shelved" >SHELVED</Badge>
+                      }
                     </div>
                     <div className="text-sm font-medium truncate">
                       {alarm.problemDescription || alarm.alarmId || "Unknown Alarm"}
