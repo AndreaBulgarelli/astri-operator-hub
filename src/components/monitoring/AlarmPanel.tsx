@@ -95,6 +95,22 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
       console.error("Error acknowledging alarm:", err);
     });
   };
+
+  const clearAlarm = (alarm: AlarmEvent) => {
+    // Mark the alarm as acknowledged locally
+    console.log("Clearing alarm:", alarm);
+    fetch(`${OPAPI_BASE_URL}/clear/${alarm.alarmId}`).
+    then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to clear alarm: ${response.statusText}`);
+      }
+      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, cleared: true, alarmSystemState: "CLEARED" } : a));
+    }).
+    catch(err => {
+      console.error("Error clearing alarm:", err);
+    });
+  };
+
   return (
     <Card className="control-panel p-3 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
@@ -135,26 +151,6 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                     <Badge variant={getStateColor(alarm.alarmSystemState)}>
                       {alarm.alarmSystemState || "UNKNOWN"}
                     </Badge>
-                    {/* <div className="ml-auto">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="h-8 text-xs"
-                        onClick={() => acknowledgeAlarm(alarm)}
-                        disabled={alarm.acknowledged}
-                      >
-                        {alarm.acknowledged ? "Acknowledged" : "Acknowledge"}
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="h-8 text-xs"
-                        onClick={() => shelveAlarm(alarm)}
-                        disabled={alarm.shelved}
-                      >
-                        {alarm.shelved ? "Shelved" : "Shelve"}
-                      </Button>
-                    </div> */}
                   </div>
                   <div className="text-sm font-medium truncate">
                     {alarm.problemDescription || alarm.alarmId || "Unknown Alarm"}
@@ -183,7 +179,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                       {alarm.acknowledged ? "Acknowledged" : "Acknowledge"}
                     </button>
                     <button
-                      // onClick={() => handleClear(alarm.alarmId)}
+                      onClick={() => clearAlarm(alarm)}
                       className="flex-1 px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
                     >
                       <X fontSize="small" className="inline mr-1" />
