@@ -87,16 +87,20 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
 
   const shelveAlarm = (alarm: AlarmEvent) => {
     // Mark the alarm as shelved locally
-    console.log("Shelving alarm:", alarm);
-    fetch(`${OPAPI_BASE_URL}/shelve/${alarm.alarmId}`).
+    console.log("Shelving/Unshelving alarm:", alarm);
+    let requestUrl = `${OPAPI_BASE_URL}/shelve/${alarm.alarmId}`;
+    if (alarm.shelved)
+      requestUrl = `${OPAPI_BASE_URL}/unshelve/${alarm.alarmId}`;
+
+    fetch(requestUrl).
     then(response => {
       if (!response.ok) {
-        throw new Error(`Failed to shelve alarm: ${response.statusText}`);
+        throw new Error(`Failed to shelve/unshelve alarm: ${response.statusText}`);
       }
-      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, shelved: true } : a));
+      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, shelved: !alarm.shelved } : a));
     }).
     catch(err => {
-      console.error("Error shelving alarm:", err);
+      console.error("Error shelving/unshelving alarm:", err);
     });
   };
 
@@ -161,6 +165,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                         <div className="form-check ms-1" >
                           <Checkbox
                             id={`checkbox-${state}`}
+                            checked={stateFilters.has(state)}
                             defaultChecked={false}
                             onCheckedChange={(checked) => updateAlarmsToView(!!checked, state)}
                           />
@@ -220,10 +225,9 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                       <button
                         onClick={() => shelveAlarm(alarm)}
                         className="flex-1 px-3 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                        disabled={alarm.shelved}
                       >
                         <ArchiveIcon fontSize="small" className="inline mr-1" />
-                        {alarm.shelved ? "Shelved" : "Shelve"}
+                        {alarm.shelved ? "Unshelve" : "Shelve"}
                       </button>
                       <button
                         onClick={() => acknowledgeAlarm(alarm)}
