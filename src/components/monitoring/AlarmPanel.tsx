@@ -151,27 +151,27 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
           {/* checkboxes for alarm states filter inside a dropdown menu */}
           <DropdownMenuPrimitive.Root>
             <DropdownMenuPrimitive.Trigger>
-              <Badge variant="secondary" className="text-sm"><Menu /> Menu</Badge>
+              <Badge variant="secondary" className="text-sm"><Menu /> States</Badge>
             </DropdownMenuPrimitive.Trigger>
             <DropdownMenuPrimitive.Portal>
-              <DropdownMenuPrimitive.Content
-                className="bg-popover text-popover-foreground z-50 min-w-[220px] rounded-md border border-popover-foreground/10 p-1 shadow-lg"
-                sideOffset={5}
-                >
+              <DropdownMenuPrimitive.Content className="bg-popover text-popover-foreground z-50 min-w-[220px] rounded-md border border-popover-foreground/10 p-1 shadow-lg" >
+                  <div className="flex items-center p-2 bg-secondary/30 rounded-lg ml-auto mb-2 justify-end">
+                    <div className={`form-check ms-1 font-bold underline cursor-pointer ${stateFilters.size === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}  onClick={stateFilters.size === 0 ? undefined : () => setStateFilters(new Set())}>Clear</div>
+                  </div>
                  { alarmStates.map((state, index) => (
-                      <div className="flex items-center p-2 bg-secondary/30 rounded-lg" key={index}>
-                        <div className="form-check ms-1" >
-                          <Checkbox
-                            id={`checkbox-${state}`}
-                            checked={stateFilters.has(state)}
-                            defaultChecked={false}
-                            onCheckedChange={(checked) => updateAlarmsToView(!!checked, state)}
-                          />
-                          <label className="ml-2 text-sm font-medium cursor-pointer">
-                            {state.charAt(0).toUpperCase() + state.slice(1)}
-                          </label>
-                        </div>
+                    <div className="flex items-center p-2 bg-secondary/30 rounded-lg" key={index}>
+                      <div className="form-check ms-1" >
+                        <Checkbox
+                          id={`checkbox-${state}`}
+                          checked={stateFilters.has(state)}
+                          defaultChecked={false}
+                          onCheckedChange={(checked) => updateAlarmsToView(!!checked, state)}
+                        />
+                        <label className="ml-2 text-sm font-medium cursor-pointer">
+                          {state.charAt(0).toUpperCase() + state.slice(1)}
+                        </label>
                       </div>
+                    </div>
                   ))} 
                   </DropdownMenuPrimitive.Content>
             </DropdownMenuPrimitive.Portal>
