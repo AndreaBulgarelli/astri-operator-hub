@@ -9,9 +9,9 @@ import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
 
 const OPAPI_BASE_URL = (import.meta as any).env?.VITE_OPAPI_BASE_URL || "http://localhost:5050";
 
-export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[], setAlarms: React.Dispatch<React.SetStateAction<AlarmEvent[]>>, connected: boolean}) => {
+export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, connected}: 
+  {alarms: AlarmEvent[], setAlarms: React.Dispatch<React.SetStateAction<AlarmEvent[]>>, selectedAlarm: AlarmEvent | null,  setSelectedAlarm: React.Dispatch<React.SetStateAction<AlarmEvent | null>>, connected: boolean}) => {
   
-  const [selectedAlarm, setSelectedAlarm] = useState<AlarmEvent | null>(null);
   const [stateFilters, setStateFilters] = useState(new Set());
 
   const getPriorityColor = (priority?: string) => {
@@ -192,7 +192,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
               <div
               key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
               onClick={() => setSelectedAlarm(alarm)}
-              className={`relative w-full text-left px-2 py-2 rounded hover:bg-muted ${selectedAlarm?.alarmId === alarm.alarmId ? "bg-muted" : ""}`}
+              className={`relative text-left px-2 py-2 rounded hover:bg-muted ${selectedAlarm?.alarmId === alarm.alarmId ? "bg-muted" : ""}`}
               >
                 <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${getPriorityColorSideLine(alarm.alarmPriority)}`} />
                 <div className="flex items-start gap-2">
@@ -220,14 +220,14 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                     <div className="flex gap-2">
                       <button
                         onClick={() => shelveAlarm(alarm)}
-                        className="flex-1 px-3 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                        className="flex-1 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                       >
                         <ArchiveIcon fontSize="small" className="inline mr-1" />
                         {alarm.shelved ? "Unshelve" : "Shelve"}
                       </button>
                       <button
                         onClick={() => acknowledgeAlarm(alarm)}
-                        className="flex-1 px-3 py-1.5 text-xs font-medium bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        className="flex-1 py-1.5 text-xs font-medium bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                         disabled={alarm.acknowledged}
                       >
                         <CheckCircleIcon fontSize="small" className="inline mr-1" />
@@ -235,7 +235,7 @@ export const AlarmPanel = ({alarms, setAlarms, connected}: {alarms: AlarmEvent[]
                       </button>
                       <button
                         onClick={() => clearAlarm(alarm)}
-                        className="flex-1 px-3 py-1.5 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                        className="flex-1 py-1.5 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
                       >
                         <X fontSize="small" className="inline mr-1" />
                         Clear

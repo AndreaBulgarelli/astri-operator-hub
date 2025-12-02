@@ -21,6 +21,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
   const [currentPlanData, setCurrentPlanData] = useState<any[]>([]);
   const [alarms, setAlarms] = useState<AlarmEvent[]>([]);
+  const [selectedAlarm, setSelectedAlarm] = useState<AlarmEvent | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -134,7 +135,7 @@ const Index = () => {
             <ResizablePanelGroup direction="vertical" className="h-full">
               <ResizablePanel defaultSize={50} minSize={30}>
                 <div className="h-full pr-2 pb-2">
-                  <AlarmPanel alarms={alarms} setAlarms={setAlarms} connected={connected} />
+                  <AlarmPanel alarms={alarms} selectedAlarm={selectedAlarm} setSelectedAlarm={setSelectedAlarm} setAlarms={setAlarms} connected={connected} />
                 </div>
               </ResizablePanel>
 
