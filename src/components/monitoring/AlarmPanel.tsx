@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bell, ArchiveIcon, CheckCircleIcon, X, Menu } from "lucide-react";
+import { Bell, ArchiveIcon, CheckCircleIcon, X, Menu, ExternalLink } from "lucide-react";
 import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
 import { useRightPanel } from "@/context/RightPanelContext";
 
@@ -155,12 +155,18 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
             <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Alarm ID</label>
             <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 break-words">{alarm.alarmId}</p>
           </div>
-          {/* Problem Description - Highlighted */}
+          {/* Problem Description */}
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4">
             <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Problem Description</label>
             <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 font-medium">
               {alarm.problemDescription}
             </p>
+          </div>
+          {/* Link tho the Help URL */}
+          <div>
+            <a href={alarm.helpUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              Help URL
+            </a>
           </div>
           {/* Timestamp */}
           <div>
