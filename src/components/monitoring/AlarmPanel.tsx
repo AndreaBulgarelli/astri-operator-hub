@@ -363,7 +363,7 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
               <div
               key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
               onClick={() => handleAlarmClick(alarm)}
-              className={`relative text-left px-2 py-2 rounded hover:bg-muted ${selectedAlarm?.alarmId === alarm.alarmId ? "bg-muted" : ""}`}
+              className={`relative text-left px-3 py-2 border border-gray-200 rounded hover:bg-muted ${selectedAlarm?.alarmId === alarm.alarmId ? "bg-muted" : ""}`}
               >
                 <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${getPriorityColorSideLine(alarm.alarmPriority)}`} />
                 <div className="flex items-start gap-2">
