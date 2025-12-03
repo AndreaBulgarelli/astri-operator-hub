@@ -1,3 +1,4 @@
+import styled from "styled-components";
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Header } from "@/components/layout/Header";
@@ -15,7 +16,34 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { Card } from "@/components/ui/card";
 import { Telescope, Box, AlertTriangle, CircleCheck, Activity, CloudSun, Eye } from "lucide-react";
 import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
-import { set } from "date-fns";
+import { useRightPanel } from '../context/RightPanelContext';
+
+const PageContent = styled.div<{ $rightpanelopen?: boolean }>`
+  flex: 1;
+  padding: 16px;
+  transition: margin-right 0.3s ease;
+  margin-right: ${props => props.$rightpanelopen ? '400px' : '0'};
+`;
+
+const RightPanel = styled.div<{ $isopen?: boolean }>`
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 400px;
+  height: 100vh;
+  background: white;
+  border-left: 1px solid #e5e7eb;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  z-index: 999;
+  transition: transform 0.3s ease;
+  transform: ${props => props.$isopen ? 'translateX(0)' : 'translateX(100%)'};
+  
+  .dark & {
+    background: #1f2937;
+    border-left-color: #374151;
+  }
+`;
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
@@ -24,6 +52,7 @@ const Index = () => {
   const [selectedAlarm, setSelectedAlarm] = useState<AlarmEvent | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { content: rightPanelContent, isOpen: rightpanelopen, close: closeRightPanel } = useRightPanel();
   
   useEffect(() => {
     const ws = setWS(updateAlarms, onConnected, onError, onClose);
@@ -129,101 +158,116 @@ const Index = () => {
             ))}
           </div>
         )}
+        <PageContent $rightpanelopen={rightpanelopen}>
+          <ResizablePanelGroup direction="horizontal" className="flex-1">
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <ResizablePanelGroup direction="vertical" className="h-full">
+                <ResizablePanel defaultSize={50} minSize={30}>
+                  <div className="h-full pr-2 pb-2">
+                    <AlarmPanel alarms={alarms} selectedAlarm={selectedAlarm} setSelectedAlarm={setSelectedAlarm} setAlarms={setAlarms} connected={connected} />
+                  </div>
+                </ResizablePanel>
 
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
-          <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-            <ResizablePanelGroup direction="vertical" className="h-full">
-              <ResizablePanel defaultSize={50} minSize={30}>
-                <div className="h-full pr-2 pb-2">
-                  <AlarmPanel alarms={alarms} selectedAlarm={selectedAlarm} setSelectedAlarm={setSelectedAlarm} setAlarms={setAlarms} connected={connected} />
-                </div>
-              </ResizablePanel>
+                <ResizableHandle withHandle />
 
-              <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={50} minSize={30}>
+                  <div className="h-full pr-2 pt-2">
+                    <EventLog />
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </ResizablePanel>
 
-              <ResizablePanel defaultSize={50} minSize={30}>
-                <div className="h-full pr-2 pt-2">
-                  <EventLog />
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
+            <ResizableHandle withHandle />
 
-          <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={75} minSize={60}>
+              <div className="h-full pl-2">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+                  <TabsList className="bg-secondary w-full justify-start">
+                    <TabsTrigger value="monitoring">System Monitoring</TabsTrigger>
+                    <TabsTrigger value="startup">Startup</TabsTrigger>
+                    <TabsTrigger value="preparation">Preparation</TabsTrigger>
+                    <TabsTrigger value="array">Array</TabsTrigger>
+                    <TabsTrigger value="observation">Observation</TabsTrigger>
+                    <TabsTrigger value="site-monitoring">Monitoring</TabsTrigger>
+                    <TabsTrigger value="end">End</TabsTrigger>
+                    <TabsTrigger value="utility">Utility</TabsTrigger>
+                  </TabsList>
 
-          <ResizablePanel defaultSize={75} minSize={60}>
-            <div className="h-full pl-2">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-                <TabsList className="bg-secondary w-full justify-start">
-                  <TabsTrigger value="monitoring">System Monitoring</TabsTrigger>
-                  <TabsTrigger value="startup">Startup</TabsTrigger>
-                  <TabsTrigger value="preparation">Preparation</TabsTrigger>
-                  <TabsTrigger value="array">Array</TabsTrigger>
-                  <TabsTrigger value="observation">Observation</TabsTrigger>
-                  <TabsTrigger value="site-monitoring">Monitoring</TabsTrigger>
-                  <TabsTrigger value="end">End</TabsTrigger>
-                  <TabsTrigger value="utility">Utility</TabsTrigger>
-                </TabsList>
+                  <div className="flex-1 mt-2">
+                    <TabsContent value="monitoring" className="h-full m-0">
+                      <SystemMonitoring />
+                    </TabsContent>
 
-                <div className="flex-1 mt-2">
-                  <TabsContent value="monitoring" className="h-full m-0">
-                    <SystemMonitoring />
-                  </TabsContent>
+                    <TabsContent value="startup" className="h-full m-0">
+                      <StartupTab />
+                    </TabsContent>
 
-                  <TabsContent value="startup" className="h-full m-0">
-                    <StartupTab />
-                  </TabsContent>
+                    <TabsContent value="preparation" className="h-full m-0">
+                      <PreparationTab />
+                    </TabsContent>
 
-                  <TabsContent value="preparation" className="h-full m-0">
-                    <PreparationTab />
-                  </TabsContent>
+                    <TabsContent value="array" className="h-full m-0">
+                      <ArrayTab />
+                    </TabsContent>
 
-                  <TabsContent value="array" className="h-full m-0">
-                    <ArrayTab />
-                  </TabsContent>
-
-                  <TabsContent value="observation" className="h-full m-0">
-                    <ObservationTab 
-                      onPlanDataChange={(planData) => {
-                        if (planData) {
+                    <TabsContent value="observation" className="h-full m-0">
+                      <ObservationTab 
+                        onPlanDataChange={(planData) => {
+                          if (planData) {
+                            setCurrentPlanData(prev => {
+                              const exists = prev.find(p => p.id === planData.id);
+                              if (exists) {
+                                return prev.map(p => p.id === planData.id ? planData : p);
+                              }
+                              return [...prev, planData];
+                            });
+                          }
+                        }}
+                        onPlanStart={(planData) => {
                           setCurrentPlanData(prev => {
                             const exists = prev.find(p => p.id === planData.id);
-                            if (exists) {
-                              return prev.map(p => p.id === planData.id ? planData : p);
+                            if (!exists) {
+                              return [...prev, planData];
                             }
-                            return [...prev, planData];
+                            return prev;
                           });
-                        }
-                      }}
-                      onPlanStart={(planData) => {
-                        setCurrentPlanData(prev => {
-                          const exists = prev.find(p => p.id === planData.id);
-                          if (!exists) {
-                            return [...prev, planData];
-                          }
-                          return prev;
-                        });
-                      }}
-                    />
-                  </TabsContent>
+                        }}
+                      />
+                    </TabsContent>
 
-                  <TabsContent value="site-monitoring" className="h-full m-0">
-                    <MonitoringTab />
-                  </TabsContent>
+                    <TabsContent value="site-monitoring" className="h-full m-0">
+                      <MonitoringTab />
+                    </TabsContent>
 
-                  <TabsContent value="end" className="h-full m-0">
-                    <EndTab />
-                  </TabsContent>
+                    <TabsContent value="end" className="h-full m-0">
+                      <EndTab />
+                    </TabsContent>
 
-                  <TabsContent value="utility" className="h-full m-0">
-                    <UtilityTab />
-                  </TabsContent>
-                </div>
-              </Tabs>
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+                    <TabsContent value="utility" className="h-full m-0">
+                      <UtilityTab />
+                    </TabsContent>
+                  </div>
+                </Tabs>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </PageContent>
       </div>
+      <RightPanel $isopen={rightpanelopen}>
+        {rightpanelopen && (
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Alarm Information</h3>
+              <button
+                onClick={closeRightPanel}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >✕</button>
+            </div>
+            {rightPanelContent}
+          </div>
+        )}
+      </RightPanel>
     </div>
   );
 };

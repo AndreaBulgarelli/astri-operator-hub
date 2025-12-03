@@ -6,6 +6,7 @@ import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell, ArchiveIcon, CheckCircleIcon, X, Menu } from "lucide-react";
 import { AlarmEvent, setWS } from "@/lib/ws-alarms-utilities";
+import { useRightPanel } from "@/context/RightPanelContext";
 
 const OPAPI_BASE_URL = (import.meta as any).env?.VITE_OPAPI_BASE_URL || "http://localhost:5050";
 
@@ -13,6 +14,7 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
   {alarms: AlarmEvent[], setAlarms: React.Dispatch<React.SetStateAction<AlarmEvent[]>>, selectedAlarm: AlarmEvent | null,  setSelectedAlarm: React.Dispatch<React.SetStateAction<AlarmEvent | null>>, connected: boolean}) => {
   
   const [stateFilters, setStateFilters] = useState(new Set());
+  const { setContent } = useRightPanel();
 
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
@@ -57,6 +59,17 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
         return "outline";
       default:
         return "outline";
+    }
+  };
+
+  const getAcsStateBgColor = (state: string) => {
+    switch (state) {
+      case 'ACTIVE':
+        return 'bg-red-500 dark:bg-red-500';
+      case 'INACTIVE':
+        return 'bg-green-500 dark:bg-green-500';
+      default:
+        return 'bg-gray-400 dark:bg-gray-500';
     }
   };
 
@@ -132,6 +145,164 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
     });
   };
 
+  const handleAlarmClick = (alarm: AlarmEvent | null) => {
+    setSelectedAlarm(alarm);
+    if (alarm) {
+      setContent(
+        <div className="space-y-6">
+          {/* Alarm ID on single row */}
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Alarm ID</label>
+            <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 break-words">{alarm.alarmId}</p>
+          </div>
+          {/* Problem Description - Highlighted */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Problem Description</label>
+            <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 font-medium">
+              {alarm.problemDescription}
+            </p>
+          </div>
+          {/* Timestamp */}
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Timestamp</label>
+            <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">
+              {formatTimestamp(alarm.timestamp || alarm.sourceTimestamp || Date.now())}
+            </p>
+          </div>
+          
+          {/* Receive Count */}
+          <div>
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Receive Count</label>
+            <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 font-semibold">
+              {alarm.receiveCount || 1}
+            </p>
+          </div>
+
+          {/* Action Required - Always shown explicitly */}
+          <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded">
+            <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Action Required</label>
+            <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">
+              {alarm.actionRequired || 'TBD'}
+            </p>
+          </div>
+          
+          {/* Problem Description from SCDB - Highlighted */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Problem Description</label>
+            <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 font-medium">
+              {alarm.problemDescription}
+            </p>
+          </div>
+          
+          
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Priotiry</label>
+              <div>
+                <Badge variant={getPriorityColor(alarm.alarmPriority)}>
+                  {alarm.alarmPriority || "UNKNOWN"}
+                </Badge>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">System State</label>
+              <div>
+                <Badge variant={getStateColor(alarm.alarmSystemState)}>
+                  {alarm.alarmSystemState || "UNKNOWN"}
+                </Badge>
+              </div>
+            </div>
+            {alarm.shelved &&
+            <div>
+                <div></div>
+                <Badge variant="shelved" >SHELVED</Badge>
+            </div>
+            }
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Receive Count</label>
+              <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 font-semibold">
+                {alarm.receiveCount || 1}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Fault Family</label>
+              <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.faultFamily}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Fault Member</label>
+              <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.faultMember}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Fault Code</label>
+              <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.faultCode}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500 dark:text-gray-400">ACS Alarm State</label>
+              <div className="mt-1">
+                <span className={`inline-block px-3 py-1.5 rounded text-sm font-medium text-white ${getAcsStateBgColor(alarm.acsAlarmState)}`}>
+                  {alarm.acsAlarmState}
+                </span>
+              </div>
+            </div>
+            {alarm.reduced !== undefined && (
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Reduced</label>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.reduced ? 'Yes' : 'No'}</p>
+              </div>
+            )}
+            {alarm.acknowledged !== undefined && (
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Acknowledged</label>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.acknowledged ? 'Yes' : 'No'}</p>
+              </div>
+            )}
+            {alarm.masked !== undefined && (
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Masked</label>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.masked ? 'Yes' : 'No'}</p>
+              </div>
+            )}
+            {alarm.documented !== undefined && (
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Documented</label>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.documented ? 'Yes' : 'No'}</p>
+              </div>
+            )}
+            {alarm.sourceName && (
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Source Name</label>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.sourceName}</p>
+              </div>
+            )}
+            {alarm.sourceHostname && (
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Source Hostname</label>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.sourceHostname}</p>
+              </div>
+            )}
+            {alarm.systemId && (
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">System ID</label>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.systemId}</p>
+              </div>
+            )}
+            {alarm.systemName && (
+              <div>
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">System Name</label>
+                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.systemName}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    } else {
+      setContent(null);
+    }
+  };
+
   return (
     <Card className="control-panel p-3 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
@@ -191,7 +362,7 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
             ) && (
               <div
               key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
-              onClick={() => setSelectedAlarm(alarm)}
+              onClick={() => handleAlarmClick(alarm)}
               className={`relative text-left px-2 py-2 rounded hover:bg-muted ${selectedAlarm?.alarmId === alarm.alarmId ? "bg-muted" : ""}`}
               >
                 <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${getPriorityColorSideLine(alarm.alarmPriority)}`} />
