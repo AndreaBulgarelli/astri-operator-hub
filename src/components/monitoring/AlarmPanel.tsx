@@ -51,12 +51,12 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
     switch (state) {
       case "NEW":
         return "destructive";
-      case "ACTIVE":
-        return "default";
       case "ACKNOWLEDGED":
         return "secondary";
       case "CLEARED":
         return "outline";
+      case "SHELVED":
+        return "shelved";
       default:
         return "outline";
     }
@@ -108,7 +108,7 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
       if (!response.ok) {
         throw new Error(`Failed to shelve/unshelve alarm: ${response.statusText}`);
       }
-      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, shelved: !alarm.shelved } : a));
+      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, shelved: !alarm.shelved, alarmSystemState: "SHELVED" } : a));
     }).
     catch(err => {
       console.error("Error shelving/unshelving alarm:", err);
@@ -381,9 +381,6 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
                       <Badge variant={getStateColor(alarm.alarmSystemState)}>
                         {alarm.alarmSystemState || "UNKNOWN"}
                       </Badge>
-                      {alarm.shelved &&
-                        <Badge variant="shelved" >SHELVED</Badge>
-                      }
                     </div>
                     <div className="text-sm font-medium truncate">
                       {alarm.problemDescription || alarm.alarmId || "Unknown Alarm"}
