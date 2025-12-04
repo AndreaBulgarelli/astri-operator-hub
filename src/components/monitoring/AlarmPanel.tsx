@@ -302,7 +302,7 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
 
   return (
     <Card className="control-panel p-3 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 mr-3">
         <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Bell className="h-5 w-5 text-primary" />
           Active Alarms
@@ -315,7 +315,7 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
         <span className="text-xs text-muted-foreground">
           {connected ? "Connected" : "Disconnected"} to webSocket
         </span>
-        <div className="ml-auto">
+        <div className="ml-auto mr-3">
           {/* checkboxes for alarm states filter inside a dropdown menu */}
           <DropdownMenuPrimitive.Root>
             <DropdownMenuPrimitive.Trigger>
@@ -360,7 +360,7 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
               <div
               key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
               onClick={() => handleAlarmClick(alarm)}
-              className={`relative text-left px-3 py-2 border border-gray-200 rounded hover:bg-muted ${selectedAlarm?.alarmId === alarm.alarmId ? "bg-muted" : ""}`}
+              className={`relative text-left px-3 py-2 border border-gray-200 rounded hover:bg-muted mr-3 ${selectedAlarm?.alarmId === alarm.alarmId ? "bg-muted" : ""}`}
               >
                 <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-lg ${getPriorityColorSideLine(alarm.alarmPriority)}`} />
                 <div className="flex items-start gap-2">
@@ -385,23 +385,23 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
                     <div className="flex gap-2">
                       <button
                         onClick={(e) => {e.stopPropagation(); shelveAlarm(alarm)}}
-                        className={`flex-1 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded ${alarm.alarmSystemState === "NEW" || alarm.alarmSystemState === "NORMAL" || alarm.alarmSystemState === "SHELVED" ? "hover:bg-gray-300 dark:hover:bg-gray-600" : "opacity-50 cursor-not-allowed"} transition-colors`}
+                        className={`flex-1 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors`}
                       >
                         <ArchiveIcon fontSize="small" className="inline mr-1" />
                         {alarm.alarmSystemState === "SHELVED" ? "Unshelve" : "Shelve"}
                       </button>
                       <button
                         onClick={(e) => {e.stopPropagation(); acknowledgeAlarm(alarm)}}
-                        className={`flex-1 py-1.5 text-xs font-medium bg-blue-500 text-white rounded ${alarm.alarmSystemState === "NEW" || alarm.alarmSystemState === "NORMAL" ? "hover:bg-blue-600" : "opacity-50 cursor-not-allowed"} transition-colors`}
-                        disabled={alarm.alarmSystemState !== "NEW" && alarm.alarmSystemState !== "NORMAL"}
+                        className={`flex-1 py-1.5 text-xs font-medium bg-blue-500 text-white rounded ${alarm.alarmSystemState !== "ACKNOWLEDGED" ? "hover:bg-blue-600" : "opacity-50 cursor-not-allowed"} transition-colors`}
+                        disabled={alarm.alarmSystemState === "ACKNOWLEDGED"}
                       >
                         <CheckCircleIcon fontSize="small" className="inline mr-1" />
                         Acknowledge
                       </button>
                       <button
                         onClick={(e) => {e.stopPropagation(); clearAlarm(alarm)}}
-                        className={`flex-1 py-1.5 text-xs font-medium bg-green-500 text-white rounded ${alarm.alarmSystemState === "NEW" || alarm.alarmSystemState === "NORMAL" ? "hover:bg-green-600" : "opacity-50 cursor-not-allowed"} transition-colors`}
-                        disabled={alarm.alarmSystemState !== "NEW" && alarm.alarmSystemState !== "NORMAL"}
+                        className={`flex-1 py-1.5 text-xs font-medium bg-green-500 text-white rounded ${alarm.alarmSystemState !== "CLEARED" ? "hover:bg-green-600" : "opacity-50 cursor-not-allowed"} transition-colors`}
+                        disabled={alarm.alarmSystemState === "CLEARED"}
                       >
                         <X fontSize="small" className="inline mr-1" />
                         Clear
