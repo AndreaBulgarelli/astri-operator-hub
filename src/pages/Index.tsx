@@ -59,10 +59,11 @@ const Index = () => {
   
   useEffect(() => {
     // load all the alarms from the backend
+    console.log("calling useEffect from index.tsx to load alarms");
     let alarmsEndpointUrl = `${ALARMSAPI_URL}/alarms`;
     fetch(alarmsEndpointUrl)
       .then(response => response.json())
-      .then(data => setAlarms(data.alarms))
+      .then(data => data.alarms && setAlarms(data.alarms))
       .catch(err => setError("Failed to load alarms"));
 
     const ws = setWS(updateAlarms, onConnected, onError, onClose);
