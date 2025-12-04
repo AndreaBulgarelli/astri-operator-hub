@@ -99,16 +99,19 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
   const shelveAlarm = (alarm: AlarmEvent) => {
     // Mark the alarm as shelved locally
     console.log("Shelving/Unshelving alarm:", alarm);
+    let newSystemState = "SHELVED";
     let requestUrl = `${OPAPI_BASE_URL}/shelve/${alarm.alarmId}`;
-    if (alarm.shelved)
+    if (alarm.alarmSystemState === "SHELVED") {
+      newSystemState = "NEW"
       requestUrl = `${OPAPI_BASE_URL}/unshelve/${alarm.alarmId}`;
+    }
 
     fetch(requestUrl).
     then(response => {
       if (!response.ok) {
         throw new Error(`Failed to shelve/unshelve alarm: ${response.statusText}`);
       }
-      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, shelved: !alarm.shelved, alarmSystemState: "SHELVED" } : a));
+      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, alarmSystemState: newSystemState } : a));
     }).
     catch(err => {
       console.error("Error shelving/unshelving alarm:", err);
@@ -138,7 +141,7 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
       if (!response.ok) {
         throw new Error(`Failed to clear alarm: ${response.statusText}`);
       }
-      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, cleared: true, alarmSystemState: "CLEARED" } : a));
+      setAlarms((prevAlarms) => prevAlarms.map(a => a.alarmId === alarm.alarmId ? { ...a, alarmSystemState: "CLEARED" } : a));
     }).
     catch(err => {
       console.error("Error clearing alarm:", err);
@@ -218,12 +221,6 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
                 </Badge>
               </div>
             </div>
-            {alarm.shelved &&
-            <div>
-                <div></div>
-                <Badge variant="shelved" >SHELVED</Badge>
-            </div>
-            }
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -257,12 +254,6 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Reduced</label>
                 <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.reduced ? 'Yes' : 'No'}</p>
-              </div>
-            )}
-            {alarm.acknowledged !== undefined && (
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">Acknowledged</label>
-                <p className="text-sm text-gray-800 dark:text-gray-200 mt-1">{alarm.acknowledged ? 'Yes' : 'No'}</p>
               </div>
             )}
             {alarm.masked !== undefined && (
@@ -362,9 +353,9 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
           {alarms.map((alarm, index) => (
             // Filter alarms based on stateFilters
             (stateFilters.size === 0 || 
-              (alarm.shelved && stateFilters.has('shelved')) ||
-              (alarm.acknowledged && stateFilters.has('acknowledged')) ||
-              (alarm.cleared && stateFilters.has('cleared'))
+              (alarm.alarmSystemState === "SHELVED" && stateFilters.has('shelved')) ||
+              (alarm.alarmSystemState === "ACKNOWLEDGED" && stateFilters.has('acknowledged')) ||
+              (alarm.alarmSystemState === "CLEARED" && stateFilters.has('cleared'))
             ) && (
               <div
               key={`${alarm.alarmId}-${alarm.sourceTimestamp}-${index}`}
@@ -397,19 +388,20 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
                         className="flex-1 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                       >
                         <ArchiveIcon fontSize="small" className="inline mr-1" />
-                        {alarm.shelved ? "Unshelve" : "Shelve"}
+                        {alarm.alarmSystemState === "SHELVED" ? "Unshelve" : "Shelve"}
                       </button>
                       <button
                         onClick={() => acknowledgeAlarm(alarm)}
-                        className="flex-1 py-1.5 text-xs font-medium bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                        disabled={alarm.acknowledged}
+                        className={`flex-1 py-1.5 text-xs font-medium bg-blue-500 text-white rounded ${alarm.alarmSystemState === "ACKNOWLEDGED" ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"} transition-colors`}
+                        disabled={alarm.alarmSystemState === "ACKNOWLEDGED"}
                       >
                         <CheckCircleIcon fontSize="small" className="inline mr-1" />
-                        {alarm.acknowledged ? "Acknowledged" : "Acknowledge"}
+                        Acknowledge
                       </button>
                       <button
                         onClick={() => clearAlarm(alarm)}
-                        className="flex-1 py-1.5 text-xs font-medium bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                        className={`flex-1 py-1.5 text-xs font-medium bg-green-500 text-white rounded ${alarm.alarmSystemState === "CLEARED" ? "opacity-50 cursor-not-allowed" : "hover:bg-green-600"} transition-colors`}
+                        disabled={alarm.alarmSystemState === "CLEARED"}
                       >
                         <X fontSize="small" className="inline mr-1" />
                         Clear
