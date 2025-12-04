@@ -384,24 +384,24 @@ export const AlarmPanel = ({alarms, setAlarms, selectedAlarm, setSelectedAlarm, 
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => shelveAlarm(alarm)}
+                        onClick={(e) => {e.stopPropagation(); shelveAlarm(alarm)}}
                         className={`flex-1 py-1.5 text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded ${alarm.alarmSystemState === "NEW" || alarm.alarmSystemState === "NORMAL" || alarm.alarmSystemState === "SHELVED" ? "hover:bg-gray-300 dark:hover:bg-gray-600" : "opacity-50 cursor-not-allowed"} transition-colors`}
                       >
                         <ArchiveIcon fontSize="small" className="inline mr-1" />
                         {alarm.alarmSystemState === "SHELVED" ? "Unshelve" : "Shelve"}
                       </button>
                       <button
-                        onClick={() => acknowledgeAlarm(alarm)}
+                        onClick={(e) => {e.stopPropagation(); acknowledgeAlarm(alarm)}}
                         className={`flex-1 py-1.5 text-xs font-medium bg-blue-500 text-white rounded ${alarm.alarmSystemState === "NEW" || alarm.alarmSystemState === "NORMAL" ? "hover:bg-blue-600" : "opacity-50 cursor-not-allowed"} transition-colors`}
-                        disabled={alarm.alarmSystemState === "ACKNOWLEDGED"}
+                        disabled={alarm.alarmSystemState !== "NEW" && alarm.alarmSystemState !== "NORMAL"}
                       >
                         <CheckCircleIcon fontSize="small" className="inline mr-1" />
                         Acknowledge
                       </button>
                       <button
-                        onClick={() => clearAlarm(alarm)}
+                        onClick={(e) => {e.stopPropagation(); clearAlarm(alarm)}}
                         className={`flex-1 py-1.5 text-xs font-medium bg-green-500 text-white rounded ${alarm.alarmSystemState === "NEW" || alarm.alarmSystemState === "NORMAL" ? "hover:bg-green-600" : "opacity-50 cursor-not-allowed"} transition-colors`}
-                        disabled={alarm.alarmSystemState === "CLEARED"}
+                        disabled={alarm.alarmSystemState !== "NEW" && alarm.alarmSystemState !== "NORMAL"}
                       >
                         <X fontSize="small" className="inline mr-1" />
                         Clear
