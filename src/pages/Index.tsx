@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import path from 'path';
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Header } from "@/components/layout/Header";
@@ -45,6 +46,8 @@ const RightPanel = styled.div<{ $isopen?: boolean }>`
   }
 `;
 
+const ALARMSAPI_URL = (import.meta as any).env?.VITE_ALARMSAPI_URL || "http://localhost:5050";
+
 const Index = () => {
   const [activeTab, setActiveTab] = useState("monitoring");
   const [currentPlanData, setCurrentPlanData] = useState<any[]>([]);
@@ -55,6 +58,13 @@ const Index = () => {
   const { content: rightPanelContent, isOpen: rightpanelopen, close: closeRightPanel } = useRightPanel();
   
   useEffect(() => {
+    // load all the alarms from the backend
+    let alarmsEndpointUrl = `${ALARMSAPI_URL}/alarms`;
+    fetch(alarmsEndpointUrl)
+      .then(response => response.json())
+      .then(data => setAlarms(data.alarms))
+      .catch(err => setError("Failed to load alarms"));
+
     const ws = setWS(updateAlarms, onConnected, onError, onClose);
     if (!ws) {
       setError("Failed to connect to WebSocket");
